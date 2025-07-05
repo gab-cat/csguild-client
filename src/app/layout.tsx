@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { JetBrains_Mono, Poppins } from "next/font/google";
+
 import "./globals.css";
+import { Toaster } from "@/components/ui/sonner";
+import { Providers } from "@/lib/providers";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -31,7 +34,10 @@ export default function RootLayout({
       <body
         className={`${poppins.variable} ${jetbrainsMono.variable} antialiased font-poppins bg-gray-950 text-white `}
       >
-        {children}
+        <Providers>
+          {children}
+        </Providers>
+        <Toaster />
       </body>
     </html>
   );
