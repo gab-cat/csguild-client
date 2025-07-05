@@ -1,0 +1,12 @@
+export * from './auth-layout'
+export * from './auth-sync-provider'
+export * from './google-callback-handler'
+export * from './google-profile-completion-form'
+export * from './login-form'
+export * from './register-form'
+export * from './multi-step-register-form'
+export { default as RegistrationStep1 } from './registration-step1'
+export { default as RegistrationStep2 } from './registration-step2'
+export { default as RegistrationStep3 } from './registration-step3'
+export { default as RegistrationStep4 } from './registration-step4'
+// Note: ProtectedRoute is no longer needed - protection is handled by middleware 
