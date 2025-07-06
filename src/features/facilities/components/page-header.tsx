@@ -40,7 +40,7 @@ export function PageHeader() {
               >
                 <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm">
                   <Zap className="h-3 w-3 text-pink-400" />
-                  <span className="font-jetbrains text-xs text-pink-300">
+                  <span className="font-space-mono text-xs text-pink-300">
                     {"// Access control system"}
                   </span>
                 </div>

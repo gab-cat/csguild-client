@@ -1,11 +1,19 @@
 "use client"
 
 import { motion, useInView } from "framer-motion"
-import { Code2, Users, Calendar, Trophy, BookOpen, MessageSquare, ArrowRight, Zap } from "lucide-react"
+import { Code2, Users, Calendar, Trophy, BookOpen, MessageSquare, ArrowRight, Zap, LucideIcon } from "lucide-react"
 import { useRef } from "react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+
+interface Feature {
+  icon: LucideIcon
+  title: string
+  description: string
+  highlight: string
+  color: string
+}
 
 export function FeaturesSection() {
   const ref = useRef(null)
@@ -80,6 +88,56 @@ export function FeaturesSection() {
     },
   }
 
+  // Create feature card component for reusability
+  const FeatureCard = ({ feature, index }: { feature: Feature, index: number }) => (
+    <motion.div
+      variants={cardVariants}
+      className="flex-shrink-0 w-80"
+    >
+      <Card className="bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/20 backdrop-blur-sm hover:from-pink-900/30 hover:to-violet-900/30 hover:border-pink-400/30 transition-all duration-300 group h-full">
+        <CardContent className="p-8">
+          <motion.div
+            className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} bg-opacity-20 flex items-center justify-center mb-6 shadow-lg`}
+          >
+            <feature.icon className="h-6 w-6 text-white" />
+          </motion.div>
+          <motion.h3 
+            className="text-xl font-semibold mb-3 text-white tracking-tight"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
+          >
+            {feature.title}
+          </motion.h3>
+          <motion.p 
+            className="text-gray-200 mb-4 leading-relaxed tracking-tight"
+            initial={{ opacity: 0 }}
+            animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+            transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
+          >
+            {feature.description}
+          </motion.p>
+          <motion.div 
+            className="flex items-center justify-between"
+            initial={{ opacity: 0, y: 10 }}
+            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+            transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
+          >
+            <span className="font-space-mono text-sm text-pink-400">{feature.highlight}</span>
+            <motion.div
+              whileHover={{ scale: 1.1, x: 5 }}
+              whileTap={{ scale: 0.9 }}
+            >
+              <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 p-2">
+                <ArrowRight className="h-4 w-4" />
+              </Button>
+            </motion.div>
+          </motion.div>
+        </CardContent>
+      </Card>
+    </motion.div>
+  )
+
   return (
     <section id="features" className="py-24 relative overflow-hidden bg-black" ref={ref}>
       {/* Grid Pattern Background */}
@@ -99,11 +157,11 @@ export function FeaturesSection() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm mb-6">
               <Zap className="h-4 w-4 text-pink-400" />
-              <span className="font-jetbrains text-sm text-pink-300">{"// Everything you need to succeed"}</span>
+              <span className="font-space-mono text-sm text-pink-300">{"// Everything you need to succeed"}</span>
             </div>
           </motion.div>
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-6 text-white"
+            className="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tighter"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -114,7 +172,7 @@ export function FeaturesSection() {
             </span>
           </motion.h2>
           <motion.p 
-            className="text-xl text-gray-200 max-w-3xl mx-auto"
+            className="text-lg tracking-tight text-gray-200 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -123,90 +181,31 @@ export function FeaturesSection() {
           </motion.p>
         </motion.div>
 
-        {/* Horizontal Scrolling Features */}
-        <div className="relative">
+        {/* Infinite Scrolling Carousel */}
+        <div className="relative overflow-hidden">
           <motion.div
-            className="flex gap-6 overflow-x-auto scroll-snap-x pb-6 scrollbar-hide"
-            style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            className="carousel-container group"
             variants={containerVariants}
             initial="hidden"
             animate={isInView ? "visible" : "hidden"}
           >
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                variants={cardVariants}
-                transition={{ duration: 0.6, delay: index * 0.1 }}
-                whileHover={{ y: -10, scale: 1.02 }}
-                className="flex-shrink-0 w-80 scroll-snap-center"
-              >
-                <Card className="bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/20 backdrop-blur-sm hover:from-pink-900/30 hover:to-violet-900/30 hover:border-pink-400/30 transition-all duration-300 group h-full">
-                  <CardContent className="p-8">
-                    <motion.div
-                      className={`w-12 h-12 rounded-lg bg-gradient-to-r ${feature.color} bg-opacity-20 flex items-center justify-center mb-6 shadow-lg`}
-                      whileHover={{ scale: 1.2, rotate: 360 }}
-                      transition={{ duration: 0.6 }}
-                    >
-                      <feature.icon className="h-6 w-6 text-white" />
-                    </motion.div>
-                    <motion.h3 
-                      className="text-xl font-semibold mb-3 text-white"
-                      initial={{ opacity: 0 }}
-                      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                      transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
-                    >
-                      {feature.title}
-                    </motion.h3>
-                    <motion.p 
-                      className="text-gray-200 mb-4 leading-relaxed"
-                      initial={{ opacity: 0 }}
-                      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
-                      transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
-                    >
-                      {feature.description}
-                    </motion.p>
-                    <motion.div 
-                      className="flex items-center justify-between"
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
-                      transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
-                    >
-                      <span className="font-jetbrains text-sm text-pink-400">{feature.highlight}</span>
-                      <motion.div
-                        whileHover={{ scale: 1.1, x: 5 }}
-                        whileTap={{ scale: 0.9 }}
-                      >
-                        <Button variant="ghost" size="sm" className="text-pink-400 hover:text-pink-300 hover:bg-pink-500/10 p-2">
-                          <ArrowRight className="h-4 w-4" />
-                        </Button>
-                      </motion.div>
-                    </motion.div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </motion.div>
-
-          {/* Scroll indicator */}
-          <motion.div 
-            className="flex justify-center mt-6"
-            initial={{ opacity: 0, y: 20 }}
-            animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
-            transition={{ duration: 0.6, delay: 1.5 }}
-          >
-            <div className="flex gap-2">
-              {features.map((_, index) => (
-                <motion.div 
-                  key={index} 
-                  className="w-2 h-2 rounded-full bg-pink-500/50 transition-all duration-300 hover:bg-pink-400"
-                  initial={{ scale: 0 }}
-                  animate={isInView ? { scale: 1 } : { scale: 0 }}
-                  transition={{ duration: 0.3, delay: 1.7 + index * 0.05 }}
-                  whileHover={{ scale: 1.3 }}
-                />
+            <div className="carousel-track flex gap-6 hover:pause">
+              {/* First set of cards */}
+              {features.map((feature, index) => (
+                <FeatureCard key={`first-${index}`} feature={feature} index={index} />
+              ))}
+              {/* Duplicate set for infinite loop */}
+              {features.map((feature, index) => (
+                <FeatureCard key={`second-${index}`} feature={feature} index={index} />
               ))}
             </div>
           </motion.div>
+          
+          {/* Left Gradient Overlay */}
+          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black via-black/80 to-transparent pointer-events-none z-10" />
+          
+          {/* Right Gradient Overlay */}
+          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black via-black/80 to-transparent pointer-events-none z-10" />
         </div>
 
         {/* Call to Action */}
@@ -222,7 +221,7 @@ export function FeaturesSection() {
             transition={{ duration: 0.3 }}
           >
             <motion.h3 
-              className="text-2xl font-bold mb-4 text-white"
+              className="text-2xl font-bold mb-4 text-white tracking-tight"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 2.2 }}
@@ -230,7 +229,7 @@ export function FeaturesSection() {
               Ready to Transform Your CS Journey?
             </motion.h3>
             <motion.p 
-              className="text-gray-200 mb-6 max-w-md mx-auto"
+              className="text-gray-200 mb-6 max-w-md mx-auto tracking-tight"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 2.4 }}
@@ -252,6 +251,55 @@ export function FeaturesSection() {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Carousel Styles */}
+      <style jsx>{`
+        .carousel-container {
+          width: 100%;
+          overflow: hidden;
+        }
+        
+        .carousel-track {
+          width: calc(320px * 12 + 24px * 11); /* 12 cards (6 * 2) + gaps */
+          animation: scroll 40s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+          will-change: transform;
+          backface-visibility: hidden;
+          perspective: 1000px;
+        }
+        
+        .carousel-track:hover {
+          animation-play-state: paused;
+        }
+        
+        @keyframes scroll {
+          0% {
+            transform: translate3d(0, 0, 0);
+          }
+          100% {
+            transform: translate3d(calc(-320px * 6 - 24px * 5), 0, 0); /* Width of 6 cards + gaps */
+          }
+        }
+        
+        @media (max-width: 768px) {
+          .carousel-track {
+            width: calc(280px * 12 + 24px * 11);
+          }
+          
+          @keyframes scroll {
+            0% {
+              transform: translate3d(0, 0, 0);
+            }
+            100% {
+              transform: translate3d(calc(-280px * 6 - 24px * 5), 0, 0);
+            }
+          }
+        }
+        
+        /* Smooth hardware acceleration */
+        .carousel-track * {
+          transform-style: preserve-3d;
+        }
+      `}</style>
     </section>
   )
 }

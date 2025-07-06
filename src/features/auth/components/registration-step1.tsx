@@ -71,7 +71,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.firstName.message}
             </motion.p>
@@ -99,7 +99,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.lastName.message}
             </motion.p>
@@ -129,7 +129,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains"
+            className="text-xs text-red-400 font-space-mono"
           >
             {"// " + errors.email.message}
           </motion.p>
@@ -158,7 +158,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains"
+            className="text-xs text-red-400 font-space-mono"
           >
             {"// " + errors.username.message}
           </motion.p>
@@ -187,7 +187,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.course.message}
             </motion.p>
@@ -214,7 +214,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.birthdate.message}
             </motion.p>
@@ -252,7 +252,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.password.message}
             </motion.p>
@@ -287,7 +287,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.confirmPassword.message}
             </motion.p>
@@ -320,7 +320,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
           <div className="w-full border-t border-pink-500/20" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-black px-2 text-gray-400 font-jetbrains">{"// Or continue with"}</span>
+          <span className="bg-black px-2 text-gray-400 font-space-mono">{"// Or continue with"}</span>
         </div>
       </div>
 

@@ -1,5 +1,5 @@
 import Spline from '@splinetool/react-spline/next'
-import { ArrowRight, Code2, Users, Zap } from "lucide-react"
+import { ArrowRight, Code2 } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 
@@ -24,15 +24,15 @@ export function HeroSection() {
       <div className="container mx-auto px-6 relative z-10">
         <div className="flex items-center min-h-screen">
           {/* Text Content - Now takes full width on large screens but with right padding */}
-          <div className="w-full lg:w-3/5 space-y-8">
+          <div className="w-full lg:w-3/5 space-y-8 mb-auto mt-32">
             <div className="animate-fade-in-up-delay-200">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm">
                 <Code2 className="h-4 w-4 text-pink-400" />
-                <span className="font-jetbrains text-sm text-pink-300">{'console.log("Welcome to CS Guild");'}</span>
+                <span className="font-space-mono text-sm text-pink-300">{'console.log("Welcome to CS Guild");'}</span>
               </div>
             </div>
 
-            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tight text-white animate-fade-in-up-delay-400">
+            <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-tight tracking-tighter text-white animate-fade-in-up-delay-400">
               Where{" "}
               <span className="bg-gradient-to-r from-pink-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
                 Code
@@ -43,7 +43,7 @@ export function HeroSection() {
               </span>
             </h1>
 
-            <p className="text-lg md:text-xl text-gray-200 max-w-2xl leading-relaxed tracking-tight animate-fade-in-up-delay-600">
+            <p className="text-base md:text-lg text-gray-200 max-w-2xl leading-relaxed tracking-tight animate-fade-in-up-delay-600">
               Join thousands of Computer Science students in the ultimate learning ecosystem. Build projects, share
               knowledge, and level up your coding journey together.
             </p>
@@ -65,25 +65,6 @@ export function HeroSection() {
               </Button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 mt-12 animate-fade-in-up-delay-1000">
-              {[
-                { icon: Users, label: "10K+ Members", desc: "Active learners" },
-                { icon: Code2, label: "500+ Projects", desc: "Built together" },
-                { icon: Zap, label: "24/7 Support", desc: "Always here" },
-              ].map((stat, index) => (
-                <div
-                  key={index}
-                  className={`text-center p-4 rounded-xl bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/20 backdrop-blur-sm hover:from-pink-900/30 hover:to-violet-900/30 transition-all duration-300 group hover:scale-105 hover:-translate-y-1 animate-fade-in-up-stagger`}
-                  style={{ animationDelay: `${1200 + index * 100}ms` }}
-                >
-                  <div className="animate-spin-hover">
-                    <stat.icon className="h-6 w-6 mx-auto mb-2 text-pink-400 group-hover:text-pink-300 transition-colors" />
-                  </div>
-                  <div className="font-jetbrains text-xl font-bold text-white mb-1">{stat.label}</div>
-                  <div className="text-pink-300 text-sm">{stat.desc}</div>
-                </div>
-              ))}
-            </div>
           </div>
 
           {/* Mobile Robot - Only visible on mobile */}
@@ -100,7 +81,7 @@ export function HeroSection() {
       {/* Scroll indicator */}
       <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 z-10 animate-fade-in-up-delay-1500">
         <div className="flex flex-col items-center gap-2 text-pink-400">
-          <span className="text-sm font-jetbrains">Scroll to explore</span>
+          <span className="text-sm font-space-mono">Scroll to explore</span>
           <div className="w-6 h-10 border-2 border-pink-500 rounded-full flex justify-center">
             <div className="w-1 h-3 bg-gradient-to-b from-pink-400 to-violet-400 rounded-full mt-2 animate-bounce-slow" />
           </div>

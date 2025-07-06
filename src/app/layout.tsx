@@ -1,21 +1,21 @@
 import type { Metadata } from "next";
-import { JetBrains_Mono, Poppins } from "next/font/google";
+import { Space_Grotesk, Space_Mono } from "next/font/google";
 
 import "./globals.css";
 import { Toaster } from "@/components/ui/sonner";
 import { Providers } from "@/lib/providers";
 
-const poppins = Poppins({
+const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
   weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-poppins",
+  variable: "--font-space-grotesk",
   display: "swap",
 })
 
-const jetbrainsMono = JetBrains_Mono({
+const spaceMono = Space_Mono({
   subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700"],
-  variable: "--font-jetbrains-mono",
+  weight: ["400", "700"],
+  variable: "--font-space-mono",
   display: "swap",
 })
 
@@ -33,7 +33,7 @@ export default function RootLayout({
     // @ts-expect-error - webcrx is not a valid attribute for html
     <html lang="en" webcrx=''>
       <body
-        className={`${poppins.variable} ${jetbrainsMono.variable} antialiased font-poppins bg-gray-950 text-white `}
+        className={`${spaceGrotesk.variable} ${spaceMono.variable} antialiased font-space-grotesk bg-gray-950 text-white `}
       >
         <Providers>
           {children}

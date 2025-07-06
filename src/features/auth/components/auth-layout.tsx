@@ -49,7 +49,7 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
               className="inline-flex items-center gap-2 text-pink-400 hover:text-pink-300 transition-colors duration-200 group"
             >
               <ArrowLeft className="h-4 w-4 group-hover:-translate-x-1 transition-transform duration-200" />
-              <span className="font-jetbrains text-sm">{"// Back to home"}</span>
+              <span className="font-space-mono text-sm">{"// Back to home"}</span>
             </Link>
           </motion.div>
         )}
@@ -73,8 +73,8 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
                 <Code2 className="h-5 w-5 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="font-jetbrains font-bold text-xl text-white">CS Guild</h1>
-                <p className="font-jetbrains text-xs text-pink-400">v2.0.dev</p>
+                <h1 className="font-space-mono font-bold text-xl text-white">CS Guild</h1>
+                <p className="font-space-mono text-xs text-pink-400">v2.0.dev</p>
               </div>
             </motion.div>
 
@@ -88,7 +88,7 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
               
               {/* Code comment */}
               <div className="inline-flex items-center gap-2 px-3 py-1 mt-4 rounded-full bg-gradient-to-r from-pink-500/10 to-violet-500/10 border border-pink-500/20">
-                <span className="font-jetbrains text-xs text-pink-400">{"// Where code meets community"}</span>
+                <span className="font-space-mono text-xs text-pink-400">{"// Where code meets community"}</span>
               </div>
             </motion.div>
           </div>
@@ -131,7 +131,7 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
             </Link>
           </div>
           
-          <div className="mt-4 font-jetbrains text-xs text-gray-500">
+          <div className="mt-4 font-space-mono text-xs text-gray-500">
             © 2024 CS Guild. All rights reserved.
           </div>
         </motion.div>

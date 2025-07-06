@@ -77,7 +77,7 @@ export default function NotFound() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ delay: 0.8 }}
-              className="font-jetbrains text-sm text-pink-400 bg-black/40 rounded-lg p-3 border border-pink-500/30 inline-block"
+              className="font-space-mono text-sm text-pink-400 bg-black/40 rounded-lg p-3 border border-pink-500/30 inline-block"
             >
               {"// Error: Resource not found in current directory"}
             </motion.div>

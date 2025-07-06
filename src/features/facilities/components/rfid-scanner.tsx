@@ -120,7 +120,7 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
                   value={rfidInput}
                   onChange={(e) => setRfidInput(e.target.value)}
                   placeholder="Scan your RFID card..."
-                  className="h-12 text-base font-jetbrains bg-black/30 border-pink-500/30 focus:border-pink-400 focus:ring-pink-400/20 text-white placeholder:text-gray-400 pr-12"
+                  className="h-12 text-base font-space-mono bg-black/30 border-pink-500/30 focus:border-pink-400 focus:ring-pink-400/20 text-white placeholder:text-gray-400 pr-12"
                   disabled={isProcessing || !selectedFacility}
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">

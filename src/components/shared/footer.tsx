@@ -13,15 +13,15 @@ const Footer = () => {
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center gap-2 mb-4">
               <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center shadow-lg">
-                <span className="font-jetbrains font-bold text-white text-sm">CS</span>
+                <span className="font-space-mono font-bold text-white text-sm">CS</span>
               </div>
-              <span className="font-jetbrains font-bold text-xl text-white">CS Guild</span>
+              <span className="font-space-mono font-bold text-xl text-white">CS Guild</span>
             </div>
             <p className="text-gray-200 mb-4 max-w-md">
               Empowering the next generation of developers through community, collaboration, and continuous
               learning. Join 10,000+ students transforming their careers.
             </p>
-            <div className="font-jetbrains text-sm text-pink-400 flex items-center gap-2">
+            <div className="font-space-mono text-sm text-pink-400 flex items-center gap-2">
               <Code2 className="h-4 w-4" />
               <span>{"// Built with"}</span>
               <Heart className="h-4 w-4 text-pink-400 fill-current" />
@@ -85,7 +85,7 @@ const Footer = () => {
         <Separator className="my-8 bg-pink-500/20" />
 
         <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="font-jetbrains text-sm text-gray-400">© 2024 CS Guild. All rights reserved.</div>
+          <div className="font-space-mono text-sm text-gray-400">© 2024 CS Guild. All rights reserved.</div>
           <div className="flex items-center gap-6 mt-4 md:mt-0">
             {/* Social Links */}
             <div className="flex gap-3">

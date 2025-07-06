@@ -22,6 +22,7 @@ export function CommunitySection() {
       rating: 5,
       tech: ["React", "Python", "System Design"],
       outcome: "Landed dream job at Meta",
+      color: "from-blue-500 to-cyan-500",
     },
     {
       name: "Marcus Johnson",
@@ -32,6 +33,7 @@ export function CommunitySection() {
       rating: 5,
       tech: ["Go", "Algorithms", "Distributed Systems"],
       outcome: "Promoted to Senior Engineer",
+      color: "from-green-500 to-emerald-500",
     },
     {
       name: "Priya Patel",
@@ -42,6 +44,7 @@ export function CommunitySection() {
       rating: 5,
       tech: ["TypeScript", "Node.js", "React"],
       outcome: "3 top company offers",
+      color: "from-purple-500 to-violet-500",
     },
     {
       name: "Alex Rivera",
@@ -52,6 +55,7 @@ export function CommunitySection() {
       rating: 5,
       tech: ["Python", "Machine Learning", "Startup"],
       outcome: "Founded funded startup",
+      color: "from-orange-500 to-red-500",
     },
   ]
 
@@ -97,6 +101,49 @@ export function CommunitySection() {
 
   return (
     <section id="community" className="py-24 relative bg-black overflow-hidden" ref={ref}>
+      {/* Enhanced Background Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-violet-900/10 via-transparent to-pink-900/10 pointer-events-none" />
+      
+      {/* Floating Orbs - Dynamic Background */}
+      {Array.from({ length: 8 }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="absolute rounded-full blur-3xl opacity-20 pointer-events-none"
+          style={{
+            width: `${80 + i * 20}px`,
+            height: `${80 + i * 20}px`,
+            background: `linear-gradient(45deg, ${testimonials[i % testimonials.length]?.color?.replace('from-', '').replace('to-', '').split(' ')[0] || '#ec4899'}, ${testimonials[i % testimonials.length]?.color?.replace('from-', '').replace('to-', '').split(' ')[1] || '#8b5cf6'})`,
+            left: `${5 + i * 12}%`,
+            top: `${10 + (i % 4) * 20}%`,
+          }}
+          animate={{
+            y: [0, -30, 0],
+            x: [0, 15, 0],
+            scale: [1, 1.2, 1],
+            opacity: [0.1, 0.4, 0.1],
+          }}
+          transition={{
+            duration: 6 + i * 0.5,
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: i * 0.8,
+          }}
+        />
+      ))}
+
+      {/* Animated Grid Pattern */}
+      <motion.div 
+        className="absolute inset-0 bg-[linear-gradient(to_right,#8b5cf6_0.5px,transparent_0.5px),linear-gradient(to_bottom,#8b5cf6_0.5px,transparent_0.5px)] bg-[size:6rem_6rem] [mask-image:radial-gradient(ellipse_80%_80%_at_50%_50%,transparent_70%,#000_100%)] opacity-10"
+        animate={{
+          backgroundPosition: ['0% 0%', '100% 100%'],
+        }}
+        transition={{
+          duration: 20,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+      />
+
       <div className="container mx-auto px-6 relative z-10">
         <motion.div 
           className="text-center mb-16"
@@ -111,11 +158,11 @@ export function CommunitySection() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm mb-6">
               <Quote className="h-4 w-4 text-pink-400" />
-              <span className="font-jetbrains text-sm text-pink-300">{"// Real stories, real success"}</span>
+              <span className="font-space-mono text-sm text-pink-300">{"// Real stories, real success"}</span>
             </div>
           </motion.div>
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-6 text-white"
+            className="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tighter"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -126,7 +173,7 @@ export function CommunitySection() {
             </span>
           </motion.h2>
           <motion.p 
-            className="text-xl text-gray-200 max-w-3xl mx-auto"
+            className="text-lg tracking-tight text-gray-200 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -177,7 +224,7 @@ export function CommunitySection() {
                       </Avatar>
                       <div>
                         <h4 className="font-semibold text-white">{testimonial.name}</h4>
-                        <p className="text-sm text-pink-300 font-jetbrains">{testimonial.role}</p>
+                        <p className="text-sm text-pink-300 font-space-mono">{testimonial.role}</p>
                       </div>
                     </motion.div>
 
@@ -215,7 +262,7 @@ export function CommunitySection() {
                       transition={{ duration: 0.4, delay: 1.6 + index * 0.1 }}
                       whileHover={{ scale: 1.02 }}
                     >
-                      <div className="flex items-center gap-2 text-pink-400 font-jetbrains text-sm">
+                      <div className="flex items-center gap-2 text-pink-400 font-space-mono text-sm">
                         <Code2 className="h-4 w-4" />
                         <span>{testimonial.outcome}</span>
                       </div>
@@ -237,7 +284,7 @@ export function CommunitySection() {
                         >
                           <Badge
                             variant="secondary"
-                            className="bg-pink-500/20 text-pink-300 border border-pink-500/30 font-jetbrains text-xs"
+                            className="bg-pink-500/20 text-pink-300 border border-pink-500/30 font-space-mono text-xs"
                           >
                             {tech}
                           </Badge>
@@ -272,7 +319,7 @@ export function CommunitySection() {
               whileHover={{ scale: 1.05, y: -5 }}
             >
               <motion.div 
-                className="font-jetbrains text-3xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent mb-2 group-hover:from-pink-300 group-hover:to-violet-300 transition-all duration-300"
+                className="font-space-mono text-3xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent mb-2 group-hover:from-pink-300 group-hover:to-violet-300 transition-all duration-300"
                 initial={{ opacity: 0, scale: 0.5 }}
                 animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.5 }}
                 transition={{ duration: 0.6, delay: 2.5 + index * 0.1 }}
@@ -312,7 +359,7 @@ export function CommunitySection() {
             transition={{ duration: 0.3 }}
           >
             <motion.h3 
-              className="text-2xl font-bold mb-4 text-white"
+              className="text-2xl font-bold mb-4 text-white tracking-tight"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 3.7 }}
@@ -320,7 +367,7 @@ export function CommunitySection() {
               Be the Next Success Story
             </motion.h3>
             <motion.p 
-              className="text-gray-200 mb-6 max-w-md mx-auto"
+              className="text-gray-200 mb-6 max-w-md mx-auto tracking-tight"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 3.9 }}

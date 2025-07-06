@@ -65,7 +65,7 @@ export function RegisterForm() {
           <p className="text-gray-200 mb-4">
             We&apos;ve sent a verification email to <strong>{watchedEmail}</strong>
           </p>
-          <div className="text-sm text-pink-400 font-jetbrains bg-pink-500/10 border border-pink-500/20 rounded-lg p-4">
+          <div className="text-sm text-pink-400 font-space-mono bg-pink-500/10 border border-pink-500/20 rounded-lg p-4">
             {"// Please check your email and click the verification link to activate your account"}
           </div>
         </div>
@@ -102,7 +102,7 @@ export function RegisterForm() {
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
         >
-          <div className="font-jetbrains">{"// Error:"}</div>
+          <div className="font-space-mono">{"// Error:"}</div>
           <div>{error}</div>
         </motion.div>
       )}
@@ -130,7 +130,7 @@ export function RegisterForm() {
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.firstName.message}
             </motion.p>
@@ -158,7 +158,7 @@ export function RegisterForm() {
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.lastName.message}
             </motion.p>
@@ -188,7 +188,7 @@ export function RegisterForm() {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains"
+            className="text-xs text-red-400 font-space-mono"
           >
             {"// " + errors.email.message}
           </motion.p>
@@ -217,7 +217,7 @@ export function RegisterForm() {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains"
+            className="text-xs text-red-400 font-space-mono"
           >
             {"// " + errors.username.message}
           </motion.p>
@@ -246,7 +246,7 @@ export function RegisterForm() {
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.course.message}
             </motion.p>
@@ -273,7 +273,7 @@ export function RegisterForm() {
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.birthdate.message}
             </motion.p>
@@ -302,7 +302,7 @@ export function RegisterForm() {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains"
+            className="text-xs text-red-400 font-space-mono"
           >
             {"// " + errors.rfidId.message}
           </motion.p>
@@ -339,7 +339,7 @@ export function RegisterForm() {
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.password.message}
             </motion.p>
@@ -374,7 +374,7 @@ export function RegisterForm() {
             <motion.p
               initial={{ opacity: 0, y: -5 }}
               animate={{ opacity: 1, y: 0 }}
-              className="text-xs text-red-400 font-jetbrains"
+              className="text-xs text-red-400 font-space-mono"
             >
               {"// " + errors.confirmPassword.message}
             </motion.p>
@@ -407,7 +407,7 @@ export function RegisterForm() {
           <div className="w-full border-t border-pink-500/20" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-black px-2 text-gray-400 font-jetbrains">{"// Or continue with"}</span>
+          <span className="bg-black px-2 text-gray-400 font-space-mono">{"// Or continue with"}</span>
         </div>
       </div>
 
@@ -452,7 +452,7 @@ export function RegisterForm() {
             Sign in here
           </Link>
         </p>
-        <p className="text-gray-500 text-xs mt-2 font-jetbrains">
+        <p className="text-gray-500 text-xs mt-2 font-space-mono">
           {"// Join the community of 10,000+ developers"}
         </p>
       </div>

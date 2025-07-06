@@ -39,7 +39,7 @@ const NavBar = () => {
   ]
 
   return (
-    <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-4 border-b border-pink-500/20 bg-black/80 backdrop-blur-md px-4">
+    <header className="sticky w-screen top-0 z-50 flex h-16 shrink-0 items-center gap-4 border-b border-pink-500/20 bg-black/80 backdrop-blur-md px-4">
       {/* Left Section */}
       <div className="flex items-center gap-4 flex-1">
         {/* Enhanced Brand */}
@@ -49,10 +49,10 @@ const NavBar = () => {
             <div className="absolute inset-0 bg-pink-400/20 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           </div>
           <div className="flex flex-col">
-            <span className="font-jetbrains text-lg font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent group-hover:from-pink-300 group-hover:to-violet-300 transition-all duration-300">
+            <span className="font-space-mono text-lg font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent group-hover:from-pink-300 group-hover:to-violet-300 transition-all duration-300">
               CS Guild
             </span>
-            <span className="font-jetbrains text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300 hidden sm:block">
+            <span className="font-space-mono text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300 hidden sm:block">
               {"// Code • Learn • Build"}
             </span>
           </div>
@@ -108,7 +108,7 @@ const NavBar = () => {
                   <span className="text-sm font-medium text-white">
                     {user.firstName} {user.lastName}
                   </span>
-                  <span className="text-xs text-pink-400 font-jetbrains">
+                  <span className="text-xs text-pink-400 font-space-mono">
                     {"// " + (user.course || 'CS Student')}
                   </span>
                 </div>
@@ -135,7 +135,7 @@ const NavBar = () => {
                   <p className="text-sm font-medium leading-none text-white">
                     {user.firstName} {user.lastName}
                   </p>
-                  <p className="text-xs leading-none text-pink-400 font-jetbrains">
+                  <p className="text-xs leading-none text-pink-400 font-space-mono">
                     {user.email}
                   </p>
                   <p className="text-xs leading-none text-gray-400">

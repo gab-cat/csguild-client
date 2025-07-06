@@ -156,7 +156,7 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
         className="p-4 rounded-lg bg-gradient-to-r from-pink-500/10 to-violet-500/10 border border-pink-500/20"
       >
         <div className="text-center">
-          <div className="font-jetbrains text-pink-300 mb-2">{"// Account Summary"}</div>
+          <div className="font-space-mono text-pink-300 mb-2">{"// Account Summary"}</div>
           <div className="grid grid-cols-3 gap-4 text-sm">
             <div>
               <div className="text-white font-medium">{data.firstName} {data.lastName}</div>
@@ -181,7 +181,7 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
         className="p-4 rounded-lg bg-yellow-500/10 border border-yellow-500/20"
       >
         <div className="text-sm text-yellow-200">
-          <div className="font-jetbrains mb-2">{"// Terms & Conditions"}</div>
+          <div className="font-space-mono mb-2">{"// Terms & Conditions"}</div>
           <p>
             By creating an account, you agree to our Terms of Service and Privacy Policy. 
             Your information will be used to provide CS Guild services and communication.
@@ -196,7 +196,7 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
         >
-          <div className="font-jetbrains">{"// Registration Error:"}</div>
+          <div className="font-space-mono">{"// Registration Error:"}</div>
           <div>{registerMutation.error?.message || 'An error occurred during registration'}</div>
         </motion.div>
       )}

@@ -82,11 +82,11 @@ export function ContactSection() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm mb-6">
               <MessageSquare className="h-4 w-4 text-pink-400" />
-              <span className="font-jetbrains text-sm text-pink-300">{"// Ready to start your journey?"}</span>
+              <span className="font-space-mono text-sm text-pink-300">{"// Ready to start your journey?"}</span>
             </div>
           </motion.div>
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-6 text-white"
+            className="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tighter"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -98,7 +98,7 @@ export function ContactSection() {
             Starts Here
           </motion.h2>
           <motion.p 
-            className="text-xl text-gray-200 max-w-3xl mx-auto"
+            className="text-lg tracking-tight text-gray-200 max-w-3xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -129,9 +129,11 @@ export function ContactSection() {
                     >
                       <MessageSquare className="h-6 w-6 text-pink-400" />
                     </motion.div>
-                    Get Started Today
+                    <span className="tracking-tighter">
+                      Get Started Today
+                    </span>
                   </CardTitle>
-                  <p className="text-gray-200">
+                  <p className="text-gray-200 tracking-tight">
                     Fill out the form below and we&apos;ll get you connected with our community within 24 hours.
                   </p>
                 </CardHeader>
@@ -265,7 +267,7 @@ export function ContactSection() {
               transition={{ duration: 0.6, delay: 1.2 }}
             >
               <Card className="bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/20 backdrop-blur-sm">
-                <CardContent className="p-8">
+                <CardContent className="p-2 px-8">
                   <motion.h3 
                     className="text-xl font-semibold text-white mb-6 flex items-center gap-2"
                     initial={{ opacity: 0 }}
@@ -278,7 +280,9 @@ export function ContactSection() {
                     >
                       <Code2 className="h-5 w-5 text-pink-400" />
                     </motion.div>
-                    Why Join CS Guild?
+                    <span className="tracking-tight">
+                      Why Join CS Guild?
+                    </span>
                   </motion.h3>
 
                   <div className="space-y-6">
@@ -313,8 +317,8 @@ export function ContactSection() {
                           <ArrowRight className="h-5 w-5 text-pink-400" />
                         </motion.div>
                         <div>
-                          <h4 className="font-semibold text-white mb-1">{benefit.title}</h4>
-                          <p className="text-gray-200">{benefit.description}</p>
+                          <h4 className="font-semibold text-white mb-1 tracking-tight">{benefit.title}</h4>
+                          <p className="text-gray-400 tracking-tight">{benefit.description}</p>
                         </div>
                       </motion.div>
                     ))}
@@ -330,9 +334,9 @@ export function ContactSection() {
               transition={{ duration: 0.6, delay: 1.8 }}
             >
               <Card className="bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/20 backdrop-blur-sm">
-                <CardContent className="p-8">
+                <CardContent className="p-0 px-8">
                   <motion.h3 
-                    className="text-xl font-semibold text-white mb-6"
+                    className="text-xl font-semibold text-white mb-6 tracking-tighter"
                     initial={{ opacity: 0 }}
                     animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                     transition={{ duration: 0.6, delay: 2 }}
@@ -356,7 +360,7 @@ export function ContactSection() {
                         whileHover={{ scale: 1.05, y: -2 }}
                         transition={{ duration: 0.2 }}
                       >
-                        <div className="font-jetbrains text-2xl font-bold text-pink-400 mb-1">{stat.time}</div>
+                        <div className="font-space-mono text-2xl font-bold text-pink-400 mb-1">{stat.time}</div>
                         <div className="text-sm text-gray-200">{stat.label}</div>
                       </motion.div>
                     ))}
@@ -397,7 +401,7 @@ export function ContactSection() {
                     whileHover={{ scale: 1.02 }}
                   >
                     <div className="text-center">
-                      <div className="font-jetbrains text-sm text-pink-400 mb-1">
+                      <div className="font-space-mono text-sm text-pink-400 mb-1">
                         const nextSuccessStory = &apos;YOU&apos;;
                       </div>
                       <div className="text-xs text-gray-300">

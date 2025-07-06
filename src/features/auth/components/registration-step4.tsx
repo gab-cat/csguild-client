@@ -135,7 +135,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           <p className="text-gray-200 mb-4">
             Your account has been successfully verified and created.
           </p>
-          <div className="text-sm text-green-400 font-jetbrains bg-green-500/10 border border-green-500/20 rounded-lg p-4">
+          <div className="text-sm text-green-400 font-space-mono bg-green-500/10 border border-green-500/20 rounded-lg p-4">
             {"// Redirecting you to the dashboard..."}
           </div>
         </div>
@@ -191,7 +191,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains text-center"
+            className="text-xs text-red-400 font-space-mono text-center"
           >
             {"// " + errors.verificationCode.message}
           </motion.p>
@@ -231,7 +231,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-green-400 font-jetbrains"
+            className="text-xs text-green-400 font-space-mono"
           >
             {"// Verification code sent successfully!"}
           </motion.p>
@@ -245,7 +245,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
         >
-          <div className="font-jetbrains">{"// Verification Error:"}</div>
+          <div className="font-space-mono">{"// Verification Error:"}</div>
           <div>{emailVerificationMutation.error?.message || 'Verification failed'}</div>
         </motion.div>
       )}
@@ -286,7 +286,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
 
       {/* Help Text */}
       <div className="text-center">
-        <div className="text-sm text-gray-400 font-jetbrains bg-gray-500/10 border border-gray-500/20 rounded-lg p-4">
+        <div className="text-sm text-gray-400 font-space-mono bg-gray-500/10 border border-gray-500/20 rounded-lg p-4">
           {"// Check your spam folder if you don't see the email within a few minutes"}
         </div>
       </div>

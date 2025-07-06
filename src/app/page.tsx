@@ -1,9 +1,12 @@
+import Spline from '@splinetool/react-spline/next'
+
 import { AboutSection } from "@/components/landing/about-section"
 import { AppSidebar } from "@/components/landing/app-sidebar"
 import { CommunitySection } from "@/components/landing/community-section"
 import { ContactSection } from "@/components/landing/contact-section"
 import { FeaturesSection } from "@/components/landing/features-section"
 import { HeroSection } from "@/components/landing/hero-section"
+import { TimelineSection } from "@/components/landing/timeline-section"
 import Footer from "@/components/shared/footer"
 import NavBar from "@/components/shared/navbar"
 import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
@@ -11,7 +14,7 @@ import { SidebarProvider, SidebarInset } from "@/components/ui/sidebar"
 export default function Home() {
   return (
     <SidebarProvider defaultOpen={false}>
-      <div className="flex min-h-screen w-full cursor-none">
+      <div className="flex min-h-screen w-screen cursor-none">
         <AppSidebar />
         <SidebarInset className="flex-1">
 
@@ -29,9 +32,27 @@ export default function Home() {
           <main className="flex-1">
             {/* 1. HOOK - Capture attention with bold value proposition */}
             <HeroSection />
+
+
             
             {/* 2. CREDIBILITY - Build trust with 3D visuals and compelling reasons */}
             <AboutSection />
+
+            {/* Timeline Section with World Planet Background */}
+            <div className="relative h-screen overflow-hidden">
+              {/* World Planet Spline Background - Relative to section */}
+              <div className="absolute inset-0 -z-50 flex items-center justify-center">
+                <div className="absolute inset-0 bg-gray-950 rounded-3xl opacity-100" />
+                <div className="w-full h-full scale-100">
+                  <Spline
+                    scene="https://prod.spline.design/DNXLeygmKvG05sBa/scene.splinecode"
+                    className="w-full h-full opacity-40"
+                  />
+                </div>
+                <div className="absolute inset-0 bg-black/40" />
+              </div>
+              <TimelineSection />
+            </div>
             
             {/* 3. SOLUTION - Show the complete toolkit for success */}
             <FeaturesSection />

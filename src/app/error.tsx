@@ -79,7 +79,7 @@ export default function Error({ error, reset }: ErrorProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="font-jetbrains text-sm text-red-400 bg-black/40 rounded-lg p-4 border border-red-500/30 text-left max-w-md mx-auto overflow-x-auto"
+                className="font-space-mono text-sm text-red-400 bg-black/40 rounded-lg p-4 border border-red-500/30 text-left max-w-md mx-auto overflow-x-auto"
               >
                 <div className="mb-2 text-pink-400">{"// Error Details:"}</div>
                 <div className="text-xs text-gray-300 break-all">
@@ -99,7 +99,7 @@ export default function Error({ error, reset }: ErrorProps) {
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 0.6 }}
-                className="font-jetbrains text-sm text-pink-400 bg-black/40 rounded-lg p-3 border border-pink-500/30 inline-block"
+                className="font-space-mono text-sm text-pink-400 bg-black/40 rounded-lg p-3 border border-pink-500/30 inline-block"
               >
                 {"// Error: System encountered an unexpected exception"}
               </motion.div>

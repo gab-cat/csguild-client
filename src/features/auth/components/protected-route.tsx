@@ -67,7 +67,7 @@ export function ProtectedRoute({
       <div className="min-h-screen bg-black flex items-center justify-center">
         <div className="text-center space-y-4">
           <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-gray-300 font-jetbrains text-sm">
+          <p className="text-gray-300 font-space-mono text-sm">
             {"// Verifying access permissions..."}
           </p>
         </div>
@@ -90,7 +90,7 @@ export function ProtectedRoute({
         <div className="min-h-screen bg-black flex items-center justify-center">
           <div className="text-center space-y-4">
             <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-gray-300 font-jetbrains text-sm">
+            <p className="text-gray-300 font-space-mono text-sm">
               {"// Redirecting to complete your profile..."}
             </p>
           </div>
@@ -117,7 +117,7 @@ export function ProtectedRoute({
               <p className="text-gray-300 mb-4">
                 You don&apos;t have the required permissions to access this page.
               </p>
-              <div className="text-sm text-red-400 font-jetbrains bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+              <div className="text-sm text-red-400 font-space-mono bg-red-500/10 border border-red-500/20 rounded-lg p-4">
                 {"// Required roles: " + requiredRoles.join(', ')}
               </div>
             </div>

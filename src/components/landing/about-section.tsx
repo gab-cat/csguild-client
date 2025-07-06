@@ -80,11 +80,11 @@ export function AboutSection() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm mb-6">
               <Brain className="h-4 w-4 text-pink-400" />
-              <span className="font-jetbrains text-sm text-pink-300">{'// Your journey starts here'}</span>
+              <span className="font-space-mono text-sm text-pink-300">{'// Your journey starts here'}</span>
             </div>
           </motion.div>
           <motion.h2 
-            className="text-4xl md:text-5xl font-bold mb-6 text-white"
+            className="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tighter"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.4 }}
@@ -96,7 +96,7 @@ export function AboutSection() {
             Students Choose CS Guild
           </motion.h2>
           <motion.p 
-            className="text-xl text-gray-200 max-w-3xl mx-auto leading-relaxed"
+            className="text-lg tracking-tight text-gray-200 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -131,7 +131,7 @@ export function AboutSection() {
                     </div>
                     <div className="flex-1">
                       <motion.h3 
-                        className="text-xl font-semibold mb-3 text-white"
+                        className="text-xl font-bold mb-3 text-white tracking-tight"
                         initial={{ opacity: 0 }}
                         animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                         transition={{ duration: 0.6, delay: 0.8 + index * 0.1 }}
@@ -139,7 +139,7 @@ export function AboutSection() {
                         {value.title}
                       </motion.h3>
                       <motion.p 
-                        className="text-gray-200 mb-4 leading-relaxed"
+                        className="text-gray-200 mb-4 leading-relaxed tracking-tight"
                         initial={{ opacity: 0 }}
                         animate={isInView ? { opacity: 1 } : { opacity: 0 }}
                         transition={{ duration: 0.6, delay: 1 + index * 0.1 }}
@@ -153,7 +153,7 @@ export function AboutSection() {
                         transition={{ duration: 0.4, delay: 1.2 + index * 0.1 }}
                         whileHover={{ scale: 1.02 }}
                       >
-                        <code className="font-jetbrains text-sm text-pink-400">{value.code}</code>
+                        <code className="font-space-mono text-sm text-pink-400">{value.code}</code>
                       </motion.div>
                     </div>
                   </motion.div>
@@ -175,7 +175,7 @@ export function AboutSection() {
             transition={{ duration: 0.3 }}
           >
             <motion.h3 
-              className="text-2xl font-bold mb-4 font-jetbrains text-white"
+              className="text-2xl font-bold mb-4 font-space-mono text-white"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 1.8 }}
@@ -183,7 +183,7 @@ export function AboutSection() {
               {'const yourSuccess = community.power + mentorship.wisdom + projects.experience;'}
             </motion.h3>
             <motion.p 
-              className="text-gray-200 max-w-2xl"
+              className="text-gray-200 max-w-2xl tracking-tight"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 2 }}

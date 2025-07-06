@@ -50,7 +50,7 @@ export function LoginForm() {
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
         >
-          <div className="font-jetbrains">{"// Error:"}</div>
+          <div className="font-space-mono">{"// Error:"}</div>
           <div>{error}</div>
         </motion.div>
       )}
@@ -77,7 +77,7 @@ export function LoginForm() {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400 font-jetbrains"
+            className="text-sm text-red-400 font-space-mono"
           >
             {"// " + errors.email.message}
           </motion.p>
@@ -113,7 +113,7 @@ export function LoginForm() {
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400 font-jetbrains"
+            className="text-sm text-red-400 font-space-mono"
           >
             {"// " + errors.password.message}
           </motion.p>
@@ -124,7 +124,7 @@ export function LoginForm() {
       <div className="flex justify-end">
         <Link
           href="/forgot-password"
-          className="text-sm text-pink-400 hover:text-pink-300 transition-colors duration-200 font-jetbrains"
+          className="text-sm text-pink-400 hover:text-pink-300 transition-colors duration-200 font-space-mono"
         >
           {"// Forgot password?"}
         </Link>
@@ -155,7 +155,7 @@ export function LoginForm() {
           <div className="w-full border-t border-pink-500/20" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-black px-2 text-gray-400 font-jetbrains">{"// Or continue with"}</span>
+          <span className="bg-black px-2 text-gray-400 font-space-mono">{"// Or continue with"}</span>
         </div>
       </div>
 
@@ -200,7 +200,7 @@ export function LoginForm() {
             Sign up here
           </Link>
         </p>
-        <p className="text-gray-500 text-xs mt-2 font-jetbrains">
+        <p className="text-gray-500 text-xs mt-2 font-space-mono">
           {"// Join the community of 10,000+ developers"}
         </p>
       </div>

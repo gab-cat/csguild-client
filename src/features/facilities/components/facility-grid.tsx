@@ -99,7 +99,7 @@ export function FacilityGrid({
             <h2 className="text-xl font-bold text-white">Available Facilities</h2>
             <div className="flex items-center gap-2 mt-1">
               <Zap className="h-3 w-3 text-pink-400" />
-              <span className="font-jetbrains text-xs text-pink-400">
+              <span className="font-space-mono text-xs text-pink-400">
                 {"// Click to select a facility"}
               </span>
             </div>
@@ -160,7 +160,7 @@ export function FacilityGrid({
                         </CardTitle>
                         <div className="flex items-center gap-2 mt-1">
                           <MapPin className="h-3 w-3 text-pink-400" />
-                          <span className="text-xs text-pink-400 font-jetbrains">
+                          <span className="text-xs text-pink-400 font-space-mono">
                             {facility.location}
                           </span>
                         </div>
@@ -195,7 +195,7 @@ export function FacilityGrid({
                     <Badge 
                       variant={status.variant}
                       className={`
-                        ${status.color} font-jetbrains text-xs
+                        ${status.color} font-space-mono text-xs
                         ${isSelected ? 'bg-green-500/20 text-green-300 border-green-500/30' : ''}
                       `}
                     >

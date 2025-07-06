@@ -112,7 +112,7 @@ export function GoogleProfileCompletionForm() {
         
         {/* User Info Display */}
         <div className="mt-4 p-4 bg-pink-500/10 border border-pink-500/20 rounded-lg">
-          <p className="text-sm text-pink-400 font-jetbrains mb-2">
+          <p className="text-sm text-pink-400 font-space-mono mb-2">
             {"// Connected as"}
           </p>
           <p className="text-white font-medium">
@@ -139,7 +139,7 @@ export function GoogleProfileCompletionForm() {
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white placeholder-gray-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
               />
               {errors.username && (
-                <p className="mt-2 text-sm text-red-400 font-jetbrains">
+                <p className="mt-2 text-sm text-red-400 font-space-mono">
                   {"// " + errors.username.message}
                 </p>
               )}
@@ -162,7 +162,7 @@ export function GoogleProfileCompletionForm() {
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white placeholder-gray-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
               />
               {errors.birthdate && (
-                <p className="mt-2 text-sm text-red-400 font-jetbrains">
+                <p className="mt-2 text-sm text-red-400 font-space-mono">
                   {"// " + errors.birthdate.message}
                 </p>
               )}
@@ -186,7 +186,7 @@ export function GoogleProfileCompletionForm() {
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white placeholder-gray-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
               />
               {errors.course && (
-                <p className="mt-2 text-sm text-red-400 font-jetbrains">
+                <p className="mt-2 text-sm text-red-400 font-space-mono">
                   {"// " + errors.course.message}
                 </p>
               )}
@@ -210,12 +210,12 @@ export function GoogleProfileCompletionForm() {
                 className="w-full pl-10 pr-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white placeholder-gray-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
               />
               {errors.rfidId && (
-                <p className="mt-2 text-sm text-red-400 font-jetbrains">
+                <p className="mt-2 text-sm text-red-400 font-space-mono">
                   {"// " + errors.rfidId.message}
                 </p>
               )}
             </div>
-            <p className="mt-2 text-sm text-gray-400 font-jetbrains">
+            <p className="mt-2 text-sm text-gray-400 font-space-mono">
               {"// Tap your student ID on an RFID reader to fill this field automatically"}
             </p>
           </motion.div>
@@ -223,7 +223,7 @@ export function GoogleProfileCompletionForm() {
 
         {/* Info Message */}
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-          <p className="text-sm text-blue-400 font-jetbrains">
+          <p className="text-sm text-blue-400 font-space-mono">
             {"// You can skip optional fields and complete them later in your profile settings"}
           </p>
         </div>

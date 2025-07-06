@@ -67,7 +67,7 @@ export default function FacilitiesPage() {
                   <p className="text-red-300 mb-4">
                     {error instanceof Error ? error.message : 'An unexpected error occurred while loading facilities.'}
                   </p>
-                  <div className="text-sm text-red-400 font-jetbrains">
+                  <div className="text-sm text-red-400 font-space-mono">
                     {"// Please try refreshing the page or contact support if the issue persists"}
                   </div>
                 </CardContent>
@@ -131,7 +131,7 @@ export default function FacilitiesPage() {
           >
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/10 to-violet-500/10 border border-pink-500/20 backdrop-blur-sm">
               <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span className="text-sm text-gray-400 font-jetbrains">
+              <span className="text-sm text-gray-400 font-space-mono">
                 {"// System status: Online • Real-time data sync active"}
               </span>
             </div>

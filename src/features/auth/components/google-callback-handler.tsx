@@ -115,7 +115,7 @@ export function GoogleCallbackHandler() {
         <div className="text-center">
           <h3 className="text-xl font-bold text-white mb-2">Authentication Failed</h3>
           <p className="text-gray-300 mb-4">{error}</p>
-          <div className="text-sm text-red-400 font-jetbrains bg-red-500/10 border border-red-500/20 rounded-lg p-4">
+          <div className="text-sm text-red-400 font-space-mono bg-red-500/10 border border-red-500/20 rounded-lg p-4">
             {"// Google authentication could not be completed"}
           </div>
         </div>

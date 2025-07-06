@@ -88,9 +88,6 @@ export function middleware(request: NextRequest) {
     return NextResponse.redirect(url)
   }
 
-  
-  console.log('here')
-
   // Allow the request to continue
   return NextResponse.next()
 }

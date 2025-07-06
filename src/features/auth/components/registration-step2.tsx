@@ -161,7 +161,7 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
           <motion.p
             initial={{ opacity: 0, y: -5 }}
             animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-red-400 font-jetbrains"
+            className="text-xs text-red-400 font-space-mono"
           >
             {"// " + errors.rfidId.message}
           </motion.p>
@@ -178,7 +178,7 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
           <div className="flex items-center gap-2 text-green-400">
             <CheckCircle className="h-4 w-4" />
             <span className="font-medium">RFID Connected:</span>
-            <span className="font-jetbrains">{watchedRfidId}</span>
+            <span className="font-space-mono">{watchedRfidId}</span>
           </div>
         </motion.div>
       )}
@@ -186,7 +186,7 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
       {/* Info Box */}
       <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
         <div className="text-sm text-blue-300">
-          <div className="font-jetbrains mb-2">{"// Why do we need your RFID?"}</div>
+          <div className="font-space-mono mb-2">{"// Why do we need your RFID?"}</div>
           <ul className="space-y-1 text-blue-200">
             <li>• Quick login without passwords</li>
             <li>• Access to CS Guild facilities</li>

@@ -42,12 +42,12 @@
 }
 
 @layer utilities {
-  .font-poppins {
-    font-family: var(--font-poppins);
+  .font-space-grotesk {
+    font-family: var(--font-space-grotesk);
   }
 
-  .font-jetbrains {
-    font-family: var(--font-jetbrains-mono);
+  .font-space-mono {
+    font-family: var(--font-space-mono);
   }
 
   .animate-blob {
