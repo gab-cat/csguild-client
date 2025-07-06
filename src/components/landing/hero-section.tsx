@@ -43,7 +43,7 @@ export function HeroSection() {
               </span>
             </h1>
 
-            <p className="text-xl md:text-2xl text-gray-200 max-w-2xl leading-relaxed tracking-tight animate-fade-in-up-delay-600">
+            <p className="text-lg md:text-xl text-gray-200 max-w-2xl leading-relaxed tracking-tight animate-fade-in-up-delay-600">
               Join thousands of Computer Science students in the ultimate learning ecosystem. Build projects, share
               knowledge, and level up your coding journey together.
             </p>
