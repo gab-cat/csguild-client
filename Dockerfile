@@ -23,12 +23,12 @@ LABEL author=gab-cat
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-RUN npm i -g bun && npx next telemetry disable
+RUN npx next telemetry disable
 COPY . .
 
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API_URL=http://csguild.gab-cat.me
-RUN bun run build
+ENV NEXT_PUBLIC_API_URL=https://csguild.gab-cat.me
+RUN npm run build
 
 
 
