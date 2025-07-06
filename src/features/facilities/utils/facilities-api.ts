@@ -11,7 +11,7 @@ import type {
 } from '../types'
 
 // API endpoints
-const FACILITIES_ENDPOINT = '/api/facilities'
+const FACILITIES_ENDPOINT = '/facilities'
 
 export const facilitiesApi = {
   // Get all active facilities
