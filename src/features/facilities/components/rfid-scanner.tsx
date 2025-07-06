@@ -155,16 +155,6 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
               <p>2. Tap your RFID card</p>
               <p>3. System will time you in/out</p>
             </div>
-
-            {/* Processing State */}
-            {isProcessing && (
-              <div className="text-center p-3 rounded-lg bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30">
-                <div className="flex items-center justify-center gap-2 text-pink-400">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-sm">Processing...</span>
-                </div>
-              </div>
-            )}
           </CardContent>
         </Card>
       </motion.div>
