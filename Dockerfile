@@ -23,11 +23,12 @@ LABEL author=gab-cat
 
 WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
-RUN npm i -g dotenv-cli@8.0.0 bun && npx next telemetry disable
+RUN npm i -g bun && npx next telemetry disable
 COPY . .
 
 ENV NODE_ENV=production
-RUN dotenv -e .env -- bun run build
+ENV NEXT_PUBLIC_API_URL=http://csguild.gab-cat.me
+RUN bun run build
 
 
 
@@ -52,7 +53,7 @@ COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 
 # Ensure environment file and app directory are owned by nextjs user
-RUN chown -R nextjs:nodejs /app && rm .env
+RUN chown -R nextjs:nodejs /app 
 
 USER nextjs
 EXPOSE 3000
