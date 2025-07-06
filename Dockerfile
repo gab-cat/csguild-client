@@ -27,7 +27,7 @@ RUN npx next telemetry disable
 COPY . .
 
 ENV NODE_ENV=production
-ENV NEXT_PUBLIC_API_URL=https://csguild.gab-cat.me
+ENV NEXT_PUBLIC_API_URL=https://csguild.gab-cat.me/api
 RUN npm run build
 
 
