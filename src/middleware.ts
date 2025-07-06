@@ -7,7 +7,6 @@ import { User } from './features/auth'
 // Define protected routes that require authentication
 const protectedRoutes = [
   '/dashboard',
-  '/facilities',
   '/profile',
   '/settings',
   '/events',

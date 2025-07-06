@@ -14,7 +14,6 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { SidebarTrigger } from '@/components/ui/sidebar'
 import { useLogoutMutation } from '@/features/auth/hooks'
 import { useAuthStore } from '@/features/auth/stores/auth-store'
 
@@ -43,13 +42,8 @@ const NavBar = () => {
     <header className="sticky top-0 z-50 flex h-16 shrink-0 items-center gap-4 border-b border-pink-500/20 bg-black/80 backdrop-blur-md px-4">
       {/* Left Section */}
       <div className="flex items-center gap-4 flex-1">
-        {/* Sidebar Trigger */}
-        <SidebarTrigger className="-ml-1 text-pink-400 hover:text-pink-300 hover:bg-pink-500/10" />
-        
-        <Separator orientation="vertical" className="h-4 bg-pink-500/20" />
-        
         {/* Enhanced Brand */}
-        <Link href="/" className="flex items-center gap-3 group">
+        <Link href="/" className="flex items-center gap-3 group md:ml-8">
           <div className="relative">
             <Code2 className="h-6 w-6 text-pink-400 group-hover:text-pink-300 transition-colors duration-300" />
             <div className="absolute inset-0 bg-pink-400/20 rounded-lg blur-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300" />

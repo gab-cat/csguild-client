@@ -30,7 +30,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
+    // @ts-expect-error - webcrx is not a valid attribute for html
+    <html lang="en" webcrx=''>
       <body
         className={`${poppins.variable} ${jetbrainsMono.variable} antialiased font-poppins bg-gray-950 text-white `}
       >

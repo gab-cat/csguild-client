@@ -62,6 +62,8 @@ This comprehensive guide outlines best practices, conventions, and standards for
         Use composition pattern with smaller, reusable components
         Place shared UI components in src/components/ui/ (shadcn/ui style)
         Create skeleton components in dedicated skeletons/ directory
+        Always check if there is an already existing theme or branding, always use that when creating components
+        Make sure that components are always aligned to the style and identity of the app as a whole
 
     TypeScript & Type Safety
         Define shared types in src/types/ with descriptive names
