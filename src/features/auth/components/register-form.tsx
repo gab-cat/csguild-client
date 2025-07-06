@@ -13,6 +13,7 @@ import { Input } from '@/components/ui/input'
 import { useRegisterMutation } from '../hooks'
 import { registerSchema, type RegisterFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
+import { authApi } from '../utils/auth-api'
 
 export function RegisterForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -88,8 +89,8 @@ export function RegisterForm() {
     )
   }
 
-  const handleGoogleSignup = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`
+  const handleGoogleSignup = async () => {
+    authApi.googleLogin()
   }
 
   return (
