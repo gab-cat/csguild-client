@@ -73,7 +73,7 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
                 <Code2 className="h-5 w-5 text-white" />
               </div>
               <div className="text-left">
-                <h1 className="font-space-mono font-bold text-xl text-white">CS Guild</h1>
+                <h1 className="font-space-mono font-bold text-xl text-white tracking-tight">CS Guild</h1>
                 <p className="font-space-mono text-xs text-pink-400">v2.0.dev</p>
               </div>
             </motion.div>
@@ -83,8 +83,8 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
             >
-              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2">{title}</h2>
-              <p className="text-gray-200 text-sm md:text-base">{subtitle}</p>
+              <h2 className="text-2xl md:text-3xl font-bold text-white mb-2 tracking-tighter">{title}</h2>
+              <p className="text-gray-300 text-sm md:text-base tracking-tightrt">{subtitle}</p>
               
               {/* Code comment */}
               <div className="inline-flex items-center gap-2 px-3 py-1 mt-4 rounded-full bg-gradient-to-r from-pink-500/10 to-violet-500/10 border border-pink-500/20">

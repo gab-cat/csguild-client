@@ -114,13 +114,13 @@ const Footer = () => {
             
             {/* Legal Links */}
             <div className="flex gap-6">
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
+              <a href="/privacy" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
                 Privacy Policy
               </a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
+              <a href="/terms" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
                 Terms of Service
               </a>
-              <a href="#" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
+              <a href="/code-of-conduct" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
                 Code of Conduct
               </a>
             </div>

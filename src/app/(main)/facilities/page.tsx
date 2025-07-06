@@ -4,8 +4,6 @@ import { motion } from 'framer-motion'
 import { XCircle } from 'lucide-react'
 import { useState } from 'react'
 
-import Footer from '@/components/shared/footer'
-import NavBar from '@/components/shared/navbar'
 import { Card, CardContent } from '@/components/ui/card'
 import { 
   useFacilities, 
@@ -48,7 +46,6 @@ export default function FacilitiesPage() {
   if (error) {
     return (
       <div className="min-h-screen bg-black flex flex-col">
-        <NavBar />
         <main className="flex-1">
           {/* Background Pattern */}
           <div className="absolute inset-0 bg-[linear-gradient(to_right,#8b5cf6_1px,transparent_1px),linear-gradient(to_bottom,#8b5cf6_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-50 z-50 rounded-2xl" />
@@ -75,14 +72,12 @@ export default function FacilitiesPage() {
             </motion.div>
           </div>
         </main>
-        <Footer />
       </div>
     )
   }
 
   return (
     <div className="min-h-screen bg-black flex flex-col">
-      <NavBar />
       
       <main className="flex-1">
         {/* Background Pattern */}
@@ -138,8 +133,6 @@ export default function FacilitiesPage() {
           </motion.div>
         </div>
       </main>
-      
-      <Footer />
     </div>
   )
 }
