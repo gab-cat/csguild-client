@@ -63,16 +63,15 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
     
     try {
       await onScan(rfidInput.trim())
-      setRfidInput('')
     } catch (error) {
       console.error('RFID scan error:', error)
     } finally {
-      // Re-focus input after scan
       setTimeout(() => {
         if (rfidInputRef.current) {
+          setRfidInput('')
           rfidInputRef.current.focus()
         }
-      }, 100)
+      }, 1500)
     }
   }
 

@@ -40,7 +40,7 @@ export function FacilitiesClient() {
     } finally {
       setTimeout(() => {
         setIsReading(false)
-      }, 2000)
+      }, 1500)
     }
   }
 
