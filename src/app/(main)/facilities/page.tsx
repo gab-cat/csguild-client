@@ -18,6 +18,7 @@ import {
 export default function FacilitiesPage() {
   const [selectedFacility, setSelectedFacility] = useState<Facility | null>(null)
   const [lastScanResult, setLastScanResult] = useState<FacilityToggleResponse | null>(null)
+  const [isReading, setIsReading] = useState(false)
 
   // API hooks
   const { data: facilities, isLoading, error } = useFacilities()
@@ -26,6 +27,7 @@ export default function FacilitiesPage() {
   // Handle RFID scan
   const handleRfidScan = async (rfidId: string) => {
     if (!selectedFacility) return
+    setIsReading(true)
 
     try {
       const result = await toggleMutation.mutateAsync({
@@ -35,6 +37,10 @@ export default function FacilitiesPage() {
       setLastScanResult(result)
     } catch (error) {
       console.error('RFID toggle error:', error)
+    } finally {
+      setTimeout(() => {
+        setIsReading(false)
+      }, 2000)
     }
   }
 
@@ -98,7 +104,7 @@ export default function FacilitiesPage() {
               setSelectedFacility={handleFacilitySelect}
               selectedFacility={selectedFacility}
               onScan={handleRfidScan}
-              isProcessing={toggleMutation.isPending}
+              isProcessing={isReading}
               lastScanResult={lastScanResult}
             />
           </motion.div>
