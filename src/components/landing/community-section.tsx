@@ -275,10 +275,10 @@ export function CommunitySection() {
                     }}
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                   >
-                    <Card className="bg-gradient-to-br backdrop-blur-lg from-pink-900/20 to-violet-900/20 border border-pink-500/20 hover:from-pink-900/30 hover:to-violet-900/30 hover:border-pink-400/30 group relative overflow-hidden h-full shadow-2xl hover:shadow-pink-500/20 transition-all duration-500">
+                    <Card className="bg-gradient-to-br backdrop-blur-lg from-pink-900/20 to-violet-900/20 border border-pink-500/20 hover:border-pink-400/30 group relative overflow-hidden h-full shadow-2xl hover:shadow-pink-500/20 transition-all duration-500">
                       <CardContent className="p-6 relative z-10 h-full flex flex-col">
                         {/* Glossy overlay for 3D effect */}
-                        <div className="absolute inset-0 bg-gradient-to-tr backdrop-blur-lg from-transparent via-white/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
+                        <div className="absolute inset-0 bg-gradient-to-tr backdrop-blur-lg from-transparent via-white/5 to-transparent opacity-0  transition-opacity duration-500 pointer-events-none" />
                         
                         <motion.div 
                           className="absolute top-4 right-4 opacity-20 group-hover:opacity-30 transition-opacity"
@@ -341,7 +341,6 @@ export function CommunitySection() {
                           initial={{ opacity: 0, scale: 0.95 }}
                           animate={isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.95 }}
                           transition={{ duration: 0.4, delay: 1.6 + index * 0.1 }}
-                          whileHover={{ scale: 1.02 }}
                         >
                           <div className="flex items-center gap-2 text-pink-400 font-space-mono text-xs">
                             <Code2 className="h-3 w-3" />
