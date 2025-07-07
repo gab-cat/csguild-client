@@ -1,5 +1,9 @@
 This comprehensive guide outlines best practices, conventions, and standards for development with modern web technologies including ReactJS, NextJS, Redux, TypeScript, JavaScript, HTML, CSS, and UI frameworks.
 
+  Task Implementation
+    - Create a to-do list first of the requirements and tasks
+    - Break down tasks into smaller, manageable subtasks
+
     Development Philosophy
     - Write clean, maintainable, and scalable code
     - Follow SOLID principles
