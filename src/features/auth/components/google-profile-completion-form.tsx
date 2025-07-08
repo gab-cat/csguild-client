@@ -57,6 +57,7 @@ export function GoogleProfileCompletionForm() {
       ) as GoogleUserUpdateData
 
       await updateProfileMutation.mutateAsync(cleanData)
+      window.location.reload()
     } catch (error) {
       console.error('Profile update error:', error)
     }

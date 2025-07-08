@@ -20,7 +20,6 @@ import { authApi } from '../utils/auth-api'
 
 // Login mutation
 export function useLoginMutation() {
-  const router = useRouter()
   const { setUser, setLoading, setError } = useAuthStore()
   const queryClient = useQueryClient()
 
@@ -39,12 +38,7 @@ export function useLoginMutation() {
         
         // Invalidate and refetch user data
         queryClient.invalidateQueries({ queryKey: ['user'] })
-        router.push('/dashboard')
-        showSuccessToast(
-          'Welcome back to CS Guild!',
-          `Ready to continue your coding journey? Let's build something amazing.`
-        )
-
+        window.location.reload()
       } catch {
         setError('Failed to fetch user data')
         setLoading(false)
