@@ -3,6 +3,7 @@
 import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
+import LoadingComponent from '@/components/shared/loading'
 import { AuthLayout } from '@/features/auth/components/auth-layout'
 import { GoogleProfileCompletionForm } from '@/features/auth/components/google-profile-completion-form'
 import { MultiStepRegisterForm } from '@/features/auth/components/multi-step-register-form'
@@ -34,11 +35,7 @@ function RegisterPageContent() {
 
 export default function RegisterPage() {
   return (
-    <Suspense fallback={
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-pink-500"></div>
-      </div>
-    }>
+    <Suspense fallback={<LoadingComponent />}>
       <RegisterPageContent />
     </Suspense>
   )
