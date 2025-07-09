@@ -37,10 +37,12 @@ export function FacilitiesClient() {
       setLastScanResult(result)
     } catch (error) {
       console.error('RFID toggle error:', error)
+      // Re-throw the error so the scanner shows error feedback
+      throw error
     } finally {
       setTimeout(() => {
         setIsReading(false)
-      }, 1500)
+      }, 1000)
     }
   }
 

@@ -2,7 +2,7 @@
 
 import { useMutation, useQueryClient } from '@tanstack/react-query'
 
-import { showSuccessToast, showErrorToast, showInfoToast } from '@/lib/toast'
+import { showErrorToast, showInfoToast } from '@/lib/toast'
 
 import type { 
   FacilityToggleRequest, 
@@ -19,22 +19,9 @@ export function useFacilityToggle() {
   return useMutation({
     mutationFn: (data: FacilityToggleRequest) => 
       facilitiesApi.toggleFacilityAccess(data),
-    onSuccess: (response) => {
+    onSuccess: () => {
       // Invalidate and refetch facilities to update occupancy
       queryClient.invalidateQueries({ queryKey: facilitiesQueryKeys.all })
-      
-      // Show success message based on action
-      if (response.action === 'time-in') {
-        showSuccessToast(
-          'Time-in successful!',
-          `Welcome, ${response.student.firstName}! You've checked in to ${response.facility.name}.`
-        )
-      } else {
-        showInfoToast(
-          'Time-out successful!',
-          `See you later, ${response.student.firstName}! You've checked out from ${response.facility.name}.`
-        )
-      }
     },
     onError: (error: Error) => {
       showErrorToast(

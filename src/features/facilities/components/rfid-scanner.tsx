@@ -32,6 +32,7 @@ interface RfidScannerProps {
 
 export function RfidScanner({ facilities, setSelectedFacility, selectedFacility, onScan, isProcessing, lastScanResult }: RfidScannerProps) {
   const [rfidInput, setRfidInput] = useState('')
+  const [scanFeedback, setScanFeedback] = useState<'success' | 'error' | null>(null)
   const rfidInputRef = useRef<HTMLInputElement>(null)
 
   // Auto-focus functionality
@@ -63,15 +64,18 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
     
     try {
       await onScan(rfidInput.trim())
+      setScanFeedback('success')
     } catch (error) {
       console.error('RFID scan error:', error)
+      setScanFeedback('error')
     } finally {
       setTimeout(() => {
         if (rfidInputRef.current) {
           setRfidInput('')
           rfidInputRef.current.focus()
+          setScanFeedback(null)
         }
-      }, 1500)
+      }, 1000)
     }
   }
 
@@ -101,35 +105,88 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
         animate={{ opacity: 1, x: 0 }}
         transition={{ duration: 0.6 }}
       >
-        <Card className="bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/30 backdrop-blur-sm">
+        <Card className={`bg-gradient-to-br backdrop-blur-sm transition-all duration-300 ${
+          scanFeedback === 'success' 
+            ? 'from-green-900/40 to-emerald-900/40 border-green-400 shadow-green-400/20 shadow-lg' 
+            : scanFeedback === 'error'
+              ? 'from-red-900/40 to-orange-900/40 border-red-400 shadow-red-400/20 shadow-lg'
+              : 'from-pink-900/20 to-violet-900/20 border-pink-500/30'
+        }`}>
           <CardHeader className="pb-3">
             <CardTitle className="flex items-center gap-2 text-white">
-              <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500 to-violet-500 flex items-center justify-center">
-                <Scan className="h-4 w-4 text-white" />
-              </div>
-              <span className="text-lg font-bold">RFID Scanner</span>
+              <motion.div 
+                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                  scanFeedback === 'success' 
+                    ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
+                    : scanFeedback === 'error'
+                      ? 'bg-gradient-to-br from-red-500 to-orange-500'
+                      : 'bg-gradient-to-br from-pink-500 to-violet-500'
+                }`}
+                animate={scanFeedback ? { scale: [1, 1.2, 1] } : {}}
+                transition={{ duration: 0.5 }}
+              >
+                {scanFeedback === 'success' ? (
+                  <CheckCircle className="h-4 w-4 text-white" />
+                ) : scanFeedback === 'error' ? (
+                  <AlertCircle className="h-4 w-4 text-white" />
+                ) : (
+                  <Scan className="h-4 w-4 text-white" />
+                )}
+              </motion.div>
+              <span className="text-lg font-bold">
+                {scanFeedback === 'success' ? 'Scan Successful!' : 
+                  scanFeedback === 'error' ? 'Scan Failed!' : 
+                    'RFID Scanner'}
+              </span>
             </CardTitle>
           </CardHeader>
           
           <CardContent className="space-y-4">
             <form onSubmit={handleSubmit}>
-              <div className="relative">
+              <motion.div 
+                className="relative"
+                animate={scanFeedback ? { 
+                  x: scanFeedback === 'error' ? [-5, 5, -5, 5, 0] : [0],
+                  scale: scanFeedback === 'success' ? [1, 1.02, 1] : [1]
+                } : {}}
+                transition={{ duration: 0.5 }}
+              >
                 <Input
                   ref={rfidInputRef}
                   value={rfidInput}
                   onChange={(e) => setRfidInput(e.target.value)}
                   placeholder="Scan your RFID card..."
-                  className="h-12 text-base font-space-mono bg-black/30 border-pink-500/30 focus:border-pink-400 focus:ring-pink-400/20 text-white placeholder:text-gray-400 pr-12"
+                  className={`h-12 text-base font-space-mono bg-black/30 text-white placeholder:text-gray-400 pr-12 transition-all duration-300 ${
+                    scanFeedback === 'success' 
+                      ? 'border-green-400 focus:border-green-300 focus:ring-green-400/20 shadow-green-400/20 shadow-md' 
+                      : scanFeedback === 'error'
+                        ? 'border-red-400 focus:border-red-300 focus:ring-red-400/20 shadow-red-400/20 shadow-md'
+                        : 'border-pink-500/30 focus:border-pink-400 focus:ring-pink-400/20'
+                  }`}
                   disabled={isProcessing || !selectedFacility}
                 />
                 <div className="absolute right-3 top-1/2 transform -translate-y-1/2">
                   {isProcessing ? (
                     <Loader2 className="h-4 w-4 animate-spin text-pink-400" />
+                  ) : scanFeedback === 'success' ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.3, 1], rotate: [0, 360] }}
+                      transition={{ duration: 0.6 }}
+                    >
+                      <CheckCircle className="h-4 w-4 text-green-400" />
+                    </motion.div>
+                  ) : scanFeedback === 'error' ? (
+                    <motion.div
+                      animate={{ scale: [1, 1.3, 1] }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <AlertCircle className="h-4 w-4 text-red-400" />
+                    </motion.div>
                   ) : (
                     <Scan className="h-4 w-4 text-gray-400" />
                   )}
                 </div>
-              </div>
+              </motion.div>
             </form>
 
             {/* Status */}
@@ -178,42 +235,60 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
             {lastScanResult ? (
               <div className="space-y-4">
                 {/* Action Status */}
-                <div className={`flex items-center gap-2 p-3 rounded-lg ${
-                  lastScanResult.action === 'time-in' 
-                    ? 'bg-gradient-to-r from-green-500/10 to-emerald-500/10 border border-green-500/20' 
-                    : 'bg-gradient-to-r from-blue-500/10 to-cyan-500/10 border border-blue-500/20'
-                }`}>
-                  {lastScanResult.action === 'time-in' ? (
-                    <LogIn className="h-5 w-5 text-green-400" />
-                  ) : (
-                    <LogOut className="h-5 w-5 text-blue-400" />
-                  )}
-                  <div>
-                    <p className={`text-sm font-medium ${
+                <motion.div 
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className={`flex items-center gap-3 p-4 rounded-lg border shadow-lg ${
+                    lastScanResult.action === 'time-in' 
+                      ? 'bg-gradient-to-r from-green-500/20 to-emerald-500/20 border-green-500/40 shadow-green-500/20' 
+                      : 'bg-gradient-to-r from-blue-500/20 to-cyan-500/20 border-blue-500/40 shadow-blue-500/20'
+                  }`}
+                >
+                  <div
+                    className={`p-2 rounded-full ${
+                      lastScanResult.action === 'time-in' 
+                        ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
+                        : 'bg-gradient-to-br from-blue-500 to-cyan-500'
+                    }`}
+                  >
+                    {lastScanResult.action === 'time-in' ? (
+                      <LogIn className="h-6 w-6 text-white" />
+                    ) : (
+                      <LogOut className="h-6 w-6 text-white" />
+                    )}
+                  </div>
+                  <div className="flex-1">
+                    <p className={`text-base font-bold ${
                       lastScanResult.action === 'time-in' ? 'text-green-300' : 'text-blue-300'
                     }`}>
-                      {lastScanResult.action === 'time-in' ? 'Timed In' : 'Timed Out'}
+                      {lastScanResult.action === 'time-in' ? 'Successfully Timed In' : 'Successfully Timed Out'}
                     </p>
-                    <p className="text-xs text-gray-400">{lastScanResult.details}</p>
+                    <p className="text-sm text-gray-300">{lastScanResult.details}</p>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Student Info */}
-                <div className="flex items-center gap-3 p-3 rounded-lg bg-black/30 border border-pink-500/20">
-                  <Avatar className="h-10 w-10 border-2 border-pink-500/30">
+                <motion.div 
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ duration: 0.3 }}
+                  className="flex items-center gap-4 p-4 rounded-lg bg-black/30 border border-pink-500/20"
+                >
+                  <Avatar className="h-16 w-16 border-3 border-pink-500/30 shadow-lg shadow-pink-500/20">
                     <AvatarImage src={lastScanResult.student.imageUrl} alt={lastScanResult.student.firstName} />
-                    <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-500 text-white text-sm">
+                    <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-500 text-white text-lg font-bold">
                       {getUserInitials(lastScanResult.student.firstName, lastScanResult.student.lastName)}
                     </AvatarFallback>
                   </Avatar>
-                  <div>
-                    <p className="text-sm font-medium text-white">
+                  <div className="flex-1">
+                    <p className="text-base font-semibold text-white">
                       {lastScanResult.student.firstName} {lastScanResult.student.lastName}
                     </p>
-                    <p className="text-xs text-pink-400">{lastScanResult.student.course}</p>
+                    <p className="text-sm text-pink-400 font-medium">{lastScanResult.student.course}</p>
                     <p className="text-xs text-gray-400">{lastScanResult.student.email}</p>
                   </div>
-                </div>
+                </motion.div>
 
                 {/* Facility Info */}
                 <div className="flex items-center gap-3 p-3 rounded-lg bg-black/30 border border-violet-500/20">
