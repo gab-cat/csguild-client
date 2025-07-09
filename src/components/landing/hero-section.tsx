@@ -18,14 +18,14 @@ export function HeroSection() {
         />
       </div>
 
-      <div className="container mx-auto px-6 relative z-10">
+      <div className="container text-center md:text-left mx-auto px-6 relative z-10">
         <div className="flex items-center min-h-screen">
           {/* Text Content - Now takes full width on large screens but with right padding */}
-          <div className="w-full lg:w-3/5 space-y-8 mb-auto mt-32">
+          <div className="w-full lg:w-3/5 space-y-8 mb-auto mt-12 md:mt-32">
             <div className="animate-fade-in-up-delay-200">
               <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-pink-500/20 to-violet-500/20 border border-pink-500/30 backdrop-blur-sm">
                 <Code2 className="h-4 w-4 text-pink-400" />
-                <span className="font-space-mono text-sm text-pink-300">{'console.log("Welcome to CS Guild");'}</span>
+                <span className="font-space-mono text-xs md:text-sm text-pink-300">{'console.log("Welcome to CS Guild");'}</span>
               </div>
             </div>
 
@@ -45,7 +45,7 @@ export function HeroSection() {
               knowledge, and level up your coding journey together.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-4 animate-fade-in-up-delay-800">
+            <div className="flex flex-col justify-center md:justify-start sm:flex-row gap-4 animate-fade-in-up-delay-800">
               <Button
                 size="lg"
                 className="bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold px-8 py-4 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25"
@@ -62,15 +62,6 @@ export function HeroSection() {
               </Button>
             </div>
 
-          </div>
-
-          {/* Mobile Robot - Only visible on mobile */}
-          <div className="lg:hidden mt-12 relative h-[600px] w-full animate-fade-in-scale-delay-800">
-            <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 via-violet-500/20 to-purple-500/20 rounded-3xl blur-3xl opacity-30" />
-            <Spline
-              scene="https://prod.spline.design/awBSaOn9261Q9L9g/scene.splinecode"
-              className="w-full h-full z-50"
-            />
           </div>
         </div>
       </div>
