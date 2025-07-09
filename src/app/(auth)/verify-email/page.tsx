@@ -1,5 +1,4 @@
 import { Metadata } from 'next'
-import { Suspense } from 'react'
 
 import { AuthLayout, VerifyEmailForm } from '@/features/auth/components'
 
@@ -10,14 +9,12 @@ export const metadata: Metadata = {
 
 export default function VerifyEmailPage() {
   return (
-    <Suspense fallback={<div>Loading...</div>}>
-      <AuthLayout
-        title="Verify Your Email"
-        subtitle="Complete your CS Guild account setup"
-        showBackButton={true}
-      >
-        <VerifyEmailForm />
-      </AuthLayout>
-    </Suspense>
+    <AuthLayout
+      title="Verify Your Email"
+      subtitle="Complete your CS Guild account setup"
+      showBackButton={true}
+    >
+      <VerifyEmailForm />
+    </AuthLayout>
   )
 }
