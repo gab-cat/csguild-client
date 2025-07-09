@@ -88,6 +88,11 @@
 
 
 body {
+  /*
+      * This is a temporary fix for the horizontal scrolling issue.
+      * But it's much better to find the root cause of the horizontal scrolling
+      * Because this style applies to <body> tag.
+  */
   @apply overflow-x-hidden;
 }
 
