@@ -118,6 +118,10 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
     onNext(data)
   }
 
+  const handleSkip = () => {
+    onNext({ rfidId: '' })
+  }
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {/* RFID Scanner Visual */}
@@ -277,6 +281,9 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
             <li>• Attendance tracking for events</li>
             <li>• Secure and convenient authentication</li>
           </ul>
+          <p className="text-xs text-blue-300 mt-3 italic">
+            You can skip this step and set up your RFID later in your profile settings.
+          </p>
         </div>
       </div>
 
@@ -295,8 +302,17 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
         </Button>
 
         <Button
+          type="button"
+          onClick={handleSkip}
+          variant="outline"
+          className="flex-1 border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10"
+        >
+          <span>Skip for Now</span>
+        </Button>
+
+        <Button
           type="submit"
-          disabled={isSubmitting || !watchedRfidId}
+          disabled={isSubmitting}
           className="flex-1 bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
           {isSubmitting ? (
@@ -306,7 +322,7 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <span>Continue to Review</span>
+              <span>{watchedRfidId ? 'Continue to Review' : 'Continue without RFID'}</span>
               <ArrowRight className="h-4 w-4" />
             </div>
           )}

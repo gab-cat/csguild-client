@@ -4,6 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -18,6 +19,7 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const { isLoading, error } = useAuthStore()
   const loginMutation = useLoginMutation()
+  const router = useRouter()
 
   const {
     register,
@@ -34,6 +36,12 @@ export function LoginForm() {
     } catch (error) {
       // Error handling is done in the mutation
       console.error('Login error:', error)
+      
+      // Check if the error is related to unverified email
+      const errorMessage = error instanceof Error ? error.message : String(error)
+      if (errorMessage.includes('UNVERIFIED EMAIL') || errorMessage.includes('verify')) {
+        router.push(`/verify-email?email=${data.email}`)
+      }
     }
   }
 

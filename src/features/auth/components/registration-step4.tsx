@@ -2,7 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { ArrowLeft, ArrowRight, Loader2, Mail, RefreshCw, CheckCircle, Clock } from 'lucide-react'
+import { ArrowLeft, ArrowRight, Loader2, Mail, CheckCircle, RotateCcw } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
@@ -198,16 +198,20 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
         )}
       </div>
 
-      {/* Resend Code */}
-      <div className="text-center space-y-3">
-        <p className="text-gray-400 text-sm">Didn&apos;t receive the code?</p>
-        
+      {/* Resend Verification */}
+      <div className="flex items-center justify-between p-4 rounded-lg bg-violet-500/10 border border-violet-500/20">
+        <div className="text-sm text-gray-300">
+          <p>Didn&apos;t receive the code?</p>
+          <p className="text-xs text-gray-400 font-space-mono">
+            {"// Check your spam folder too"}
+          </p>
+        </div>
         <Button
           type="button"
+          variant="outline"
           onClick={handleResendCode}
-          disabled={resendCooldown > 0 || resendVerificationMutation.isPending}
-          variant="ghost"
-          className="text-pink-400 hover:text-pink-300 hover:bg-pink-500/10"
+          disabled={!email || resendCooldown > 0 || resendVerificationMutation.isPending}
+          className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10 bg-black/30 backdrop-blur-sm hover:border-violet-400 transition-all duration-300"
         >
           {resendVerificationMutation.isPending ? (
             <div className="flex items-center gap-2">
@@ -216,26 +220,16 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
             </div>
           ) : resendCooldown > 0 ? (
             <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4" />
-              <span>Resend in {resendCooldown}s</span>
+              <RotateCcw className="h-4 w-4" />
+              <span>Resend ({resendCooldown}s)</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <RefreshCw className="h-4 w-4" />
+              <RotateCcw className="h-4 w-4" />
               <span>Resend Code</span>
             </div>
           )}
         </Button>
-        
-        {resendVerificationMutation.isSuccess && (
-          <motion.p
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-xs text-green-400 font-space-mono"
-          >
-            {"// Verification code sent successfully!"}
-          </motion.p>
-        )}
       </div>
 
       {/* Error Display */}

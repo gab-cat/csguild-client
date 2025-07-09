@@ -139,8 +139,9 @@ export const registrationStep1Schema = z.object({
 export const registrationStep2Schema = z.object({
   rfidId: z
     .string()
-    .min(1, 'RFID card ID is required')
-    .max(50, 'RFID card ID is too long'),
+    .max(50, 'RFID card ID is too long')
+    .optional()
+    .or(z.literal('')),
 })
 
 // Complete registration data type (without refinement for API)
