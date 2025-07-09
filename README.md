@@ -1,36 +1,264 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# CSGuild Client
 
-## Getting Started
+A modern web application built with Next.js 15, TypeScript, and Tailwind CSS. This project implements a feature-based architecture with clean code practices and modern development tools.
 
-First, run the development server:
+## 🚀 Tech Stack
+
+- **Framework**: [Next.js 15](https://nextjs.org) with App Router
+- **Language**: [TypeScript](https://www.typescriptlang.org/)
+- **Styling**: [Tailwind CSS 4](https://tailwindcss.com/)
+- **UI Components**: [Radix UI](https://www.radix-ui.com/) + [shadcn/ui](https://ui.shadcn.com/)
+- **State Management**: [Zustand](https://github.com/pmndrs/zustand)
+- **Data Fetching**: [TanStack Query](https://tanstack.com/query)
+- **Form Handling**: [React Hook Form](https://react-hook-form.com/) + [Zod](https://zod.dev/)
+- **Animation**: [Framer Motion](https://www.framer.com/motion/)
+- **3D Graphics**: [React Three Fiber](https://docs.pmnd.rs/react-three-fiber)
+- **Package Manager**: [Bun](https://bun.sh/)
+- **Linting**: [ESLint](https://eslint.org/)
+
+## 📋 Prerequisites
+
+Before you begin, ensure you have the following installed:
+
+- **Bun** (latest version) - [Installation Guide](https://bun.sh/docs/installation)
+- **Node.js** 18.17 or later
+- **Git**
+
+### Installing Bun
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+# macOS and Linux
+curl -fsSL https://bun.sh/install | bash
+
+# Windows (PowerShell)
+powershell -c "irm bun.sh/install.ps1 | iex"
+
+# Verify installation
+bun --version
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Installation
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/gab-cat/csguild-client.git
+   cd csguild-client
+   ```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+2. **Install dependencies**
+   ```bash
+   bun install
+   ```
 
-## Learn More
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   ```
+   
+   Edit `.env.local` with your configuration values.
 
-To learn more about Next.js, take a look at the following resources:
+4. **Start the development server**
+   ```bash
+   bun dev
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+5. **Open your browser**
+   
+   Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 📚 Available Scripts
 
-## Deploy on Vercel
+| Command | Description |
+|---------|-------------|
+| `bun dev` | Start development server with Turbopack |
+| `bun build` | Build the application for production |
+| `bun start` | Start the production server |
+| `bun lint` | Run ESLint to check code quality |
+| `bun lint:fix` | Run ESLint and automatically fix issues |
+| `bun type-check` | Run TypeScript type checking |
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🏗️ Project Structure
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```
+src/
+├── app/                    # Next.js App Router pages
+│   ├── (auth)/            # Authentication routes
+│   ├── (main)/            # Main public routes
+│   └── dashboard/         # Protected dashboard routes
+├── components/            # Reusable UI components
+│   ├── landing/           # Landing page components
+│   ├── shared/            # Shared components (header, footer)
+│   ├── static/            # Static content components
+│   └── ui/                # Base UI components (shadcn/ui)
+├── constants/             # Application constants
+├── features/              # Feature-based modules
+│   ├── auth/             # Authentication feature
+│   └── facilities/       # Facilities feature
+├── hooks/                 # Custom React hooks
+├── lib/                   # Utility libraries and configurations
+├── stores/                # Zustand global state stores
+└── types/                 # TypeScript type definitions
+```
+
+## 🎨 Development Guidelines
+
+This project follows strict coding standards and architectural patterns:
+
+### Code Style
+- **Indentation**: 2 spaces
+- **Quotes**: Single quotes for strings
+- **Line Length**: 80 characters maximum
+- **Naming**: PascalCase for components, camelCase for functions/variables
+
+### Component Architecture
+- Use functional components with TypeScript
+- Implement proper component composition
+- Extract reusable logic into custom hooks
+- Use React.memo() strategically for performance
+
+### State Management
+- **Local State**: `useState`
+- **Global State**: Zustand stores
+- **Server State**: TanStack Query
+- **Forms**: React Hook Form + Zod validation
+
+## 🔧 Development Workflow
+
+### Pull Request Process
+
+1. **Create a feature branch**
+   ```bash
+   git checkout -b feature/your-feature-name
+   ```
+
+2. **Make your changes**
+   - Follow the coding guidelines
+   - Write tests for new features
+   - Update documentation as needed
+
+3. **Run quality checks**
+   ```bash
+   bun lint
+   bun type-check
+   bun build
+   ```
+
+4. **Commit your changes**
+   ```bash
+   git add .
+   git commit -m "feat: add your feature description"
+   ```
+
+5. **Push and create a pull request**
+   ```bash
+   git push origin feature/your-feature-name
+   ```
+
+### CI/CD Pipeline
+
+Our GitHub Actions workflow automatically:
+- ✅ Installs dependencies with Bun
+- ✅ Runs TypeScript type checking
+- ✅ Executes ESLint for code quality
+- ✅ Builds the application
+- ✅ Caches dependencies for faster builds
+
+## 🧪 Testing
+
+```bash
+# Run unit tests (when implemented)
+bun test
+
+# Run type checking
+bun type-check
+
+# Run linting
+bun lint
+```
+
+## 🚀 Deployment
+
+### Production Build
+
+```bash
+# Build for production
+bun build
+
+# Start production server
+bun start
+```
+
+### Docker Deployment
+
+```bash
+# Build Docker image
+docker build -t csguild-client .
+
+# Run container
+docker run -p 3000:3000 csguild-client
+```
+
+### Vercel Deployment
+
+This project is optimized for [Vercel](https://vercel.com/) deployment:
+
+1. Connect your GitHub repository to Vercel
+2. Configure environment variables
+3. Deploy automatically on every push to main
+
+## 🤝 Contributing
+
+1. **Fork the repository**
+2. **Create a feature branch**
+3. **Follow the coding guidelines**
+4. **Write tests for your changes**
+5. **Submit a pull request**
+
+### Code of Conduct
+
+Please read our [Code of Conduct](./src/app/(main)/code-of-conduct/page.tsx) before contributing.
+
+## 📖 Documentation
+
+- [Next.js Documentation](https://nextjs.org/docs)
+- [TypeScript Documentation](https://www.typescriptlang.org/docs/)
+- [Tailwind CSS Documentation](https://tailwindcss.com/docs)
+- [Bun Documentation](https://bun.sh/docs)
+
+## 🐛 Troubleshooting
+
+### Common Issues
+
+1. **Bun installation fails**
+   - Ensure you have the latest version of your OS
+   - Try using the alternative installation methods
+
+2. **Dependencies installation fails**
+   ```bash
+   # Clear Bun cache
+   bun pm cache rm
+   
+   # Reinstall dependencies
+   rm -rf node_modules bun.lockb
+   bun install
+   ```
+
+3. **Build fails with memory issues**
+   ```bash
+   # Increase Node.js memory limit
+   export NODE_OPTIONS="--max-old-space-size=4096"
+   bun build
+   ```
+
+## 📝 License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## 👥 Team
+
+- **Development Team**: CSGuild Development Team
+- **Repository**: [csguild-client](https://github.com/gab-cat/csguild-client)
+
+---
+
+Built with ❤️ using [Next.js](https://nextjs.org/) and [Bun](https://bun.sh/)
