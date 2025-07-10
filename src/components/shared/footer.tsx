@@ -84,9 +84,9 @@ const Footer = () => {
 
         <Separator className="my-8 bg-pink-500/20" />
 
-        <div className="flex flex-col md:flex-row justify-between items-center">
-          <div className="font-space-mono text-sm text-gray-400">© 2024 CS Guild. All rights reserved.</div>
-          <div className="flex items-center gap-6 mt-4 md:mt-0">
+        <div className="flex flex-col-reverse md:flex-row md:justify-between md:items-center">
+          <div className="font-space-mono text-sm mt-5 md:mt-0 text-gray-400">© 2024 CS Guild. All rights reserved.</div>
+          <div className="flex flex-col md:flex-row justify-start gap-6 mt-4 md:mt-0">
             {/* Social Links */}
             <div className="flex gap-3">
               <a
@@ -113,7 +113,7 @@ const Footer = () => {
             </div>
             
             {/* Legal Links */}
-            <div className="flex gap-6">
+            <div className="flex md:flex-row flex-col items-center gap-6">
               <a href="/privacy" className="text-gray-400 hover:text-pink-400 transition-colors text-sm">
                 Privacy Policy
               </a>
