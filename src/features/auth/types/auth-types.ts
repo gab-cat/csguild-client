@@ -80,6 +80,16 @@ export interface RfidRegistrationResponse extends ApiResponse {
   details: string
 }
 
+// Forgot password response
+export interface ForgotPasswordResponse extends ApiResponse {
+  statusCode: 200
+}
+
+// Reset password response
+export interface ResetPasswordResponse extends ApiResponse {
+  statusCode: 200
+}
+
 // Error response
 export interface ApiError {
   statusCode: number

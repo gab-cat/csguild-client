@@ -22,6 +22,9 @@ A comprehensive NestJS backend system for the Computer Science Guild featuring:
 - 🔑 JWT Authentication with refresh tokens
 - 🚀 Google OAuth2 integration with auto-registration
 - 📬 **Email Service** with HTML templates (verification, welcome, password reset)
+- 🏢 **Facility Management** with capacity tracking and occupancy monitoring
+- ⏰ **Automated User Timeout** system with daily cron jobs
+- 📊 **Real-time Log Viewer** with WebSocket support and authentication
 - 🐘 PostgreSQL with Prisma ORM
 - 🍪 HTTP-only cookie authentication
 - 🛡️ Guards for route protection
@@ -81,6 +84,12 @@ SMTP_PASS="your-app-password"
 FROM_EMAIL="noreply@csguild.com"
 FROM_NAME="CSGUILD"
 
+# Logging Configuration
+LOG_FORMAT="false"              # Set to "json" for JSON formatting
+LOG_LEVEL="info"                # Log level: error, warn, info, debug
+LOG_COLORS="true"               # Enable/disable colored output
+SERVICE_NAME="csguild-server"   # Service name for logs
+
 # Environment
 NODE_ENV="development"
 ```
@@ -96,7 +105,7 @@ bun run db:migrate
 
 ```bash
 # Development mode
-bun run start:dev
+bun run dev
 
 # Production mode
 bun run start:prod
@@ -106,6 +115,64 @@ bun run start:debug
 ```
 
 The application will be available at `http://localhost:3000`
+
+## 📊 Real-time Log Viewer
+
+Access the comprehensive log viewer at:
+
+**🔗 [http://localhost:3000/logs](http://localhost:3000/logs)**
+
+### Log Viewer Features
+
+- **Real-time WebSocket connection** for live log streaming
+- **Dual-panel interface**: Service logs and HTTP route logs
+- **Authentication required**: Login with your student/staff credentials
+- **Auto-scroll functionality** with toggle controls
+- **Connection status indicators** for both log streams
+- **Log filtering and categorization**
+- **Dark theme** optimized for development
+
+### Log Categories
+
+- **Service Logs**: Application events, authentication, facility operations, cron jobs
+- **Route Logs**: HTTP requests, responses, API endpoint access
+
+### Authentication
+
+The log viewer requires authentication to protect sensitive system information:
+- Use your student email/username and password
+- Same credentials as the main application
+- Session maintained for the duration of your browser session
+
+## ⏰ Automated Cron Jobs
+
+The system includes automated background tasks for facility and user management:
+
+### Daily User Timeout (8 PM)
+
+- **Schedule**: Every day at 8:00 PM local time
+- **Function**: Automatically times out all active users from facilities
+- **Purpose**: Ensures facilities are properly closed at end of business day
+- **Logging**: Full execution details logged for audit trail
+
+### Implementation
+
+The cron service runs automatically when the application starts:
+
+```typescript
+@Cron('0 20 * * *') // 8 PM daily
+async timeoutUsersDaily() {
+  const result = await this.usersService.timeoutAllActiveUsers();
+  // Logs: "CRON timeout executed: X users timed out"
+}
+```
+
+### Monitoring Cron Jobs
+
+- View cron execution logs in the real-time log viewer
+- Check console output for cron service initialization
+- Monitor daily timeout operations in service logs
+- All cron activities are logged with timestamps and results
 
 ## 📚 API Documentation
 
@@ -201,7 +268,7 @@ The system includes a comprehensive email service with:
 - **Email Types**:
   - Email verification with 6-digit codes
   - Welcome emails for new students
-  - Password reset notifications
+  - Password reset with secure token-based links (1-hour expiration)
   - RFID registration confirmations
 
 ### Email Templates
@@ -230,6 +297,9 @@ bun run db:studio
 
 # Reset database
 bun run db:reset
+
+# Seed facilities (run manually when needed)
+bun exec ts-node scripts/seed-facilities.ts
 ```
 
 ## 🛡️ Authentication System
@@ -261,8 +331,9 @@ Comprehensive strategy implementation details:
 3. **Login**: `POST /auth/login` with verified credentials
 4. **Access Protected Routes**: Automatic cookie-based auth
 5. **Token Refresh**: `POST /auth/refresh` when token expires
-6. **Google OAuth**: `GET /auth/google` for social login with auto-registration
-7. **RFID Authentication**: `POST /auth/rfid-login` for card-based access
+6. **Password Reset**: `POST /auth/forgot-password` → email link → `POST /auth/reset-password`
+7. **Google OAuth**: `GET /auth/google` for social login with auto-registration
+8. **RFID Authentication**: `POST /auth/rfid-login` for card-based access
 
 ## Project Structure
 
@@ -287,14 +358,33 @@ src/
 │   ├── users.controller.ts # Student endpoints
 │   ├── users.service.ts   # Student business logic
 │   └── users.module.ts    # Users module
+├── facilities/
+│   ├── dto/               # Facility DTOs
+│   ├── facilities.controller.ts # Facility endpoints
+│   ├── facilities.service.ts   # Facility business logic
+│   └── facilities.module.ts    # Facilities module
+├── cron/
+│   ├── cron.service.ts    # Scheduled task management
+│   └── cron.module.ts     # Cron module configuration
 ├── common/
-│   └── email/             # Email service
-│       ├── email.service.ts
-│       ├── email.module.ts
-│       └── templates/     # HTML email templates
-├── prisma/
-│   ├── prisma.service.ts
-│   └── prisma.module.ts
+│   ├── email/             # Email service
+│   │   ├── email.service.ts
+│   │   ├── email.module.ts
+│   │   └── templates/     # HTML email templates
+│   ├── logger/            # Logging service
+│   │   ├── logger.service.ts
+│   │   ├── logger.controller.ts # Log viewer endpoint
+│   │   ├── logger.module.ts
+│   │   └── README.md      # 📚 Logger documentation
+│   └── prisma/
+│       ├── prisma.service.ts
+│       └── prisma.module.ts
+├── scripts/
+│   └── seed-facilities.ts # Database seeding script
+├── public/
+│   ├── log-viewer.html    # Real-time log viewer interface
+│   ├── swagger-custom.js  # Swagger UI customizations
+│   └── swagger-dark-theme.css # Dark theme for API docs
 └── main.ts               # Swagger configuration
 ```
 
@@ -316,6 +406,10 @@ src/
 | `SMTP_PASS`                       | SMTP password                | Required       |
 | `FROM_EMAIL`                      | From email address           | Required       |
 | `FROM_NAME`                       | From name                    | Required       |
+| `LOG_FORMAT`                      | Log output format            | false          |
+| `LOG_LEVEL`                       | Logging level                | info           |
+| `LOG_COLORS`                      | Enable colored logs          | true           |
+| `SERVICE_NAME`                    | Service identifier in logs   | csguild-server |
 | `NODE_ENV`                        | Environment                  | development    |
 
 ## Testing
@@ -347,8 +441,10 @@ bun run test:cov
 3. Verify email via `POST /users/verify-email`
 4. Login via `POST /auth/login`
 5. Test protected routes with cookies
-6. Register RFID card via `POST /users/register-rfid`
-7. Test RFID login via `POST /auth/rfid-login`
+6. Test password reset via `POST /auth/forgot-password`
+7. Check email for reset link and test `POST /auth/reset-password`
+8. Register RFID card via `POST /users/register-rfid`
+9. Test RFID login via `POST /auth/rfid-login`
 
 ### 3. Email Service Testing
 
@@ -357,7 +453,22 @@ bun run test:cov
 3. Check HTML email templates
 4. Verify email delivery
 
-### 4. Database Changes
+### 4. Facility Management Testing
+
+1. Create facilities via `POST /facilities`
+2. Test RFID time-in/time-out via `POST /facilities/toggle`
+3. Monitor real-time occupancy via `GET /facilities`
+4. Check facility usage history and analytics
+5. Test capacity management and overflow handling
+
+### 5. Real-time Monitoring
+
+1. Access log viewer at `http://localhost:3000/logs`
+2. Monitor live application logs and HTTP requests
+3. Test WebSocket connection and authentication
+4. Observe cron job execution logs
+
+### 6. Database Changes
 
 1. Update `prisma/schema.prisma`
 2. Run `bun run db:migrate`
@@ -404,17 +515,41 @@ bun run test:cov
 - Role-based access control (STUDENT role)
 - Google OAuth for easy registration
 
+### Facility Management
+
+- **Real-time occupancy tracking** for all facilities
+- **Capacity management** with overflow protection
+- **Time-in/Time-out system** via RFID or manual entry
+- **Session duration calculation** and history tracking
+- **Facility usage analytics** with pagination
+- **Active session monitoring** for staff oversight
+
+### Automated Systems
+
+- **Daily User Timeout**: Automatic session cleanup at 8 PM daily
+- **Orphaned Session Cleanup**: Data consistency maintenance
+- **Cron Job Monitoring**: Scheduled task execution and logging
+- **Background Process Management**: Automated facility maintenance
+
+### Real-time Monitoring
+
+- **Live Log Streaming**: WebSocket-based log viewer
+- **System Health Monitoring**: Real-time application status
+- **Authentication Logging**: Security event tracking
+- **Performance Metrics**: Request/response monitoring
+
 ### Email Communication
 
 - Automated email verification
 - Welcome emails for new students
-- Password reset functionality
+- **Password reset functionality with secure token-based links**
 - RFID registration confirmations
 - Professional HTML email templates
 
 ### Security Features
 
 - Email verification required for login
+- **Secure password reset with token-based links and 1-hour expiration**
 - RFID-based authentication
 - JWT token management
 - Secure password hashing
@@ -429,6 +564,11 @@ This system has been customized from a generic NestJS authentication template to
 - Added RFID authentication
 - Created email service with templates
 - Enhanced Google OAuth with auto-registration
+- **Added facility management system** with occupancy tracking
+- **Implemented automated user timeout** with cron jobs
+- **Created real-time log viewer** with WebSocket authentication
+- **Added comprehensive logging system** with multiple log levels
+- **Enhanced API documentation** with dark theme and customizations
 - Updated all branding to CSGUILD
 
 ## 📋 API Endpoints Documentation
@@ -441,6 +581,8 @@ This system has been customized from a generic NestJS authentication template to
 | `POST` | `/auth/rfid-login`      | Login with RFID card      | None           | `{ rfidId: string }`                  | `200` - `{ message: "RFID login successful", statusCode: 200, student: { id, email, username, firstName, lastName, course, imageUrl } }` | Quick authentication for terminals. Returns student info.                                  |
 | `POST` | `/auth/refresh`         | Refresh access token      | Refresh Cookie | None                                  | `201` - `{ message: "Tokens refreshed successfully", statusCode: 201 }`                                                                  | Uses refresh token from cookie. Updates both tokens.                                       |
 | `POST` | `/auth/logout`          | Logout user               | JWT Cookie     | None                                  | `200` - `{ message: "Logout successful", statusCode: 200 }`                                                                              | Clears tokens and cookies. Invalidates refresh token.                                      |
+| `POST` | `/auth/forgot-password` | Request password reset    | None           | `{ email: string }`                   | `200` - `{ message: "Password reset email sent if the email exists in our system", statusCode: 200 }`                                   | Sends reset link via email. No information leakage about email existence. 1-hour expiration. |
+| `POST` | `/auth/reset-password`  | Reset password with token | None           | `{ token: string, newPassword: string }` | `200` - `{ message: "Password reset successful. Please log in with your new password.", statusCode: 200 }`                               | One-time use token. Invalidates all sessions. Minimum 8 characters for new password.       |
 | `GET`  | `/auth/google`          | Initiate Google OAuth     | None           | None                                  | `302` - HTTP redirect to Google OAuth consent screen                                                                                     | Redirects to Google consent screen.                                                        |
 | `GET`  | `/auth/google/callback` | Google OAuth callback     | None           | None                                  | `302` - HTTP redirect to frontend with authentication cookies set                                                                        | Handles OAuth callback. Auto-registers users.                                              |
 
@@ -646,6 +788,45 @@ This system has been customized from a generic NestJS authentication template to
   "message": "Email verified successfully",
   "statusCode": 200,
   "details": "Welcome to CSGUILD! You can now access all features."
+}
+```
+
+#### Forgot Password (`POST /auth/forgot-password`)
+
+**Request:**
+
+```json
+{
+  "email": "john.doe@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Password reset email sent if the email exists in our system",
+  "statusCode": 200
+}
+```
+
+#### Reset Password (`POST /auth/reset-password`)
+
+**Request:**
+
+```json
+{
+  "token": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
+  "newPassword": "MyNewStr0ngP@ssw0rd!"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Password reset successful. Please log in with your new password.",
+  "statusCode": 200
 }
 ```
 

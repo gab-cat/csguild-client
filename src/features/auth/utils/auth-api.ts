@@ -6,6 +6,8 @@ import type {
   RfidLoginFormData,
   ResendVerificationFormData,
   RfidRegistrationFormData,
+  ForgotPasswordFormData,
+  ResetPasswordFormData,
   GoogleCallbackData,
   GoogleUserUpdateData,
 } from '../schemas'
@@ -16,6 +18,8 @@ import type {
   EmailVerificationResponse,
   RfidLoginResponse,
   RfidRegistrationResponse,
+  ForgotPasswordResponse,
+  ResetPasswordResponse,
   User,
 } from '../types'
 
@@ -79,5 +83,15 @@ export const authApi = {
   // Update user profile (for Google OAuth users)
   updateUserProfile: async (data: GoogleUserUpdateData): Promise<User> => {
     return api.patch<User>('/users/profile', data)
+  },
+
+  // Forgot password
+  forgotPassword: async (data: ForgotPasswordFormData): Promise<ForgotPasswordResponse> => {
+    return api.post<ForgotPasswordResponse>('/auth/forgot-password', data)
+  },
+
+  // Reset password
+  resetPassword: async (data: Omit<ResetPasswordFormData, 'confirmPassword'>): Promise<ResetPasswordResponse> => {
+    return api.post<ResetPasswordResponse>('/auth/reset-password', data)
   },
 } 
