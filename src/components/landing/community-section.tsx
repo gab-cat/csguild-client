@@ -252,7 +252,7 @@ export function CommunitySection() {
           <div 
             className="relative w-full h-full"
             style={{ 
-              perspective: '1000px',
+              perspective: '1050px',
               transformStyle: 'preserve-3d'
             }}
           >
@@ -268,7 +268,7 @@ export function CommunitySection() {
                   isActive={isActive}
                 >
                   <motion.div
-                    className="w-80 h-96 backdrop-blur-md shadow-2xl shadow-pink-900/30 rounded-xl"
+                    className="w-[60vw] md:w-80 h-fit backdrop-blur-md shadow-2xl shadow-pink-900/30 rounded-xl"
                     initial={{ opacity: 0 }}
                     animate={{ 
                       opacity: isInView ? 1 : 0,
@@ -276,7 +276,7 @@ export function CommunitySection() {
                     transition={{ duration: 0.6, delay: index * 0.1 }}
                   >
                     <Card className="bg-gradient-to-br backdrop-blur-lg from-pink-900/20 to-violet-900/20 border border-pink-500/20 hover:border-pink-400/30 group relative overflow-hidden h-full shadow-2xl hover:shadow-pink-500/20 transition-all duration-500">
-                      <CardContent className="p-6 relative z-10 h-full flex flex-col">
+                      <CardContent className="md:p-6 relative z-10 h-full flex flex-col">
                         {/* Glossy overlay for 3D effect */}
                         <div className="absolute inset-0 bg-gradient-to-tr backdrop-blur-lg from-transparent via-white/5 to-transparent opacity-0  transition-opacity duration-500 pointer-events-none" />
                         

@@ -96,7 +96,7 @@ export function AboutSection() {
             Students Choose CS Guild
           </motion.h2>
           <motion.p 
-            className="text-lg tracking-tight text-gray-200 max-w-3xl mx-auto leading-relaxed"
+            className="text-md md:text-lg tracking-tight text-gray-200 max-w-3xl mx-auto leading-relaxed"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.6 }}
@@ -116,7 +116,7 @@ export function AboutSection() {
               <Card className="bg-gradient-to-br from-pink-900/20 to-violet-900/20 border border-pink-500/20 backdrop-blur-sm hover:from-pink-900/30 hover:to-violet-900/30 hover:border-pink-400/30 group h-full">
                 <CardContent className="p-8">
                   <motion.div 
-                    className="flex items-start gap-4"
+                    className="flex flex-col md:flex-row items-start gap-4"
                     whileHover={{ scale: 1.02 }}
                     transition={{ duration: 0.2 }}
                   >
@@ -164,13 +164,13 @@ export function AboutSection() {
         </motion.div>
 
         <motion.div 
-          className="mt-20 text-center"
+          className="mt-20 max-w-7xl text-center flex justify-center mx-auto"
           initial={{ opacity: 0, y: 40 }}
           animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 40 }}
           transition={{ duration: 0.8, delay: 1.5 }}
         >
           <motion.div 
-            className="inline-block p-8 rounded-2xl bg-gradient-to-r from-pink-500/10 to-violet-500/10 border border-pink-500/30 backdrop-blur-sm"
+            className="p-8 rounded-2xl bg-gradient-to-r from-pink-500/10 to-violet-500/10 border border-pink-500/30 backdrop-blur-sm"
             whileHover={{ scale: 1.02, y: -5 }}
             transition={{ duration: 0.3 }}
           >
@@ -183,7 +183,7 @@ export function AboutSection() {
               {'const yourSuccess = community.power + mentorship.wisdom + projects.experience;'}
             </motion.h3>
             <motion.p 
-              className="text-gray-200 max-w-2xl tracking-tight"
+              className="text-gray-200 max-w-3xl mx-auto tracking-tight"
               initial={{ opacity: 0 }}
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 2 }}
