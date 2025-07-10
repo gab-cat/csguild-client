@@ -170,3 +170,7 @@ body {
 .group:hover .animate-spin-hover {
   transform: rotate(360deg);
 }
+
+Button {
+  @apply cursor-pointer;
+}
