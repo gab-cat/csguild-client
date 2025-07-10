@@ -11,6 +11,8 @@ import type {
   RfidLoginFormData,
   ResendVerificationFormData,
   RfidRegistrationFormData,
+  ForgotPasswordFormData,
+  ResetPasswordFormData,
   GoogleCallbackData,
   GoogleUserUpdateData,
 } from '../schemas'
@@ -355,6 +357,65 @@ export function useUpdateUserProfileMutation() {
       showErrorToast(
         'Profile update failed',
         error.message || 'Unable to update your profile. Please check your information and try again.'
+      )
+    },
+  })
+}
+
+// Forgot password mutation
+export function useForgotPasswordMutation() {
+  const { setLoading, setError } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (data: ForgotPasswordFormData) => {
+      setLoading(true)
+      setError(null)
+      return authApi.forgotPassword(data)
+    },
+    onSuccess: () => {
+      setLoading(false)
+      showSuccessToast(
+        'Password reset email sent!',
+        'Check your inbox for instructions on how to reset your password. The link will expire in 1 hour.'
+      )
+    },
+    onError: (error: Error) => {
+      setError(error.message || 'Failed to send password reset email')
+      setLoading(false)
+      showErrorToast(
+        'Failed to send reset email',
+        error.message || 'Unable to send password reset email. Please try again later.'
+      )
+    },
+  })
+}
+
+// Reset password mutation
+export function useResetPasswordMutation() {
+  const router = useRouter()
+  const { setLoading, setError } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (data: Omit<ResetPasswordFormData, 'confirmPassword'>) => {
+      setLoading(true)
+      setError(null)
+      return authApi.resetPassword(data)
+    },
+    onSuccess: () => {
+      setLoading(false)
+      showSuccessToast(
+        'Password reset successful!',
+        'Your password has been changed successfully. You can now log in with your new password.'
+      )
+      // Redirect to login page
+      router.push('/login')
+    },
+    onError: (error: Error) => {
+      setError(error.message || 'Password reset failed')
+      setLoading(false)
+      showErrorToast(
+        'Password reset failed',
+        error.message || 'Unable to reset your password. The token may be invalid or expired. Please request a new reset link.'
       )
     },
   })
