@@ -129,9 +129,6 @@ export function ForgotPasswordForm() {
 
       {/* Instructions */}
       <div className="text-center space-y-2">
-        <p className="text-gray-300 text-sm">
-          Enter your email address and we&apos;ll send you a link to reset your password.
-        </p>
         <div className="text-gray-500 text-xs font-space-mono">
           {"// Password reset link expires in 1 hour"}
         </div>
