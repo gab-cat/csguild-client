@@ -202,10 +202,10 @@ export function FeaturesSection() {
           </motion.div>
           
           {/* Left Gradient Overlay */}
-          <div className="absolute left-0 top-0 bottom-0 w-32 bg-gradient-to-r from-black via-black/80 to-transparent pointer-events-none z-10" />
+          <div className="absolute left-0 top-0 bottom-0 w-15 md:w-32 bg-gradient-to-r from-black/50 md:from-black md:via-black/80 via-black/5 to-transparent pointer-events-none z-10" />
           
           {/* Right Gradient Overlay */}
-          <div className="absolute right-0 top-0 bottom-0 w-32 bg-gradient-to-l from-black via-black/80 to-transparent pointer-events-none z-10" />
+          <div className="absolute right-0 top-0 bottom-0 w-15 md:-32 bg-gradient-to-l from-black/50 md:from-black md:via-black/80 via-black/5 to-transparent pointer-events-none z-10" />
         </div>
 
         {/* Call to Action */}
