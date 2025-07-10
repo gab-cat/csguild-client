@@ -10,7 +10,7 @@ export function HeroSection() {
       <div className="absolute inset-0 bg-[linear-gradient(to_right,#8b5cf6_1px,transparent_1px),linear-gradient(to_bottom,#8b5cf6_1px,transparent_1px)] bg-[size:4rem_4rem] [mask-image:radial-gradient(ellipse_60%_50%_at_50%_0%,#000_70%,transparent_110%)] opacity-20" />
 
       {/* 3D Robot - Positioned absolutely behind content */}
-      <div id="robot-section" className="absolute -right-[10vw] top-0 w-[80vw] h-full z-0 hidden lg:block animate-fade-in-right">
+      <div id="robot-section" className="absolute lg:-right-[28vw] xl:-right-[10vw] top-0 lg:w-full xl:w-[80vw] h-full z-0 hidden lg:block animate-fade-in-right">
         <div className="absolute inset-0 bg-gradient-to-br from-pink-500/20 via-violet-500/20 to-purple-500/20 rounded-3xl blur-3xl opacity-30" />
         <Spline
           scene="https://prod.spline.design/awBSaOn9261Q9L9g/scene.splinecode"
