@@ -42,7 +42,7 @@ export const useAuthStore = create<AuthStore>()(
       // Actions
       setUser: (user) => {
         set({ 
-          user: user!, 
+          user: user, 
           isAuthenticated: !!user,
           error: null 
         })
