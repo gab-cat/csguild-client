@@ -11,6 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 
 import { registrationStep1Schema, type RegistrationStep1Data } from '../schemas'
+import { authApi } from '../utils/auth-api'
 
 interface RegistrationStep1Props {
   onNext: (data: RegistrationStep1Data) => void
@@ -43,7 +44,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
   }
 
   const handleGoogleSignup = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'}/auth/google`
+    authApi.googleLogin()
   }
 
   return (
