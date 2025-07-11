@@ -2,31 +2,18 @@
 
 import { ReactNode } from 'react'
 
-// import { useAuthSync } from '../hooks'
-// import { useAuthStore } from '../stores/auth-store'
+import { useAuthSync } from '../hooks/use-auth-sync'
 
 interface AuthSyncProviderProps {
   children: ReactNode
 }
 
 export function AuthSyncProvider({ children }: AuthSyncProviderProps) {
-//   const { isInitializing } = useAuthSync()
-//   const { isLoading } = useAuthStore()
+  // Initialize auth sync - this sets up automatic validation
+  useAuthSync()
 
-  // Show loading state while initializing auth
-  //   if (isInitializing || isLoading) {
-  //     return (
-  //       <div className="min-h-screen bg-black flex items-center justify-center">
-  //         <div className="text-center space-y-4">
-  //           <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
-  //           <p className="text-gray-300 font-jetbrains text-sm">
-  //             {"// Syncing authentication state..."}
-  //           </p>
-  //         </div>
-  //       </div>
-  //     )
-  //   }
-
+  // No loading UI needed since validation happens in background
+  // and the app should remain functional even during validation
   return <>{children}</>
 }
 

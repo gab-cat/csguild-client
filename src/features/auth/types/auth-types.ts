@@ -34,6 +34,7 @@ export interface AuthState {
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  _isValidated: boolean
 }
 
 // API Response types

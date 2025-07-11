@@ -1,7 +1,81 @@
-import { Configuration } from "../../generated/api-client"
+import axios, { AxiosInstance } from 'axios'
+
+import { Configuration, AuthenticationApi, UsersApi, FacilitiesApi, AppApi } from "@generated/api-client"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
+// Track if we're currently refreshing to avoid multiple refresh attempts
+let isRefreshing = false
+let refreshPromise: Promise<void> | null = null
+
+// Create an axios instance with interceptors for token refresh
+const createAxiosWithInterceptors = (): AxiosInstance => {
+  const axiosInstance = axios.create({
+    baseURL: API_BASE_URL,
+    withCredentials: true, // Enable cookies for authentication
+  })
+
+  // Response interceptor to handle 401 errors and token refresh
+  axiosInstance.interceptors.response.use(
+    (response) => response,
+    async (error) => {
+      const originalRequest = error.config
+
+      // If we get a 401 and haven't already tried to refresh, attempt token refresh
+      if (error.response?.status === 401 && !originalRequest._retry && !isRefreshing) {
+        originalRequest._retry = true
+
+        try {
+          await refreshToken()
+          // Retry the original request
+          console.log('Refreshed token, retrying request')
+          return axiosInstance(originalRequest)
+        } catch (refreshError) {
+          // Refresh failed, continue with the original error
+          console.error('Token refresh failed:', refreshError)
+          return Promise.reject(error)
+        }
+      }
+
+      return Promise.reject(error)
+    }
+  )
+
+  return axiosInstance
+}
+
+// Token refresh function
+async function refreshToken(): Promise<void> {
+  if (isRefreshing && refreshPromise) {
+    await refreshPromise
+    return
+  }
+
+  isRefreshing = true
+  refreshPromise = axios.post(`${API_BASE_URL}/api/auth/refresh`, {}, {
+    withCredentials: true
+  })
+    .then(() => {
+      // Token refresh successful, the new tokens are set in cookies
+      return
+    })
+    .catch((error) => {
+      // Refresh failed, clear any stored auth state
+      console.error('Token refresh failed:', error)
+      throw error
+    })
+    .finally(() => {
+      isRefreshing = false
+      refreshPromise = null
+    })
+
+  await refreshPromise
+}
+
+// Create the axios instance with interceptors
+const axiosWithInterceptors = createAxiosWithInterceptors()
+
+// Create configuration using our axios instance with interceptors
 export const configuration = new Configuration({
   basePath: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001',
   baseOptions: {
@@ -9,8 +83,13 @@ export const configuration = new Configuration({
   },
 })
 
-// Simplified API client for general use
+// Centralized API instances - these now automatically use token refresh through axios interceptors
+export const authApi = new AuthenticationApi(configuration, undefined, axiosWithInterceptors)
+export const usersApi = new UsersApi(configuration, undefined, axiosWithInterceptors)
+export const facilitiesApi = new FacilitiesApi(configuration, undefined, axiosWithInterceptors)
+export const appApi = new AppApi(configuration, undefined, axiosWithInterceptors)
 
+// API Error class for manual API calls
 export class ApiError extends Error {
   constructor(
     public status: number,
@@ -22,20 +101,45 @@ export class ApiError extends Error {
   }
 }
 
+
+
+
+
+// Manual API client using fetch (for direct API calls if needed)
 export async function apiClient<T = unknown>(
   endpoint: string,
   options: RequestInit = {}
 ): Promise<T> {
   const headers = new Headers(options.headers)
-  headers.set('Content-Type', 'application/json')
+  if (!headers.has('Content-Type')) {
+    headers.set('Content-Type', 'application/json')
+  }
 
   const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`
   
-  const response = await fetch(url, {
+  // Make the initial request
+  let response = await fetch(url, {
     ...options,
     headers,
     credentials: 'include', // For cookie-based auth
   })
+
+  // If we get a 401, try to refresh the token
+  if (response.status === 401 && !isRefreshing) {
+    try {
+      await refreshToken()
+      
+      // Retry the original request
+      response = await fetch(url, {
+        ...options,
+        headers,
+        credentials: 'include',
+      })
+    } catch (refreshError) {
+      // Refresh failed, return the original 401 response
+      console.error('Token refresh failed:', refreshError)
+    }
+  }
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))

@@ -1,19 +1,24 @@
-import { configuration } from '@/lib/api'
-import { FacilitiesApi, FacilitiesControllerGetFacilityUsageHistory200Response, FacilityResponseDto, FacilityToggleDto, FacilityToggleResponseDto, FacilityUsageResponseDto, FacilityUsageStatusDto, FacilityUsageStatusResponseDto } from '@generated/api-client'
-
-
-const facilities = new FacilitiesApi(configuration)
+import { facilitiesApi as facilitiesClient } from '@/lib/api'
+import { 
+  FacilitiesControllerGetFacilityUsageHistory200Response, 
+  FacilityResponseDto, 
+  FacilityToggleDto, 
+  FacilityToggleResponseDto, 
+  FacilityUsageResponseDto, 
+  FacilityUsageStatusDto, 
+  FacilityUsageStatusResponseDto 
+} from '@generated/api-client'
 
 export const facilitiesApi = {
   // Get all active facilities
   getFacilities: async (): Promise<FacilityResponseDto[]> => {
-    const response = await facilities.facilitiesControllerGetFacilities()
+    const response = await facilitiesClient.facilitiesControllerGetFacilities()
     return response.data
   },
 
   // Get facility by ID
   getFacilityById: async (id: string): Promise<FacilityResponseDto> => {
-    const response = await facilities.facilitiesControllerGetFacility({
+    const response = await facilitiesClient.facilitiesControllerGetFacility({
       id: id
     })
     return response.data
@@ -21,7 +26,7 @@ export const facilitiesApi = {
 
   // Toggle facility access (time in/out)
   toggleFacilityAccess: async (data: FacilityToggleDto): Promise<FacilityToggleResponseDto> => {
-    const response = await facilities.facilitiesControllerToggleFacilityAccess({
+    const response = await facilitiesClient.facilitiesControllerToggleFacilityAccess({
       facilityToggleDto: data
     })
     return response.data
@@ -29,7 +34,7 @@ export const facilitiesApi = {
 
   // Check facility usage status
   checkFacilityStatus: async (data: FacilityUsageStatusDto): Promise<FacilityUsageStatusResponseDto> => {
-    const response = await facilities.facilitiesControllerGetUsageStatus({
+    const response = await facilitiesClient.facilitiesControllerGetUsageStatus({
       facilityUsageStatusDto: data
     })
     return response.data
@@ -37,7 +42,7 @@ export const facilitiesApi = {
 
   // Get active sessions for a facility (requires authentication)
   getActiveSessions: async (facilityId: string): Promise<FacilityUsageResponseDto[]> => {
-    const response = await facilities.facilitiesControllerGetActiveSessions({
+    const response = await facilitiesClient.facilitiesControllerGetActiveSessions({
       id: facilityId
     })
     return response.data
@@ -49,7 +54,7 @@ export const facilitiesApi = {
     page: number = 1,
     limit: number = 10
   ): Promise<FacilitiesControllerGetFacilityUsageHistory200Response> => {
-    const response = await facilities.facilitiesControllerGetFacilityUsageHistory({
+    const response = await facilitiesClient.facilitiesControllerGetFacilityUsageHistory({
       id: facilityId,
       page: page,
       limit: limit

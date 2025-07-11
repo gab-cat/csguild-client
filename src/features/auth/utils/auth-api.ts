@@ -1,5 +1,5 @@
-import { configuration } from '@/lib/api'
-import { AuthenticationApi, 
+import { authApi as authClient, usersApi as usersClient } from '@/lib/api'
+import { 
   AuthSuccessResponseDto, 
   CreateUserRequest, 
   EmailVerificationResponseDto, 
@@ -7,16 +7,20 @@ import { AuthenticationApi,
   RfidLoginDto, 
   RfidLoginResponseDto, 
   SendEmailVerificationDto, 
-  UsersApi, VerifyEmailDto, RfidRegistrationResponseDto, LoginDto, ForgotPasswordDto, ResetPasswordDto, UserResponseDto, UpdateUserRequest } from '@generated/api-client'
-
-const auth = new AuthenticationApi(configuration)
-const user = new UsersApi(configuration)
+  VerifyEmailDto, 
+  RfidRegistrationResponseDto, 
+  LoginDto, 
+  ForgotPasswordDto, 
+  ResetPasswordDto, 
+  UserResponseDto, 
+  UpdateUserRequest 
+} from '@generated/api-client'
 
 // Auth API functions
 export const authApi = {
   // Login with email and password
   login: async (credentials: LoginDto): Promise<AuthSuccessResponseDto> => {
-    const response = await auth.authControllerLogin({
+    const response = await authClient.authControllerLogin({
       loginDto: credentials
     })
     return response.data
@@ -24,7 +28,7 @@ export const authApi = {
 
   // Register new user
   register: async (userData: CreateUserRequest): Promise<AuthSuccessResponseDto> => {
-    const response = await user.usersControllerCreateUser({
+    const response = await usersClient.usersControllerCreateUser({
       createUserRequest: userData
     })
     return response.data
@@ -32,7 +36,7 @@ export const authApi = {
 
   // Verify email with code
   verifyEmail: async (data: VerifyEmailDto): Promise<EmailVerificationResponseDto> => {
-    const response = await user.usersControllerVerifyEmail({
+    const response = await usersClient.usersControllerVerifyEmail({
       verifyEmailDto: data
     })
     return response.data
@@ -40,7 +44,7 @@ export const authApi = {
 
   // Resend verification email
   resendVerification: async (data: SendEmailVerificationDto): Promise<EmailVerificationResponseDto> => {
-    const response = await user.usersControllerResendVerification({
+    const response = await usersClient.usersControllerResendVerification({
       sendEmailVerificationDto: data
     })
     return response.data
@@ -48,7 +52,7 @@ export const authApi = {
 
   // RFID login
   rfidLogin: async (data: RfidLoginDto): Promise<RfidLoginResponseDto> => {
-    const response = await user.usersControllerRfidLogin({
+    const response = await usersClient.usersControllerRfidLogin({
       rfidLoginDto: data
     })
     return response.data
@@ -56,7 +60,7 @@ export const authApi = {
 
   // Register RFID card
   registerRfid: async (data: RegisterRfidDto): Promise<RfidRegistrationResponseDto> => {
-    const response = await user.usersControllerRegisterRfid({
+    const response = await usersClient.usersControllerRegisterRfid({
       registerRfidDto: data
     })
     return response.data
@@ -64,24 +68,25 @@ export const authApi = {
 
   // Refresh access token
   refreshToken: async (): Promise<AuthSuccessResponseDto> => {
-    const response = await auth.authControllerRefresh()
+    const response = await authClient.authControllerRefresh()
     return response.data
   },
 
   // Logout user
   logout: async (): Promise<AuthSuccessResponseDto> => {
-    const response = await auth.authControllerLogout()
+    const response = await authClient.authControllerLogout()
     return response.data
   },
 
   // Get current user (if authenticated)
   getCurrentUser: async (): Promise<UserResponseDto> => {
-    const response = await auth.authControllerMe()
+    const response = await authClient.authControllerMe()
     return response.data
   },
 
+  // Update user
   updateUser: async (data: UpdateUserRequest): Promise<UserResponseDto> => {
-    const response = await user.usersControllerUpdateUser({
+    const response = await usersClient.usersControllerUpdateUser({
       updateUserRequest: data
     })
     return response.data
@@ -94,7 +99,7 @@ export const authApi = {
 
   // Forgot password
   forgotPassword: async (data: ForgotPasswordDto): Promise<AuthSuccessResponseDto> => {
-    const response = await auth.authControllerForgotPassword({
+    const response = await authClient.authControllerForgotPassword({
       forgotPasswordDto: data
     })
     return {
@@ -105,7 +110,7 @@ export const authApi = {
 
   // Reset password
   resetPassword: async (data: ResetPasswordDto): Promise<AuthSuccessResponseDto> => {
-    const response = await auth.authControllerResetPassword({
+    const response = await authClient.authControllerResetPassword({
       resetPasswordDto: data
     })
     return {
