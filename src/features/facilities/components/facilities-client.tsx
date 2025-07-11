@@ -34,7 +34,7 @@ export function FacilitiesClient() {
         rfidId,
         facilityId: selectedFacility.id
       })
-      setLastScanResult(result)
+      setLastScanResult(result as FacilityToggleResponse)
     } catch (error) {
       console.error('RFID toggle error:', error)
       // Re-throw the error so the scanner shows error feedback

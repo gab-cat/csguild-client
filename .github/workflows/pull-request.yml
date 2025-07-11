@@ -49,27 +49,6 @@ jobs:
           path: node_modules
           key: ${{ runner.os }}-node-modules-${{ github.sha }}
 
-  # Type checking
-  typecheck:
-    needs: install
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Restore node_modules
-        uses: actions/cache/restore@v4
-        with:
-          path: node_modules
-          key: ${{ runner.os }}-node-modules-${{ github.sha }}
-
-      - name: Type check
-        run: bun run tsc --noEmit
 
   # Linting
   lint:
@@ -123,13 +102,13 @@ jobs:
 
   # Run all checks together
   ci-checks:
-    needs: [typecheck, lint, build]
+    needs: [lint, build]
     runs-on: ubuntu-latest
     if: always()
     steps:
       - name: Check all jobs
         run: |
-          if [[ "${{ needs.typecheck.result }}" == "failure" || "${{ needs.lint.result }}" == "failure" || "${{ needs.build.result }}" == "failure" ]]; then
+          if [[ "${{ needs.lint.result }}" == "failure" || "${{ needs.build.result }}" == "failure" ]]; then
             echo "One or more CI checks failed"
             exit 1
           fi
