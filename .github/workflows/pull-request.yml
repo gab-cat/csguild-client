@@ -70,7 +70,7 @@ jobs:
           key: ${{ runner.os }}-node-modules-${{ github.sha }}
 
       - name: Run ESLint
-        run: bun run lint
+        run: bun run lint --fix
 
   # Build the application
   build:
@@ -92,7 +92,7 @@ jobs:
           key: ${{ runner.os }}-node-modules-${{ github.sha }}
 
       - name: Build application
-        run: bun run build
+        run: bun run api:generate:prod && bun run build
 
       - name: Cache build output
         uses: actions/cache/save@v4

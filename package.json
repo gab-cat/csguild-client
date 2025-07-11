@@ -15,8 +15,7 @@
     "api:generate:prod": "docker run --rm -v ${PWD}:/local openapitools/openapi-generator-cli:v6.6.0 generate -i https://csguild.tech/api-docs-json -g typescript-axios -o /local/generated/api-client --additional-properties=npmName=csguild-api-client,npmVersion=1.0.0,supportsES6=true,withInterfaces=true,modelPropertyNaming=camelCase,enumPropertyNaming=UPPERCASE,useSingleRequestParameter=false,withSeparateModelsAndApi=true,apiPackage=api,modelPackage=models --skip-validate-spec",
     "api:clean": "rm -rf ./generated/api-client",
     "api:regenerate": "bun run api:clean && bun run api:generate",
-    "api:regenerate:prod": "bun run api:clean && bun run api:generate:prod",
-    "postinstall": "bun run api:generate:prod"
+    "api:regenerate:prod": "bun run api:clean && bun run api:generate:prod"
   },
   "dependencies": {
     "@hookform/resolvers": "^5.1.1",
