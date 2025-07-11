@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 
 import { showSuccessToast, showErrorToast, showCodeToast, showInfoToast } from '@/lib/toast'
+import { UpdateUserRequest, UserResponseDto } from '@generated/api-client'
 
 import type {
   LoginFormData,
@@ -13,11 +14,9 @@ import type {
   RfidRegistrationFormData,
   ForgotPasswordFormData,
   ResetPasswordFormData,
-  GoogleCallbackData,
-  GoogleUserUpdateData,
 } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
-import type { RegisterRequestData, User } from '../types'
+import type { RegisterRequestData } from '../types'
 import { authApi } from '../utils/auth-api'
 
 // Login mutation
@@ -69,7 +68,16 @@ export function useRegisterMutation() {
     mutationFn: async (userData: RegisterRequestData) => {
       setLoading(true)
       setError(null)
-      return authApi.register(userData)
+      return authApi.register({
+        email: userData.email,
+        username: userData.username || '',
+        password: userData.password,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        birthdate: userData.birthdate,
+        course: userData.course,
+        rfidId: userData.rfidId,
+      })
     },
     onSuccess: () => {
       setLoading(false)
@@ -171,7 +179,7 @@ export function useResendVerificationMutation() {
 // RFID login mutation
 export function useRfidLoginMutation() {
   const router = useRouter()
-  const { setUser, setLoading, setError } = useAuthStore()
+  const { setUser, setLoading, setError, user } = useAuthStore()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -182,7 +190,7 @@ export function useRfidLoginMutation() {
     },
     onSuccess: (response) => {
       // RFID login returns student data directly
-      setUser(response.student as User)
+      setUser(response.student as UserResponseDto)
       setLoading(false)
       
       // Invalidate queries
@@ -190,7 +198,7 @@ export function useRfidLoginMutation() {
       
       showCodeToast(
         'RFID login successful!',
-        `Quick access granted. Welcome back, ${response.student.firstName}!`
+        `Quick access granted. Welcome back, ${user?.firstName}!`
       )
       
       // Redirect to dashboard
@@ -235,6 +243,35 @@ export function useRfidRegistrationMutation() {
   })
 }
 
+// Update user mutation
+export function useUpdateUserProfileMutation() {
+  const { setLoading, setError, setUser } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (data: UpdateUserRequest) => {
+      setLoading(true)
+      setError(null)
+      return authApi.updateUser(data)
+    },
+    onSuccess: (response) => {
+      setUser(response)
+      setLoading(false)
+      showSuccessToast(
+        'Profile updated successfully!',
+        'Your CS Guild profile has been updated successfully.'
+      )
+    },
+    onError: (error: Error) => {
+      setError(error.message || 'Failed to update user profile')
+      setLoading(false)
+      showErrorToast(
+        'Failed to update profile',
+        error.message || 'Unable to update your profile. Please check your information and try again.'
+      )
+    },
+  })
+}
+
 // Logout mutation
 export function useLogoutMutation() {
   const router = useRouter()
@@ -273,91 +310,6 @@ export function useLogoutMutation() {
       
       setError(error.message || 'Logout failed')
       setLoading(false)
-    },
-  })
-}
-
-// Google OAuth callback mutation
-export function useGoogleCallbackMutation() {
-  const router = useRouter()
-  const { setUser, setLoading, setError } = useAuthStore()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (data: GoogleCallbackData) => {
-      setLoading(true)
-      setError(null)
-      return authApi.googleCallback(data)
-    },
-    onSuccess: async () => {
-      try {
-        // After successful Google OAuth, fetch user data
-        const user = await authApi.getCurrentUser()
-        setUser(user)
-        setLoading(false)
-        
-        // Invalidate and refetch user data
-        queryClient.invalidateQueries({ queryKey: ['user'] })
-        
-        // Let middleware handle redirects based on profile completion
-        router.push('/dashboard')
-        showSuccessToast(
-          'Welcome back to CS Guild!',
-          `Successfully logged in with Google. Ready to continue your coding journey!`
-        )
-      } catch {
-        setError('Failed to fetch user data')
-        setLoading(false)
-        showErrorToast(
-          'Login incomplete',
-          'Google authentication succeeded but failed to load user data. Please try again.'
-        )
-      }
-    },
-    onError: (error: Error) => {
-      setError(error.message || 'Google authentication failed')
-      setLoading(false)
-      showErrorToast(
-        'Google authentication failed',
-        error.message || 'Unable to complete Google authentication. Please try again.'
-      )
-    },
-  })
-}
-
-// Update user profile mutation (for Google OAuth users)
-export function useUpdateUserProfileMutation() {
-  const router = useRouter()
-  const { setUser, setLoading, setError } = useAuthStore()
-  const queryClient = useQueryClient()
-
-  return useMutation({
-    mutationFn: async (data: GoogleUserUpdateData) => {
-      setLoading(true)
-      setError(null)
-      return authApi.updateUserProfile(data)
-    },
-    onSuccess: (updatedUser) => {
-      setUser(updatedUser)
-      setLoading(false)
-      // Redirect to dashboard
-      router.push('/dashboard')
-      
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['user'] })
-      
-      showSuccessToast(
-        'Profile updated successfully!',
-        'Your CS Guild profile has been completed. Welcome to the community!'
-      )
-    },
-    onError: (error: Error) => {
-      setError(error.message || 'Profile update failed')
-      setLoading(false)
-      showErrorToast(
-        'Profile update failed',
-        error.message || 'Unable to update your profile. Please check your information and try again.'
-      )
     },
   })
 }

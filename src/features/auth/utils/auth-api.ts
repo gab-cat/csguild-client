@@ -1,97 +1,116 @@
-import { api } from '@/lib/api'
+import { configuration } from '@/lib/api'
+import { AuthenticationApi, 
+  AuthSuccessResponseDto, 
+  CreateUserRequest, 
+  EmailVerificationResponseDto, 
+  RegisterRfidDto, 
+  RfidLoginDto, 
+  RfidLoginResponseDto, 
+  SendEmailVerificationDto, 
+  UsersApi, VerifyEmailDto, RfidRegistrationResponseDto, LoginDto, ForgotPasswordDto, ResetPasswordDto, UserResponseDto, UpdateUserRequest } from '@generated/api-client'
 
-import type {
-  LoginFormData,
-  EmailVerificationFormData,
-  RfidLoginFormData,
-  ResendVerificationFormData,
-  RfidRegistrationFormData,
-  ForgotPasswordFormData,
-  ResetPasswordFormData,
-  GoogleCallbackData,
-  GoogleUserUpdateData,
-} from '../schemas'
-import type {
-  RegisterRequestData,
-  LoginResponse,
-  RegisterResponse,
-  EmailVerificationResponse,
-  RfidLoginResponse,
-  RfidRegistrationResponse,
-  ForgotPasswordResponse,
-  ResetPasswordResponse,
-  User,
-} from '../types'
+const auth = new AuthenticationApi(configuration)
+const user = new UsersApi(configuration)
 
 // Auth API functions
 export const authApi = {
   // Login with email and password
-  login: async (credentials: LoginFormData): Promise<LoginResponse> => {
-    return api.post<LoginResponse>('/auth/login', credentials)
+  login: async (credentials: LoginDto): Promise<AuthSuccessResponseDto> => {
+    const response = await auth.authControllerLogin({
+      loginDto: credentials
+    })
+    return response.data
   },
 
   // Register new user
-  register: async (userData: RegisterRequestData): Promise<RegisterResponse> => {
-    return api.post<RegisterResponse>('/users', userData)
+  register: async (userData: CreateUserRequest): Promise<AuthSuccessResponseDto> => {
+    const response = await user.usersControllerCreateUser({
+      createUserRequest: userData
+    })
+    return response.data
   },
 
   // Verify email with code
-  verifyEmail: async (data: EmailVerificationFormData): Promise<EmailVerificationResponse> => {
-    return api.post<EmailVerificationResponse>('/users/verify-email', data)
+  verifyEmail: async (data: VerifyEmailDto): Promise<EmailVerificationResponseDto> => {
+    const response = await user.usersControllerVerifyEmail({
+      verifyEmailDto: data
+    })
+    return response.data
   },
 
   // Resend verification email
-  resendVerification: async (data: ResendVerificationFormData): Promise<EmailVerificationResponse> => {
-    return api.post<EmailVerificationResponse>('/users/resend-verification', data)
+  resendVerification: async (data: SendEmailVerificationDto): Promise<EmailVerificationResponseDto> => {
+    const response = await user.usersControllerResendVerification({
+      sendEmailVerificationDto: data
+    })
+    return response.data
   },
 
   // RFID login
-  rfidLogin: async (data: RfidLoginFormData): Promise<RfidLoginResponse> => {
-    return api.post<RfidLoginResponse>('/auth/rfid-login', data)
+  rfidLogin: async (data: RfidLoginDto): Promise<RfidLoginResponseDto> => {
+    const response = await user.usersControllerRfidLogin({
+      rfidLoginDto: data
+    })
+    return response.data
   },
 
   // Register RFID card
-  registerRfid: async (data: RfidRegistrationFormData): Promise<RfidRegistrationResponse> => {
-    return api.post<RfidRegistrationResponse>('/users/register-rfid', data)
+  registerRfid: async (data: RegisterRfidDto): Promise<RfidRegistrationResponseDto> => {
+    const response = await user.usersControllerRegisterRfid({
+      registerRfidDto: data
+    })
+    return response.data
   },
 
   // Refresh access token
-  refreshToken: async (): Promise<LoginResponse> => {
-    return api.post<LoginResponse>('/auth/refresh', undefined)
+  refreshToken: async (): Promise<AuthSuccessResponseDto> => {
+    const response = await auth.authControllerRefresh()
+    return response.data
   },
 
   // Logout user
-  logout: async (): Promise<void> => {
-    return api.post<void>('/auth/logout')
+  logout: async (): Promise<AuthSuccessResponseDto> => {
+    const response = await auth.authControllerLogout()
+    return response.data
   },
 
   // Get current user (if authenticated)
-  getCurrentUser: async (): Promise<User> => {
-    return api.get<User>('/auth/me')
+  getCurrentUser: async (): Promise<UserResponseDto> => {
+    const response = await auth.authControllerMe()
+    return response.data
+  },
+
+  updateUser: async (data: UpdateUserRequest): Promise<UserResponseDto> => {
+    const response = await user.usersControllerUpdateUser({
+      updateUserRequest: data
+    })
+    return response.data
   },
 
   // Google OAuth redirect
   googleLogin: (): void => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/auth/google`
-  },
-
-  // Google OAuth callback
-  googleCallback: async (data: GoogleCallbackData): Promise<LoginResponse> => {
-    return api.post<LoginResponse>('/auth/google/callback', data)
-  },
-
-  // Update user profile (for Google OAuth users)
-  updateUserProfile: async (data: GoogleUserUpdateData): Promise<User> => {
-    return api.patch<User>('/users/profile', data)
+    window.location.href = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
   },
 
   // Forgot password
-  forgotPassword: async (data: ForgotPasswordFormData): Promise<ForgotPasswordResponse> => {
-    return api.post<ForgotPasswordResponse>('/auth/forgot-password', data)
+  forgotPassword: async (data: ForgotPasswordDto): Promise<AuthSuccessResponseDto> => {
+    const response = await auth.authControllerForgotPassword({
+      forgotPasswordDto: data
+    })
+    return {
+      message: response.data.message!,
+      statusCode: response.data.statusCode!,
+    }
   },
 
   // Reset password
-  resetPassword: async (data: Omit<ResetPasswordFormData, 'confirmPassword'>): Promise<ResetPasswordResponse> => {
-    return api.post<ResetPasswordResponse>('/auth/reset-password', data)
+  resetPassword: async (data: ResetPasswordDto): Promise<AuthSuccessResponseDto> => {
+    const response = await auth.authControllerResetPassword({
+      resetPasswordDto: data
+    })
+    return {
+      message: response.data.message!,
+      statusCode: response.data.statusCode!,
+    }
   },
 } 
