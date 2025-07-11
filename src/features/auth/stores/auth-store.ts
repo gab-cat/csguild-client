@@ -1,7 +1,9 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 
-import type { User, AuthState } from '../types'
+import { UserResponseDto } from '@generated/api-client'
+
+import type { AuthState } from '../types'
 
 // Helper functions to manage cookies for middleware
 const setCookie = (name: string, value: string, days = 7) => {
@@ -20,12 +22,12 @@ const deleteCookie = (name: string) => {
 
 interface AuthStore extends AuthState {
   // Actions
-  setUser: (user: User | null) => void
+  setUser: (user: UserResponseDto | null) => void
   setLoading: (loading: boolean) => void
   setError: (error: string | null) => void
   setAuthenticated: (authenticated: boolean) => void
   clearAuth: () => void
-  updateUser: (userData: Partial<User>) => void
+  updateUser: (userData: Partial<UserResponseDto>) => void
 }
 
 export const useAuthStore = create<AuthStore>()(
@@ -40,7 +42,7 @@ export const useAuthStore = create<AuthStore>()(
       // Actions
       setUser: (user) => {
         set({ 
-          user, 
+          user: user, 
           isAuthenticated: !!user,
           error: null 
         })

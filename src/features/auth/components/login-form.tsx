@@ -14,6 +14,7 @@ import { Input } from '@/components/ui/input'
 import { useLoginMutation } from '../hooks'
 import { loginSchema, type LoginFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
+import { authApi } from '../utils/auth-api'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
@@ -46,7 +47,7 @@ export function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/google`
+    authApi.googleLogin()
   }
 
   return (
