@@ -1,4 +1,13 @@
+import { Configuration } from "../../generated/api-client"
+
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
+
+export const configuration = new Configuration({
+  basePath: process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001',
+  baseOptions: {
+    withCredentials: true, // Enable cookies for authentication
+  },
+})
 
 // Simplified API client for general use
 
