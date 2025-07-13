@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 
-import { Configuration, AuthenticationApi, UsersApi, FacilitiesApi, AppApi } from "@generated/api-client"
+import { Configuration, AuthenticationApi, UsersApi, FacilitiesApi, AppApi, ProjectsApi, RolesApi } from "@generated/api-client"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -68,8 +68,11 @@ async function refreshToken(): Promise<void> {
       isRefreshing = false
       refreshPromise = null
     })
-
-  await refreshPromise
+  try {
+    await refreshPromise
+  } catch (error) {
+    console.error('Error occurred while refreshing token:', error)
+  }
 }
 
 // Create the axios instance with interceptors
@@ -88,6 +91,8 @@ export const authApi = new AuthenticationApi(configuration, undefined, axiosWith
 export const usersApi = new UsersApi(configuration, undefined, axiosWithInterceptors)
 export const facilitiesApi = new FacilitiesApi(configuration, undefined, axiosWithInterceptors)
 export const appApi = new AppApi(configuration, undefined, axiosWithInterceptors)
+export const rolesApi = new RolesApi(configuration, undefined, axiosWithInterceptors)
+export const projectsApi = new ProjectsApi(configuration, undefined, axiosWithInterceptors)
 
 // API Error class for manual API calls
 export class ApiError extends Error {

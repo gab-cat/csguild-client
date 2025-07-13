@@ -11,6 +11,14 @@ const nextConfig: NextConfig = {
   experimental: {
     useLightningcss: true,
   },
+  images: {
+    remotePatterns: [
+      {
+        hostname: "lh3.googleusercontent.com",
+        protocol: "https",
+      }
+    ]
+  }
 };
 
 export default nextConfig;
