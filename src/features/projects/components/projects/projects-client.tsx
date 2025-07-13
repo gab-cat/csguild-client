@@ -5,9 +5,11 @@ import { Plus, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useState, useCallback } from 'react'
 
+import { AuthGuard } from '@/components/shared/auth-guard'
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { useAuthStore } from '@/features/auth'
 
 import { useProjects, useProjectFilters } from '../../hooks'
 import { toProjectCard } from '../../types'
@@ -18,11 +20,20 @@ import { ProjectFiltersComponent } from './project-filters'
 
 
 export function ProjectsClient() {
+  const { isAuthenticated } = useAuthStore()
   const router = useRouter()
   const filters = useProjectFilters()
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
   const { data: projectsData, isLoading, error } = useProjects(filters)
+
+  const handleCreateButtonClick = useCallback(() => {
+    setIsProjectModalOpen(true)
+  }, [])
+
+  const handleCloseModal = useCallback(() => {
+    setIsProjectModalOpen(false)
+  }, [])
 
   const handleClearFilters = useCallback(() => {
     router.push(window.location.pathname) // Clear all search params
@@ -42,15 +53,23 @@ export function ProjectsClient() {
             <ProjectFiltersComponent />
           </div>
           
-          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap">
-                <Plus className="w-4 h-4 mr-2" />
-                Post Project
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-7xl min-w-5xl max-h-[90vh] overflow-y-auto bg-gray-950 border-1 border-gray-800">
-              <CreateProjectModal onClose={() => setIsCreateModalOpen(false)} />
+          <Button 
+            className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap"
+            onClick={handleCreateButtonClick}
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Post Project
+          </Button>
+
+          {/* Project Modal with Auth Guard */}
+          <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
+            <DialogContent className={`${!isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-5xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
+              <AuthGuard 
+                title="Authentication Required" 
+                description="Please sign in or create an account to post a new project."
+              >
+                <CreateProjectModal onClose={handleCloseModal} />
+              </AuthGuard>
             </DialogContent>
           </Dialog>
         </div>
@@ -134,7 +153,7 @@ export function ProjectsClient() {
                 </Button>
               )}
               <Button 
-                onClick={() => setIsCreateModalOpen(true)}
+                onClick={handleCreateButtonClick}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 <Plus className="w-4 h-4 mr-2" />

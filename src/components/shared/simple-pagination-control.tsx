@@ -69,8 +69,6 @@ export function SimplePaginationControl({
     const queryString = currentParams.toString()
     const newUrl = queryString ? `${window.location.pathname}?${queryString}` : window.location.pathname
     
-    console.log('SimplePaginationControl - navigating to URL:', newUrl)
-    
     // Use startTransition to prevent UI blocking during navigation
     startTransition(() => {
       router.push(newUrl, { scroll: false })

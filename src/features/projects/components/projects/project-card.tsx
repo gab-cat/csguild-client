@@ -46,7 +46,9 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
     }
   }
 
-  const isOverdue = new Date(project.dueDate) < new Date()
+  const isOverdue = project.dueDate
+    ? new Date(project.dueDate) < new Date()
+    : false
 
   return (
     <motion.div

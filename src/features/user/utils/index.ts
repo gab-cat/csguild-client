@@ -12,22 +12,12 @@ export const formatDate = (dateString: string): string => {
   }
 }
 
+// src/features/user/utils/index.ts
+import { formatDistanceToNow } from 'date-fns'
+
 export const formatRelativeTime = (dateString: string): string => {
   try {
-    const date = new Date(dateString)
-    const now = new Date()
-    const diffTime = Math.abs(now.getTime() - date.getTime())
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
-    
-    if (diffDays < 30) {
-      return `${diffDays} day${diffDays !== 1 ? 's' : ''} ago`
-    } else if (diffDays < 365) {
-      const months = Math.floor(diffDays / 30)
-      return `${months} month${months !== 1 ? 's' : ''} ago`
-    } else {
-      const years = Math.floor(diffDays / 365)
-      return `${years} year${years !== 1 ? 's' : ''} ago`
-    }
+    return formatDistanceToNow(new Date(dateString), { addSuffix: true })
   } catch {
     return 'Unknown'
   }
@@ -49,8 +39,11 @@ export const formatDateForInput = (dateString: string | undefined | null): strin
     const date = new Date(dateString)
     // Check if date is valid
     if (isNaN(date.getTime())) return ''
-    // Format as YYYY-MM-DD for HTML date input
-    return date.toISOString().split('T')[0]
+    // Format as YYYY-MM-DD for HTML date input using local timezone
+    const year = date.getFullYear()
+    const month = String(date.getMonth() + 1).padStart(2, '0')
+    const day = String(date.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   } catch {
     return ''
   }

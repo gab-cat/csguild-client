@@ -54,7 +54,7 @@ export function ProjectFiltersComponent({ filters, onFiltersChange }: ProjectFil
     if (debouncedSearch !== filters.search) {
       onFiltersChange({ ...filters, search: debouncedSearch || undefined })
     }
-  }, [debouncedSearch, filters, onFiltersChange])
+  }, [debouncedSearch, filters, filters.search, onFiltersChange])
 
   const handleSearchInputChange = (value: string) => {
     setSearchInput(value)
@@ -67,12 +67,29 @@ export function ProjectFiltersComponent({ filters, onFiltersChange }: ProjectFil
     })
   }
 
+  // Define allowed sort fields and orders at the top of this module (or component)
+  const VALID_SORT_FIELDS = ['createdAt', 'updatedAt', 'dueDate', 'title'] as const;
+  const VALID_SORT_ORDERS = ['asc', 'desc'] as const;
+
+  type SortField = typeof VALID_SORT_FIELDS[number];
+  type SortOrder = typeof VALID_SORT_ORDERS[number];
+
   const handleSortChange = (value: string) => {
     const [sortBy, sortOrder] = value.split('-')
-    onFiltersChange({ 
-      ...filters, 
-      sortBy: sortBy as 'createdAt' | 'updatedAt' | 'dueDate' | 'title',
-      sortOrder: sortOrder as 'asc' | 'desc'
+
+    // Runtime guard to ensure we only accept known fields/orders
+    if (
+      !VALID_SORT_FIELDS.includes(sortBy as SortField) ||
+      !VALID_SORT_ORDERS.includes(sortOrder as SortOrder)
+    ) {
+      console.warn('Invalid sort parameters:', { sortBy, sortOrder })
+      return
+    }
+
+    onFiltersChange({
+      ...filters,
+      sortBy: sortBy as SortField,
+      sortOrder: sortOrder as SortOrder
     })
   }
 
@@ -213,7 +230,12 @@ export function ProjectFiltersComponent({ filters, onFiltersChange }: ProjectFil
                     placeholder="Add tag..."
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleAddTag()}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddTag();
+                      }
+                    }}
                     className="bg-gray-800 border-gray-700 text-white placeholder-gray-400"
                   />
                   <Button

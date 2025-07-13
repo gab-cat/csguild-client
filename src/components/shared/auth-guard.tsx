@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { LogIn, UserPlus, Lock, ArrowRight } from 'lucide-react'
+import { LogIn, UserPlus, Lock } from 'lucide-react'
 import Link from 'next/link'
 
 import { Button } from '@/components/ui/button'
@@ -83,7 +83,6 @@ export function AuthGuard({
                 <div className="flex items-center justify-center gap-3">
                   <LogIn className="w-5 h-5" />
                   <span>Sign In to Your Account</span>
-                  <ArrowRight className="w-4 h-4" />
                 </div>
               </Button>
             </Link>

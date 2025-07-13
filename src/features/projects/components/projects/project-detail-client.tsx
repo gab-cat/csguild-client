@@ -19,14 +19,14 @@ interface ProjectDetailClientProps {
 
 export function ProjectDetailClient({ project, onClose }: ProjectDetailClientProps) {
   const getStatusColor = (status: string) => {
-    switch (status.toLowerCase()) {
-    case 'open':
+    switch (status.toUpperCase()) {
+    case 'OPEN':
       return 'bg-green-500/20 text-green-400 border-green-500/50';
-    case 'in_progress':
+    case 'IN_PROGRESS':
       return 'bg-blue-500/20 text-blue-400 border-blue-500/50';
-    case 'completed':
+    case 'COMPLETED':
       return 'bg-purple-500/20 text-purple-400 border-purple-500/50';
-    case 'cancelled':
+    case 'CANCELLED':
       return 'bg-red-500/20 text-red-400 border-red-500/50';
     default:
       return 'bg-gray-500/20 text-gray-400 border-gray-500/50';
@@ -34,14 +34,14 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
   };
 
   const getStatusIcon = (status: string) => {
-    switch (status.toLowerCase()) {
-    case 'open':
+    switch (status.toUpperCase()) {
+    case 'OPEN':
       return <AlertCircle className="w-4 h-4" />;
-    case 'in_progress':
+    case 'IN_PROGRESS':
       return <Clock className="w-4 h-4" />;
-    case 'completed':
+    case 'COMPLETED':
       return <Check className="w-4 h-4" />;
-    case 'cancelled':
+    case 'CANCELLED':
       return <X className="w-4 h-4" />;
     default:
       return <AlertCircle className="w-4 h-4" />;

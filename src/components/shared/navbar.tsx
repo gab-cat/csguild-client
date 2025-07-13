@@ -59,27 +59,25 @@ const NavBar = () => {
             </div>
           </Link>
 
-          {/* Navigation Links - Only show when authenticated */}
-          {isAuthenticated && (
-            <>
-              <Separator orientation="vertical" className="h-4 bg-pink-500/20 hidden lg:block" />
+          {/* Navigation Links  */}
+          <>
+            <Separator orientation="vertical" className="h-4 bg-pink-500/20 hidden lg:block" />
             
-              <nav className="hidden lg:flex items-center gap-1">
-                {navItems.map((item) => (
-                  <Link key={item.href} href={item.href}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span className="hidden xl:inline">{item.label}</span>
-                    </Button>
-                  </Link>
-                ))}
-              </nav>
-            </>
-          )}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="hidden xl:inline">{item.label}</span>
+                  </Button>
+                </Link>
+              ))}
+            </nav>
+          </>
         </div>
 
         {/* Auth Section */}

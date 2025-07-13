@@ -61,7 +61,7 @@ export function ExistingApplicationDisplay({ existingApplication, project }: Exi
         iconBg: 'bg-gray-500/20',
         iconColor: 'text-gray-400',
         title: 'Application Status Unknown',
-        message: 'We&apos;re having trouble determining your application status. Please try refreshing the page.',
+        message: "We're having trouble determining your application status. Please try refreshing the page.",
         icon: HelpCircle
       }
     }

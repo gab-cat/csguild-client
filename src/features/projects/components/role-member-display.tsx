@@ -76,14 +76,15 @@ export function RoleMemberDisplay({
           {titleWithCount}
         </h4>
         <div className="space-y-1">
-          {roles.slice(0, maxRolesShown).map((roleInfo, roleIndex) => (          <div key={roleIndex} className="flex items-center justify-between text-xs">
-            <span className="text-gray-300 truncate flex-1">
-              {roleInfo.role?.name || roleInfo.role?.slug || roleInfo.roleSlug || 'Unknown Role'}
-            </span>
-            <span className="text-gray-400 ml-2 flex-shrink-0">
+          {roles.slice(0, maxRolesShown).map((roleInfo, roleIndex) => (          
+            <div key={roleIndex} className="flex items-center justify-between text-xs">
+              <span className="text-gray-300 truncate flex-1">
+                {roleInfo.role?.name || roleInfo.role?.slug || roleInfo.roleSlug || 'Unknown Role'}
+              </span>
+              <span className="text-gray-400 ml-2 flex-shrink-0">
               ?/{roleInfo.maxMembers}
-            </span>
-          </div>
+              </span>
+            </div>
           ))}
           {roles.length > maxRolesShown && (
             <div className="text-xs text-gray-400">

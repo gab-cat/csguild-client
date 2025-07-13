@@ -198,7 +198,12 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                   onChange={(e) => setNewTag(e.target.value)}
                   placeholder="Add a tag"
                   className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400"
-                  onKeyPress={(e) => e.key === 'Enter' && (e.preventDefault(), addTag())}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter') {
+                      e.preventDefault();
+                      addTag();
+                    }
+                  }}
                 />
                 <Button
                   type="button"
