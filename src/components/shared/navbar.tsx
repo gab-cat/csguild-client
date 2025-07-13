@@ -1,7 +1,7 @@
 'use client'
 
 import { Separator } from '@radix-ui/react-separator'
-import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, Settings, ChevronDown, Home, Calendar, BookOpen, Users as UsersIcon } from 'lucide-react'
+import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -34,7 +34,7 @@ const NavBar = () => {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/events', label: 'Events', icon: Calendar },
-    { href: '/courses', label: 'Courses', icon: BookOpen },
+    { href: '/projects', label: 'Projects', icon: FolderOpen },
     { href: '/community', label: 'Community', icon: UsersIcon },
   ]
 
@@ -158,16 +158,37 @@ const NavBar = () => {
                   </Link>
                 </DropdownMenuItem>
 
-                {/* Profile */}
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
+                {/* My Projects */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/my-projects" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-purple-400 hover:bg-purple-500/10"
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    <span>My Projects</span>
+                  </Link>
                 </DropdownMenuItem>
 
-                {/* Settings */}
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-green-400 hover:bg-green-500/10">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
+                {/* My Applications */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/my-applications" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-orange-400 hover:bg-orange-500/10"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>My Applications</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* Profile */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/profile" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="bg-pink-500/20" />
