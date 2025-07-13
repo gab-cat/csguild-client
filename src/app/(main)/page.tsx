@@ -5,11 +5,13 @@ import { CommunitySection } from "@/components/landing/community-section"
 import { ContactSection } from "@/components/landing/contact-section"
 import { FeaturesSection } from "@/components/landing/features-section"
 import { HeroSection } from "@/components/landing/hero-section"
+import { TargetCursor } from "@/components/landing/target-cursor"
 import { TimelineSection } from "@/components/landing/timeline-section"
 
 export default function Home() {
   return (
     <main className="flex-1">
+      <TargetCursor />
       {/* 
         User Journey Flow:
         1. Hero Section - First impression, value proposition, and call-to-action

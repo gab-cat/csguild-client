@@ -1,4 +1,3 @@
-import { TargetCursor } from "@/components/landing/target-cursor"
 import Footer from "@/components/shared/footer"
 import NavBar from "@/components/shared/navbar"
 
@@ -8,8 +7,7 @@ export default function MainLayout({
   children: React.ReactNode
 }) {
   return (
-    <div className="flex flex-col min-h-screen w-screen cursor-none">
-      <TargetCursor />
+    <div className="flex flex-col min-h-screen w-screen">
       {/* Navigation */}
       <NavBar />
 
