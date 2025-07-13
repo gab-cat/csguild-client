@@ -1,0 +1,163 @@
+'use client'
+
+import { motion } from 'framer-motion'
+import { Plus, Loader2 } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { useState, useCallback } from 'react'
+
+import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
+import { Button } from '@/components/ui/button'
+import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+
+import { useProjects, useProjectFilters } from '../../hooks'
+import { toProjectCard } from '../../types'
+import { CreateProjectModal } from '../create-project-modal'
+
+import { ProjectCard } from './project-card'
+import { ProjectFiltersComponent } from './project-filters'
+
+
+export function ProjectsClient() {
+  const router = useRouter()
+  const filters = useProjectFilters()
+  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
+
+  const { data: projectsData, isLoading, error } = useProjects(filters)
+
+  const handleClearFilters = useCallback(() => {
+    router.push(window.location.pathname) // Clear all search params
+  }, [router])
+
+  const projects = projectsData?.data || []
+  const validProjects = projects.map(toProjectCard).filter((p): p is NonNullable<typeof p> => p !== null)
+  const totalProjects = projectsData?.pagination?.total || 0
+
+  return (
+    <div className="relative min-h-screen">
+      <div className="container mx-auto px-4 py-8 space-y-8">
+
+        {/* Filters and Create Button */}
+        <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
+          <div className="flex-1 w-full lg:w-auto">
+            <ProjectFiltersComponent />
+          </div>
+          
+          <Dialog open={isCreateModalOpen} onOpenChange={setIsCreateModalOpen}>
+            <DialogTrigger asChild>
+              <Button className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap">
+                <Plus className="w-4 h-4 mr-2" />
+                Post Project
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-7xl min-w-5xl max-h-[90vh] overflow-y-auto bg-gray-950 border-1 border-gray-800">
+              <CreateProjectModal onClose={() => setIsCreateModalOpen(false)} />
+            </DialogContent>
+          </Dialog>
+        </div>
+
+        {/* Results Summary */}
+        {!isLoading && (
+          <div className="text-gray-400 text-sm">
+            {totalProjects > 0 ? (
+              <>
+                Showing {validProjects.length} of {totalProjects} projects
+                {filters.page && filters.page > 1 && ` (page ${filters.page})`}
+                {filters.search && ` for "${filters.search}"`}
+                {filters.status && ` with status "${filters.status}"`}
+                {filters.tags?.length && ` tagged with "${filters.tags.join(', ')}"`}
+              </>
+            ) : (
+              <>No projects found matching your criteria</>
+            )}
+          </div>
+        )}
+
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            <span className="ml-2 text-gray-400">Loading projects...</span>
+          </div>
+        )}
+
+        {/* Error State */}
+        {error && (
+          <div className="text-center py-12">
+            <div className="text-red-400 mb-4">
+              Failed to load projects. Please try again.
+            </div>
+            <Button 
+              onClick={() => window.location.reload()}
+              variant="outline"
+              className="border-gray-700 text-gray-300"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+
+        {/* Projects Grid */}
+        {!isLoading && !error && validProjects.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ duration: 0.5 }}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            {validProjects.map((project, index) => (
+              <ProjectCard
+                key={project.id}
+                project={project}
+                index={index}
+              />
+            ))}
+          </motion.div>
+        )}
+
+        {/* Empty State */}
+        {!isLoading && !error && validProjects.length === 0 && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              {filters.search || filters.status || filters.tags?.length
+                ? 'No projects match your current filters.'
+                : 'No projects available yet.'
+              }
+            </div>
+            <div className="space-x-4">
+              {(filters.search || filters.status || filters.tags?.length) && (
+                <Button 
+                  onClick={handleClearFilters}
+                  variant="outline"
+                  className="border-gray-700 text-gray-300"
+                >
+                  Clear Filters
+                </Button>
+              )}
+              <Button 
+                onClick={() => setIsCreateModalOpen(true)}
+                className="bg-purple-600 hover:bg-purple-700 text-white"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Create First Project
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* Pagination Control */}
+        {!isLoading && !error && validProjects.length > 0 && (
+          <div className="mt-8">
+            <SimplePaginationControl 
+              currentPage={filters.page || 1}
+              currentLimit={filters.limit || 12}
+              total={totalProjects}
+              showLimitSelector={true}
+              limitOptions={[6, 12, 24, 48]}
+              className="justify-between"
+            />
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
