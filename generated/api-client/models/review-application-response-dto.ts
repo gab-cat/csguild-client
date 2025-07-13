@@ -13,36 +13,33 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { ApplicationDto } from './application-dto';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ReviewApplicationResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ReviewApplicationResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ReviewApplicationResponseDto
      */
-    'status'?: string;
+    'message': string;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof ReviewApplicationResponseDto
      */
-    'timestamp'?: string;
+    'statusCode': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {ApplicationDto}
+     * @memberof ReviewApplicationResponseDto
      */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'application': ApplicationDto;
 }
 

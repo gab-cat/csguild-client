@@ -17,32 +17,26 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface UpdateRoleDto
  */
-export interface AppControllerGetHealth200Response {
+export interface UpdateRoleDto {
     /**
-     * 
+     * The role name
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UpdateRoleDto
      */
-    'status'?: string;
+    'name'?: string;
     /**
-     * 
+     * URL-friendly slug for the role (will be auto-generated if not provided)
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UpdateRoleDto
      */
-    'timestamp'?: string;
+    'slug'?: string;
     /**
-     * 
+     * Detailed description of the role
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UpdateRoleDto
      */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'description'?: string;
 }
 

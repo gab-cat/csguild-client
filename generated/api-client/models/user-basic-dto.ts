@@ -17,32 +17,32 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface UserBasicDto
  */
-export interface AppControllerGetHealth200Response {
+export interface UserBasicDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UserBasicDto
      */
-    'status'?: string;
+    'username': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UserBasicDto
      */
-    'timestamp'?: string;
+    'firstName': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UserBasicDto
      */
-    'version'?: string;
+    'lastName': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UserBasicDto
      */
-    'ip'?: string;
+    'imageUrl'?: string;
 }
 

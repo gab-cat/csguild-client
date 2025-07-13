@@ -13,36 +13,15 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { RoleResponseDto } from './role-response-dto';
 
 /**
- * 
+ * @type UpdateRoleResponseDtoRole
+ * The updated role
  * @export
- * @interface AppControllerGetHealth200Response
  */
-export interface AppControllerGetHealth200Response {
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
-}
+export type UpdateRoleResponseDtoRole = RoleResponseDto;
+
 

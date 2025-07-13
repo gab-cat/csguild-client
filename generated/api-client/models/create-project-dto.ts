@@ -13,36 +13,45 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { CreateProjectRoleDto } from './create-project-role-dto';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface CreateProjectDto
  */
-export interface AppControllerGetHealth200Response {
+export interface CreateProjectDto {
     /**
-     * 
+     * Project title
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof CreateProjectDto
      */
-    'status'?: string;
+    'title': string;
     /**
-     * 
+     * Detailed project description
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof CreateProjectDto
      */
-    'timestamp'?: string;
+    'description': string;
     /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * Project tags for categorization
+     * @type {Array<Array>}
+     * @memberof CreateProjectDto
      */
-    'version'?: string;
+    'tags': Array<Array>;
     /**
-     * 
+     * Project due date (ISO date format)
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof CreateProjectDto
      */
-    'ip'?: string;
+    'dueDate'?: string;
+    /**
+     * Required roles for this project
+     * @type {Array<CreateProjectRoleDto>}
+     * @memberof CreateProjectDto
+     */
+    'roles': Array<CreateProjectRoleDto>;
 }
 

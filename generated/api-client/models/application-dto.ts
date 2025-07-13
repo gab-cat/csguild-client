@@ -17,32 +17,47 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ApplicationDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ApplicationDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ApplicationDto
      */
-    'status'?: string;
+    'id': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ApplicationDto
      */
-    'timestamp'?: string;
+    'projectSlug': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ApplicationDto
      */
-    'version'?: string;
+    'userSlug': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ApplicationDto
      */
-    'ip'?: string;
+    'roleSlug': string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ApplicationDto
+     */
+    'status': ApplicationDtoStatusEnum;
 }
+
+export const ApplicationDtoStatusEnum = {
+    PENDING: 'PENDING',
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED'
+} as const;
+
+export type ApplicationDtoStatusEnum = typeof ApplicationDtoStatusEnum[keyof typeof ApplicationDtoStatusEnum];
+
 

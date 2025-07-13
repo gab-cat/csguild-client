@@ -13,36 +13,27 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { ProjectRoleDtoRole } from './project-role-dto-role';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ProjectMemberDtoProjectRole
  */
-export interface AppControllerGetHealth200Response {
+export interface ProjectMemberDtoProjectRole {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectMemberDtoProjectRole
      */
-    'status'?: string;
+    'roleSlug'?: string;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {ProjectRoleDtoRole}
+     * @memberof ProjectMemberDtoProjectRole
      */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'role'?: ProjectRoleDtoRole;
 }
 

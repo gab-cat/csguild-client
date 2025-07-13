@@ -13,36 +13,42 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { PaginationDto } from './pagination-dto';
+// May contain unused imports in some cases
+// @ts-ignore
+import { ProjectSummaryDto } from './project-summary-dto';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ProjectListResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ProjectListResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectListResponseDto
      */
-    'status'?: string;
+    'message': string;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof ProjectListResponseDto
      */
-    'timestamp'?: string;
+    'statusCode': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {Array<ProjectSummaryDto>}
+     * @memberof ProjectListResponseDto
      */
-    'version'?: string;
+    'data': Array<ProjectSummaryDto>;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {PaginationDto}
+     * @memberof ProjectListResponseDto
      */
-    'ip'?: string;
+    'pagination': PaginationDto;
 }
 

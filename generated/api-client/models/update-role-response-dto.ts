@@ -13,36 +13,33 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { UpdateRoleResponseDtoRole } from './update-role-response-dto-role';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface UpdateRoleResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface UpdateRoleResponseDto {
+    /**
+     * Success message
+     * @type {string}
+     * @memberof UpdateRoleResponseDto
+     */
+    'message': string;
+    /**
+     * HTTP status code
+     * @type {number}
+     * @memberof UpdateRoleResponseDto
+     */
+    'statusCode': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {UpdateRoleResponseDtoRole}
+     * @memberof UpdateRoleResponseDto
      */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'role': UpdateRoleResponseDtoRole;
 }
 

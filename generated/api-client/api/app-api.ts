@@ -1,4 +1,3 @@
-// @ts-nocheck
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -33,10 +32,13 @@ export const AppApiAxiosParamCreator = function (configuration?: Configuration) 
         /**
          * 
          * @summary Check server health
+         * @param {string} xForwardedFor 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        appControllerGetHealth: async (options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        appControllerGetHealth: async (xForwardedFor: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'xForwardedFor' is not null or undefined
+            assertParamExists('appControllerGetHealth', 'xForwardedFor', xForwardedFor)
             const localVarPath = `/api/health`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -48,6 +50,10 @@ export const AppApiAxiosParamCreator = function (configuration?: Configuration) 
             const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
             const localVarHeaderParameter = {} as any;
             const localVarQueryParameter = {} as any;
+
+            if (xForwardedFor != null) {
+                localVarHeaderParameter['x-forwarded-for'] = String(xForwardedFor);
+            }
 
 
     
@@ -103,11 +109,12 @@ export const AppApiFp = function(configuration?: Configuration) {
         /**
          * 
          * @summary Check server health
+         * @param {string} xForwardedFor 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async appControllerGetHealth(options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppControllerGetHealth200Response>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.appControllerGetHealth(options);
+        async appControllerGetHealth(xForwardedFor: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<AppControllerGetHealth200Response>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.appControllerGetHealth(xForwardedFor, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -133,11 +140,12 @@ export const AppApiFactory = function (configuration?: Configuration, basePath?:
         /**
          * 
          * @summary Check server health
+         * @param {AppApiAppControllerGetHealthRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        appControllerGetHealth(options?: AxiosRequestConfig): AxiosPromise<AppControllerGetHealth200Response> {
-            return localVarFp.appControllerGetHealth(options).then((request) => request(axios, basePath));
+        appControllerGetHealth(requestParameters: AppApiAppControllerGetHealthRequest, options?: AxiosRequestConfig): AxiosPromise<AppControllerGetHealth200Response> {
+            return localVarFp.appControllerGetHealth(requestParameters.xForwardedFor, options).then((request) => request(axios, basePath));
         },
         /**
          * Displays a tabbed interface for viewing service and route logs in real-time
@@ -160,11 +168,12 @@ export interface AppApiInterface {
     /**
      * 
      * @summary Check server health
+     * @param {string} xForwardedFor 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AppApiInterface
      */
-    appControllerGetHealth(options?: AxiosRequestConfig): AxiosPromise<AppControllerGetHealth200Response>;
+    appControllerGetHealth(xForwardedFor: string, options?: AxiosRequestConfig): AxiosPromise<AppControllerGetHealth200Response>;
 
     /**
      * Displays a tabbed interface for viewing service and route logs in real-time
@@ -178,6 +187,20 @@ export interface AppApiInterface {
 }
 
 /**
+ * Request parameters for appControllerGetHealth operation in AppApi.
+ * @export
+ * @interface AppApiAppControllerGetHealthRequest
+ */
+export interface AppApiAppControllerGetHealthRequest {
+    /**
+     * 
+     * @type {string}
+     * @memberof AppApiAppControllerGetHealth
+     */
+    readonly xForwardedFor: string
+}
+
+/**
  * AppApi - object-oriented interface
  * @export
  * @class AppApi
@@ -187,12 +210,13 @@ export class AppApi extends BaseAPI implements AppApiInterface {
     /**
      * 
      * @summary Check server health
+     * @param {AppApiAppControllerGetHealthRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AppApi
      */
-    public appControllerGetHealth(options?: AxiosRequestConfig) {
-        return AppApiFp(this.configuration).appControllerGetHealth(options).then((request) => request(this.axios, this.basePath));
+    public appControllerGetHealth(requestParameters: AppApiAppControllerGetHealthRequest, options?: AxiosRequestConfig) {
+        return AppApiFp(this.configuration).appControllerGetHealth(requestParameters.xForwardedFor, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

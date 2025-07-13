@@ -13,36 +13,39 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { ProjectSummaryDto } from './project-summary-dto';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface MyProjectsResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface MyProjectsResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof MyProjectsResponseDto
      */
-    'status'?: string;
+    'message': string;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof MyProjectsResponseDto
      */
-    'timestamp'?: string;
+    'statusCode': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {Array<ProjectSummaryDto>}
+     * @memberof MyProjectsResponseDto
      */
-    'version'?: string;
+    'ownedProjects': Array<ProjectSummaryDto>;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {Array<ProjectSummaryDto>}
+     * @memberof MyProjectsResponseDto
      */
-    'ip'?: string;
+    'memberProjects': Array<ProjectSummaryDto>;
 }
 

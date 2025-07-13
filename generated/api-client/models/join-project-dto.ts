@@ -17,32 +17,26 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface JoinProjectDto
  */
-export interface AppControllerGetHealth200Response {
+export interface JoinProjectDto {
     /**
-     * 
+     * Project slug to join
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof JoinProjectDto
      */
-    'status'?: string;
+    'projectSlug': string;
     /**
-     * 
+     * Role slug to apply for
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof JoinProjectDto
      */
-    'timestamp'?: string;
+    'roleSlug': string;
     /**
-     * 
+     * Optional message to the project owner
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof JoinProjectDto
      */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'message'?: string;
 }
 

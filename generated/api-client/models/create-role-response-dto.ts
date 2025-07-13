@@ -13,36 +13,33 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { CreateRoleResponseDtoRole } from './create-role-response-dto-role';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface CreateRoleResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface CreateRoleResponseDto {
+    /**
+     * Success message
+     * @type {string}
+     * @memberof CreateRoleResponseDto
+     */
+    'message': string;
+    /**
+     * HTTP status code
+     * @type {number}
+     * @memberof CreateRoleResponseDto
+     */
+    'statusCode': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {CreateRoleResponseDtoRole}
+     * @memberof CreateRoleResponseDto
      */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'role': CreateRoleResponseDtoRole;
 }
 

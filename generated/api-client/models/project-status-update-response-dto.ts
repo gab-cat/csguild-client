@@ -13,36 +13,33 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { ProjectBasicDto } from './project-basic-dto';
 
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ProjectStatusUpdateResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ProjectStatusUpdateResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectStatusUpdateResponseDto
      */
-    'status'?: string;
+    'message': string;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof ProjectStatusUpdateResponseDto
      */
-    'timestamp'?: string;
+    'statusCode': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {ProjectBasicDto}
+     * @memberof ProjectStatusUpdateResponseDto
      */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'project': ProjectBasicDto;
 }
 

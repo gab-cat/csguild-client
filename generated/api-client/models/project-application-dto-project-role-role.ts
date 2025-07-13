@@ -17,32 +17,14 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ProjectApplicationDtoProjectRoleRole
  */
-export interface AppControllerGetHealth200Response {
+export interface ProjectApplicationDtoProjectRoleRole {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectApplicationDtoProjectRoleRole
      */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'name'?: string;
 }
 

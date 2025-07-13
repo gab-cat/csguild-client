@@ -17,32 +17,42 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ProjectBasicDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ProjectBasicDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectBasicDto
      */
-    'status'?: string;
+    'id': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectBasicDto
      */
-    'timestamp'?: string;
+    'slug': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectBasicDto
      */
-    'version'?: string;
+    'title': string;
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectBasicDto
      */
-    'ip'?: string;
+    'status': ProjectBasicDtoStatusEnum;
 }
+
+export const ProjectBasicDtoStatusEnum = {
+    OPEN: 'OPEN',
+    IN_PROGRESS: 'IN_PROGRESS',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED'
+} as const;
+
+export type ProjectBasicDtoStatusEnum = typeof ProjectBasicDtoStatusEnum[keyof typeof ProjectBasicDtoStatusEnum];
+
 

@@ -17,32 +17,24 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface UpdateProjectStatusDto
  */
-export interface AppControllerGetHealth200Response {
+export interface UpdateProjectStatusDto {
     /**
-     * 
+     * New project status
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof UpdateProjectStatusDto
      */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'status': UpdateProjectStatusDtoStatusEnum;
 }
+
+export const UpdateProjectStatusDtoStatusEnum = {
+    OPEN: 'OPEN',
+    IN_PROGRESS: 'IN_PROGRESS',
+    COMPLETED: 'COMPLETED',
+    CANCELLED: 'CANCELLED'
+} as const;
+
+export type UpdateProjectStatusDtoStatusEnum = typeof UpdateProjectStatusDtoStatusEnum[keyof typeof UpdateProjectStatusDtoStatusEnum];
+
 

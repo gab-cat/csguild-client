@@ -1,4 +1,3 @@
-// @ts-nocheck
 /* tslint:disable */
 /* eslint-disable */
 /**
@@ -49,7 +48,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         /**
          *        Initiates a password reset flow by sending a reset token via email.              ## How it works:       1. Validates that the email exists in the system       2. Generates a secure random token (32 bytes, hex encoded)       3. Hashes the token before storing in database       4. Sets expiration time (1 hour from request)       5. Sends email with unhashed token to user       6. Returns success response regardless of email existence (security)              ## Security Features:       - Tokens are securely hashed in database       - 1-hour expiration time       - Rate limiting recommended (implement separately)       - No information leakage about email existence       - Old tokens are overwritten              ## Email Content:       - Reset code for manual entry       - Direct link to reset password page       - Clear expiration information       - Security warnings and instructions     
          * @summary Request password reset
-         * @param {ForgotPasswordDto} forgotPasswordDto Password reset request details
+         * @param {ForgotPasswordDto} forgotPasswordDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -115,7 +114,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         /**
          *        Authenticates student with email and password credentials.              ## How it works:       1. Checks for rate limiting (max 5 failed attempts per 15 minutes per IP)       2. Validates credentials using LocalAuthGuard (LocalStrategy)       3. Verifies that email is verified       4. Generates JWT access and refresh tokens       5. Sets HTTP-only cookies with tokens       6. Returns success response              ## Email Verification Required:       Students must verify their email address before being able to log in.       If email is not verified, the login will fail with instructions to verify.              ## Rate Limiting:       - Maximum 5 failed login attempts per IP address within 15 minutes       - After 5 failed attempts, IP is temporarily blocked for 15 minutes       - Successful login clears the failed attempt counter       - Error messages include remaining attempts and lockout duration              ## Cookies set:       - `Authentication`: JWT access token (1 hour expiry)       - `Refresh`: JWT refresh token (24 hours expiry)     
          * @summary Login with email and password
-         * @param {LoginDto} loginDto User login credentials
+         * @param {LoginDto} loginDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -271,7 +270,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         /**
          *        Resets user password using a valid reset token.              ## How it works:       1. Validates the reset token format and presence       2. Searches for user with matching hashed token       3. Checks token expiration (must be within 1 hour)       4. Validates new password meets requirements       5. Hashes the new password       6. Updates user password and clears reset token       7. Invalidates all refresh tokens (forces re-login)              ## Security Features:       - Token comparison uses secure hashing       - Automatic token expiration       - Password strength validation       - Session invalidation after reset       - One-time use tokens              ## Password Requirements:       - Minimum 8 characters       - Additional strength requirements recommended              ## After Reset:       - User must log in again with new password       - All existing sessions are invalidated       - Reset token is permanently deleted     
          * @summary Reset password with token
-         * @param {ResetPasswordDto} resetPasswordDto Password reset with token details
+         * @param {ResetPasswordDto} resetPasswordDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -307,7 +306,7 @@ export const AuthenticationApiAxiosParamCreator = function (configuration?: Conf
         /**
          *        Authenticates a student using their registered RFID card and creates a session.              ## How it works:       1. Validates RFID card is registered in the system       2. Checks that associated email is verified       3. Creates JWT access and refresh tokens       4. Sets HTTP-only cookies with tokens       5. Returns student information and success response              ## RFID Login Features:       - No username/password required       - Quick authentication for terminals       - Automatic session creation       - Same security as regular login              ## Requirements:       - RFID card must be registered       - Associated email must be verified       - Valid RFID card format              ## Use Cases:       - Quick login at CSGUILD terminals       - Attendance tracking at events       - Access control for facilities       - Lab equipment authentication     
          * @summary Login using RFID card
-         * @param {RfidLoginDto} rfidLoginDto RFID card login details
+         * @param {RfidLoginDto} rfidLoginDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -353,7 +352,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
         /**
          *        Initiates a password reset flow by sending a reset token via email.              ## How it works:       1. Validates that the email exists in the system       2. Generates a secure random token (32 bytes, hex encoded)       3. Hashes the token before storing in database       4. Sets expiration time (1 hour from request)       5. Sends email with unhashed token to user       6. Returns success response regardless of email existence (security)              ## Security Features:       - Tokens are securely hashed in database       - 1-hour expiration time       - Rate limiting recommended (implement separately)       - No information leakage about email existence       - Old tokens are overwritten              ## Email Content:       - Reset code for manual entry       - Direct link to reset password page       - Clear expiration information       - Security warnings and instructions     
          * @summary Request password reset
-         * @param {ForgotPasswordDto} forgotPasswordDto Password reset request details
+         * @param {ForgotPasswordDto} forgotPasswordDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -374,7 +373,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
         /**
          *        Authenticates student with email and password credentials.              ## How it works:       1. Checks for rate limiting (max 5 failed attempts per 15 minutes per IP)       2. Validates credentials using LocalAuthGuard (LocalStrategy)       3. Verifies that email is verified       4. Generates JWT access and refresh tokens       5. Sets HTTP-only cookies with tokens       6. Returns success response              ## Email Verification Required:       Students must verify their email address before being able to log in.       If email is not verified, the login will fail with instructions to verify.              ## Rate Limiting:       - Maximum 5 failed login attempts per IP address within 15 minutes       - After 5 failed attempts, IP is temporarily blocked for 15 minutes       - Successful login clears the failed attempt counter       - Error messages include remaining attempts and lockout duration              ## Cookies set:       - `Authentication`: JWT access token (1 hour expiry)       - `Refresh`: JWT refresh token (24 hours expiry)     
          * @summary Login with email and password
-         * @param {LoginDto} loginDto User login credentials
+         * @param {LoginDto} loginDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -425,7 +424,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
         /**
          *        Resets user password using a valid reset token.              ## How it works:       1. Validates the reset token format and presence       2. Searches for user with matching hashed token       3. Checks token expiration (must be within 1 hour)       4. Validates new password meets requirements       5. Hashes the new password       6. Updates user password and clears reset token       7. Invalidates all refresh tokens (forces re-login)              ## Security Features:       - Token comparison uses secure hashing       - Automatic token expiration       - Password strength validation       - Session invalidation after reset       - One-time use tokens              ## Password Requirements:       - Minimum 8 characters       - Additional strength requirements recommended              ## After Reset:       - User must log in again with new password       - All existing sessions are invalidated       - Reset token is permanently deleted     
          * @summary Reset password with token
-         * @param {ResetPasswordDto} resetPasswordDto Password reset with token details
+         * @param {ResetPasswordDto} resetPasswordDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -436,7 +435,7 @@ export const AuthenticationApiFp = function(configuration?: Configuration) {
         /**
          *        Authenticates a student using their registered RFID card and creates a session.              ## How it works:       1. Validates RFID card is registered in the system       2. Checks that associated email is verified       3. Creates JWT access and refresh tokens       4. Sets HTTP-only cookies with tokens       5. Returns student information and success response              ## RFID Login Features:       - No username/password required       - Quick authentication for terminals       - Automatic session creation       - Same security as regular login              ## Requirements:       - RFID card must be registered       - Associated email must be verified       - Valid RFID card format              ## Use Cases:       - Quick login at CSGUILD terminals       - Attendance tracking at events       - Access control for facilities       - Lab equipment authentication     
          * @summary Login using RFID card
-         * @param {RfidLoginDto} rfidLoginDto RFID card login details
+         * @param {RfidLoginDto} rfidLoginDto 
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
@@ -551,7 +550,7 @@ export interface AuthenticationApiInterface {
     /**
      *        Initiates a password reset flow by sending a reset token via email.              ## How it works:       1. Validates that the email exists in the system       2. Generates a secure random token (32 bytes, hex encoded)       3. Hashes the token before storing in database       4. Sets expiration time (1 hour from request)       5. Sends email with unhashed token to user       6. Returns success response regardless of email existence (security)              ## Security Features:       - Tokens are securely hashed in database       - 1-hour expiration time       - Rate limiting recommended (implement separately)       - No information leakage about email existence       - Old tokens are overwritten              ## Email Content:       - Reset code for manual entry       - Direct link to reset password page       - Clear expiration information       - Security warnings and instructions     
      * @summary Request password reset
-     * @param {ForgotPasswordDto} forgotPasswordDto Password reset request details
+     * @param {ForgotPasswordDto} forgotPasswordDto 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthenticationApiInterface
@@ -570,7 +569,7 @@ export interface AuthenticationApiInterface {
     /**
      *        Authenticates student with email and password credentials.              ## How it works:       1. Checks for rate limiting (max 5 failed attempts per 15 minutes per IP)       2. Validates credentials using LocalAuthGuard (LocalStrategy)       3. Verifies that email is verified       4. Generates JWT access and refresh tokens       5. Sets HTTP-only cookies with tokens       6. Returns success response              ## Email Verification Required:       Students must verify their email address before being able to log in.       If email is not verified, the login will fail with instructions to verify.              ## Rate Limiting:       - Maximum 5 failed login attempts per IP address within 15 minutes       - After 5 failed attempts, IP is temporarily blocked for 15 minutes       - Successful login clears the failed attempt counter       - Error messages include remaining attempts and lockout duration              ## Cookies set:       - `Authentication`: JWT access token (1 hour expiry)       - `Refresh`: JWT refresh token (24 hours expiry)     
      * @summary Login with email and password
-     * @param {LoginDto} loginDto User login credentials
+     * @param {LoginDto} loginDto 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthenticationApiInterface
@@ -616,7 +615,7 @@ export interface AuthenticationApiInterface {
     /**
      *        Resets user password using a valid reset token.              ## How it works:       1. Validates the reset token format and presence       2. Searches for user with matching hashed token       3. Checks token expiration (must be within 1 hour)       4. Validates new password meets requirements       5. Hashes the new password       6. Updates user password and clears reset token       7. Invalidates all refresh tokens (forces re-login)              ## Security Features:       - Token comparison uses secure hashing       - Automatic token expiration       - Password strength validation       - Session invalidation after reset       - One-time use tokens              ## Password Requirements:       - Minimum 8 characters       - Additional strength requirements recommended              ## After Reset:       - User must log in again with new password       - All existing sessions are invalidated       - Reset token is permanently deleted     
      * @summary Reset password with token
-     * @param {ResetPasswordDto} resetPasswordDto Password reset with token details
+     * @param {ResetPasswordDto} resetPasswordDto 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthenticationApiInterface
@@ -626,7 +625,7 @@ export interface AuthenticationApiInterface {
     /**
      *        Authenticates a student using their registered RFID card and creates a session.              ## How it works:       1. Validates RFID card is registered in the system       2. Checks that associated email is verified       3. Creates JWT access and refresh tokens       4. Sets HTTP-only cookies with tokens       5. Returns student information and success response              ## RFID Login Features:       - No username/password required       - Quick authentication for terminals       - Automatic session creation       - Same security as regular login              ## Requirements:       - RFID card must be registered       - Associated email must be verified       - Valid RFID card format              ## Use Cases:       - Quick login at CSGUILD terminals       - Attendance tracking at events       - Access control for facilities       - Lab equipment authentication     
      * @summary Login using RFID card
-     * @param {RfidLoginDto} rfidLoginDto RFID card login details
+     * @param {RfidLoginDto} rfidLoginDto 
      * @param {*} [options] Override http request option.
      * @throws {RequiredError}
      * @memberof AuthenticationApiInterface
@@ -642,7 +641,7 @@ export interface AuthenticationApiInterface {
  */
 export interface AuthenticationApiAuthControllerForgotPasswordRequest {
     /**
-     * Password reset request details
+     * 
      * @type {ForgotPasswordDto}
      * @memberof AuthenticationApiAuthControllerForgotPassword
      */
@@ -656,7 +655,7 @@ export interface AuthenticationApiAuthControllerForgotPasswordRequest {
  */
 export interface AuthenticationApiAuthControllerLoginRequest {
     /**
-     * User login credentials
+     * 
      * @type {LoginDto}
      * @memberof AuthenticationApiAuthControllerLogin
      */
@@ -670,7 +669,7 @@ export interface AuthenticationApiAuthControllerLoginRequest {
  */
 export interface AuthenticationApiAuthControllerResetPasswordRequest {
     /**
-     * Password reset with token details
+     * 
      * @type {ResetPasswordDto}
      * @memberof AuthenticationApiAuthControllerResetPassword
      */
@@ -684,7 +683,7 @@ export interface AuthenticationApiAuthControllerResetPasswordRequest {
  */
 export interface AuthenticationApiAuthControllerRfidLoginRequest {
     /**
-     * RFID card login details
+     * 
      * @type {RfidLoginDto}
      * @memberof AuthenticationApiAuthControllerRfidLogin
      */

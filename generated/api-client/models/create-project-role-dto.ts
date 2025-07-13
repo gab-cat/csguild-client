@@ -17,32 +17,26 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface CreateProjectRoleDto
  */
-export interface AppControllerGetHealth200Response {
+export interface CreateProjectRoleDto {
     /**
-     * 
+     * User role slug for this project position
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof CreateProjectRoleDto
      */
-    'status'?: string;
+    'roleSlug': string;
     /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * Maximum number of members for this role
+     * @type {number}
+     * @memberof CreateProjectRoleDto
      */
-    'timestamp'?: string;
+    'maxMembers'?: number;
     /**
-     * 
+     * Specific requirements for this role
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof CreateProjectRoleDto
      */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'requirements'?: string;
 }
 

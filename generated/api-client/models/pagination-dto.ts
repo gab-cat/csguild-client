@@ -17,32 +17,44 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface PaginationDto
  */
-export interface AppControllerGetHealth200Response {
+export interface PaginationDto {
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof PaginationDto
      */
-    'status'?: string;
+    'page': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof PaginationDto
      */
-    'timestamp'?: string;
+    'limit': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof PaginationDto
      */
-    'version'?: string;
+    'total': number;
     /**
      * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @type {number}
+     * @memberof PaginationDto
      */
-    'ip'?: string;
+    'totalPages': number;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PaginationDto
+     */
+    'hasNext': boolean;
+    /**
+     * 
+     * @type {boolean}
+     * @memberof PaginationDto
+     */
+    'hasPrev': boolean;
 }
 

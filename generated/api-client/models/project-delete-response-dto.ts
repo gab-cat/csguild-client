@@ -17,32 +17,14 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ProjectDeleteResponseDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ProjectDeleteResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ProjectDeleteResponseDto
      */
-    'status'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'timestamp'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'message': string;
 }
 

@@ -17,32 +17,34 @@
 /**
  * 
  * @export
- * @interface AppControllerGetHealth200Response
+ * @interface ReviewApplicationDto
  */
-export interface AppControllerGetHealth200Response {
+export interface ReviewApplicationDto {
     /**
-     * 
+     * Application ID to review
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ReviewApplicationDto
      */
-    'status'?: string;
+    'applicationId': string;
     /**
-     * 
+     * Decision on the application
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ReviewApplicationDto
      */
-    'timestamp'?: string;
+    'decision': ReviewApplicationDtoDecisionEnum;
     /**
-     * 
+     * Optional review message
      * @type {string}
-     * @memberof AppControllerGetHealth200Response
+     * @memberof ReviewApplicationDto
      */
-    'version'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof AppControllerGetHealth200Response
-     */
-    'ip'?: string;
+    'reviewMessage'?: string;
 }
+
+export const ReviewApplicationDtoDecisionEnum = {
+    APPROVED: 'APPROVED',
+    REJECTED: 'REJECTED'
+} as const;
+
+export type ReviewApplicationDtoDecisionEnum = typeof ReviewApplicationDtoDecisionEnum[keyof typeof ReviewApplicationDtoDecisionEnum];
+
 
