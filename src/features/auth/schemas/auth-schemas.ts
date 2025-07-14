@@ -234,7 +234,6 @@ export const googleUserUpdateSchema = z.object({
     .optional(),
   rfidId: z
     .string()
-    .min(1, 'RFID Card ID is required')
     .optional(),
 })
 
