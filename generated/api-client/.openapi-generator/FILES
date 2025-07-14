@@ -44,6 +44,7 @@ models/login-dto.ts
 models/my-applications-response-dto.ts
 models/my-projects-response-dto.ts
 models/pagination-dto.ts
+models/project-application-dto-project-member.ts
 models/project-application-dto-project-role-role.ts
 models/project-application-dto-project-role.ts
 models/project-application-dto.ts

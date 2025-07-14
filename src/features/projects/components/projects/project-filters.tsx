@@ -100,13 +100,11 @@ export function ProjectFiltersComponent() {
   // Update URL when debounced search changes
   React.useEffect(() => {
     if (debouncedSearch !== filters.search) {
-      console.log('ProjectFilters - search effect triggered:', { debouncedSearch, currentSearch: filters.search })
       const currentParams = new URLSearchParams(searchParams)
       
       // Only reset page for actual search changes, not for initial load
       if (debouncedSearch !== (filters.search || '')) {
         currentParams.delete('page')
-        console.log('ProjectFilters - removing page due to search change')
       }
       
       if (debouncedSearch) {
@@ -116,7 +114,6 @@ export function ProjectFiltersComponent() {
       }
       
       const newUrl = `?${currentParams.toString()}`
-      console.log('ProjectFilters - navigating to:', newUrl)
       router.push(newUrl)
     }
   }, [debouncedSearch, filters.search, searchParams, router])

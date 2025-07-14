@@ -107,7 +107,7 @@ export function ApplicationsTable({ applications, onViewMessage, onViewReview }:
                         <MemberStatusIndicator
                           projectSlug={application.projectSlug}
                           applicationStatus={application.status as 'PENDING' | 'APPROVED' | 'REJECTED'}
-                          memberStatus="ACTIVE" // This would be determined by actual API data
+                          memberStatus={application.projectMember?.status || 'INACTIVE'}
                           compact={true}
                         />
                       </div>

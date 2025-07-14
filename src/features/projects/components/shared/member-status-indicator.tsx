@@ -10,7 +10,7 @@ import { Button } from '@/components/ui/button'
 interface MemberStatusIndicatorProps {
   projectSlug: string
   applicationStatus: 'PENDING' | 'APPROVED' | 'REJECTED'
-  memberStatus?: 'ACTIVE' | 'INACTIVE' | 'UNKNOWN'
+  memberStatus?: 'ACTIVE' | 'INACTIVE' | 'REMOVED'
   isProjectOwner?: boolean
   onReactivate?: () => void
   compact?: boolean
@@ -19,7 +19,7 @@ interface MemberStatusIndicatorProps {
 export function MemberStatusIndicator({ 
   // projectSlug, // Currently unused but kept for future API integration
   applicationStatus, 
-  memberStatus = 'UNKNOWN',
+  memberStatus = 'INACTIVE', // Default to INACTIVE if not provided
   isProjectOwner = false,
   onReactivate,
   compact = false
@@ -101,6 +101,18 @@ export function MemberStatusIndicator({
           </div>
         )}
       </div>
+    )
+  }
+
+  if (memberStatus === 'REMOVED') {
+    return (
+      <Badge
+        variant="outline"
+        className="text-xs bg-gray-500/10 text-gray-400 border-gray-500/30"
+      >
+        <UserMinus className="w-3 h-3 mr-1" />
+        Previously Removed
+      </Badge>
     )
   }
 

@@ -29,6 +29,7 @@ export * from './my-applications-response-dto';
 export * from './my-projects-response-dto';
 export * from './pagination-dto';
 export * from './project-application-dto';
+export * from './project-application-dto-project-member';
 export * from './project-application-dto-project-role';
 export * from './project-application-dto-project-role-role';
 export * from './project-basic-dto';
