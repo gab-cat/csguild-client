@@ -13,42 +13,21 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { ProjectMemberDto } from './project-member-dto';
+// May contain unused imports in some cases
+// @ts-ignore
+import { ProjectMemberDtoProjectRole } from './project-member-dto-project-role';
+// May contain unused imports in some cases
+// @ts-ignore
+import { UserBasicDto } from './user-basic-dto';
 
 /**
- * 
+ * @type ProjectApplicationDtoProjectMember
+ * Project member data if application was approved and user became a member
  * @export
- * @interface ProjectOwnerDto
  */
-export interface ProjectOwnerDto {
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'username': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'firstName': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'lastName': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'imageUrl'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'email'?: string;
-}
+export type ProjectApplicationDtoProjectMember = ProjectMemberDto;
+
 

@@ -12,9 +12,11 @@ const publicRoutes = [
   '/contact',
   '/privacy',
   '/terms',
+  '/code-of-conduct',
   '/login',
   '/register',
   '/callback', // OAuth callback route
+  '/verify-email',
   '/forgot-password',
   '/reset-password',
   '/projects', // Public projects page
@@ -68,7 +70,6 @@ export function middleware(request: NextRequest) {
 
   // Handle authentication redirects - protect all routes by default
   if (!isCurrentRoutePublic && !isAuthenticated) {
-    console.log('Redirecting to login - protected route accessed without authentication')
     // Redirect unauthenticated users to login for any non-public route
     // Save the current URL as 'next' parameter to redirect back after login
     const loginUrl = new URL('/login', request.url)
@@ -107,7 +108,6 @@ export function middleware(request: NextRequest) {
         try {
           const nextUrl = new URL(nextParam, request.url)
           if (nextUrl.origin === url.origin && !isPublicRoute(nextUrl.pathname)) {
-            console.log('Google user redirecting to next param:', nextParam)
             return NextResponse.redirect(nextUrl)
           }
         } catch {

@@ -16,6 +16,7 @@ import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
 
+import { useRoleMemberCounts, getRoleMemberCount } from '../../hooks/use-role-member-counts'
 import type { JoinProjectFormData } from '../../schemas'
 import type { ProjectCardType, JoinProjectData, JoinProjectResponseDto } from '../../types'
 
@@ -59,6 +60,13 @@ export function ApplicationForm({
     formState: { errors },
   } = form
 
+  // Get role member counts to filter available positions
+  const { roleMemberCounts, isLoading: isLoadingCounts } = useRoleMemberCounts(
+    project.slug, 
+    project.roles, 
+    true
+  )
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -96,45 +104,74 @@ export function ApplicationForm({
                 <motion.div 
                   initial={{ opacity: 0, y: -10 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="absolute top-full left-0 right-0 z-20 mt-2 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl overflow-hidden"
+                  className="absolute top-full left-0 right-0 z-20 mt-2 bg-gray-800 border border-gray-600 rounded-xl shadow-2xl overflow-hidden max-h-60 overflow-y-auto"
                 >
-                  {project.roles.map((roleInfo, index) => (
-                    <motion.button
-                      key={roleInfo.role.slug}
-                      type="button"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: index * 0.05 }}
-                      onClick={() => {
-                        const roleSlug = roleInfo.role.slug || roleInfo.role.name || ''
-                        if (roleSlug) {
-                          setSelectedRole(roleSlug)
-                          setValue('roleSlug', roleSlug)
-                          setIsRoleDropdownOpen(false)
-                        }
-                      }}
-                      className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors text-white border-b border-gray-700 last:border-b-0 group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <div className="font-medium text-white group-hover:text-purple-300 transition-colors">
-                            {roleInfo.role.name || roleInfo.role.slug}
-                          </div>
-                          {roleInfo.requirements && (
-                            <div className="text-xs text-gray-400 mt-1 line-clamp-1">
-                              {roleInfo.requirements}
+                  {isLoadingCounts ? (
+                    <div className="px-4 py-6 text-center">
+                      <div className="w-5 h-5 border-2 border-gray-400 border-t-transparent rounded-full animate-spin mx-auto mb-2" />
+                      <div className="text-gray-400 text-sm">Loading available positions...</div>
+                    </div>
+                  ) : (
+                    <>
+                      {project.roles.filter(roleInfo => {
+                        // Filter roles that have available positions
+                        const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
+                        return memberCount.availablePositions > 0
+                      }).map((roleInfo, index) => {
+                        const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
+                        return (
+                          <motion.button
+                            key={roleInfo.role.slug}
+                            type="button"
+                            initial={{ opacity: 0 }}
+                            animate={{ opacity: 1 }}
+                            transition={{ delay: index * 0.05 }}
+                            onClick={() => {
+                              const roleSlug = roleInfo.role.slug || roleInfo.role.name || ''
+                              if (roleSlug) {
+                                setSelectedRole(roleSlug)
+                                setValue('roleSlug', roleSlug)
+                                setIsRoleDropdownOpen(false)
+                              }
+                            }}
+                            className="w-full px-4 py-3 text-left hover:bg-gray-700 transition-colors text-white border-b border-gray-700 last:border-b-0 group"
+                          >
+                            <div className="flex items-center justify-between">
+                              <div className="flex-1 min-w-0">
+                                <div className="font-medium text-white group-hover:text-purple-300 transition-colors">
+                                  {roleInfo.role.name || roleInfo.role.slug}
+                                </div>
+                                {roleInfo.requirements && (
+                                  <div className="text-xs text-gray-400 mt-1 line-clamp-2 pr-2">
+                                    {roleInfo.requirements}
+                                  </div>
+                                )}
+                              </div>
+                              <div className="text-right flex-shrink-0 ml-3">
+                                <div className="text-sm font-medium text-green-400">
+                                  {memberCount.availablePositions}/{roleInfo.maxMembers}
+                                </div>
+                                <div className="text-xs text-gray-400">available</div>
+                              </div>
                             </div>
-                          )}
-                        </div>
-                        <div className="text-right">
-                          <div className="text-sm font-medium text-purple-400">
-                            0/{roleInfo.maxMembers}
+                          </motion.button>
+                        )
+                      })}
+                      {project.roles.filter(roleInfo => {
+                        const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
+                        return memberCount.availablePositions > 0
+                      }).length === 0 && (
+                        <div className="px-4 py-6 text-center">
+                          <div className="text-gray-400 text-sm">
+                            No positions available at the moment
                           </div>
-                          <div className="text-xs text-gray-400">spots</div>
+                          <div className="text-gray-500 text-xs mt-1">
+                            All roles are currently filled
+                          </div>
                         </div>
-                      </div>
-                    </motion.button>
-                  ))}
+                      )}
+                    </>
+                  )}
                 </motion.div>
               )}
             </div>

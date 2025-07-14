@@ -2,12 +2,14 @@
 
 import { motion } from 'framer-motion';
 import { Clock, CheckCircle, XCircle, FileText, FolderOpen, User2Icon, Calendar } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 import type { ExtendedProjectApplicationDto } from '../../types';
+import { MemberStatusIndicator } from '../shared/member-status-indicator';
 
 interface ApplicationsTableProps {
   applications: ExtendedProjectApplicationDto[];
@@ -16,6 +18,7 @@ interface ApplicationsTableProps {
 }
 
 export function ApplicationsTable({ applications, onViewMessage, onViewReview }: ApplicationsTableProps) {
+  const router = useRouter();
   const getStatusIcon = (status: string) => {
     switch (status) {
     case 'PENDING':
@@ -82,8 +85,7 @@ export function ApplicationsTable({ applications, onViewMessage, onViewReview }:
                           variant="link"
                           className="text-purple-400 hover:text-purple-300 p-0 h-auto font-medium text-left justify-start group"
                           onClick={() => {
-                            const encodedTitle = encodeURIComponent(projectTitle);
-                            window.location.href = `/projects?search=${encodedTitle}`;
+                            router.push(`/projects/${application.projectSlug}`);
                           }}
                         >
                           <span className="group-hover:underline">{projectTitle}</span>
@@ -94,11 +96,20 @@ export function ApplicationsTable({ applications, onViewMessage, onViewReview }:
                       <span className="text-gray-300 font-medium">{roleName}</span>
                     </TableCell>
                     <TableCell>
-                      <div className="flex items-center gap-2">
-                        {getStatusIcon(application.status)}
-                        <span className={`${getStatusColor(application.status)} font-medium`}>
-                          {application.status.charAt(0) + application.status.slice(1).toLowerCase()}
-                        </span>
+                      <div className="flex flex-col gap-1">
+                        <div className="flex items-center gap-2">
+                          {getStatusIcon(application.status)}
+                          <span className={`${getStatusColor(application.status)} font-medium`}>
+                            {application.status.charAt(0) + application.status.slice(1).toLowerCase()}
+                          </span>
+                        </div>
+                        {/* Show member status for approved applications */}
+                        <MemberStatusIndicator
+                          projectSlug={application.projectSlug}
+                          applicationStatus={application.status as 'PENDING' | 'APPROVED' | 'REJECTED'}
+                          memberStatus={application.projectMember?.status || 'INACTIVE'}
+                          compact={true}
+                        />
                       </div>
                     </TableCell>
                     <TableCell>

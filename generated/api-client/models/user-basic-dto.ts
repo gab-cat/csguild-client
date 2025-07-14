@@ -44,5 +44,11 @@ export interface UserBasicDto {
      * @memberof UserBasicDto
      */
     'imageUrl'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof UserBasicDto
+     */
+    'email'?: string;
 }
 

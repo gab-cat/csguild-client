@@ -15,6 +15,9 @@
 
 // May contain unused imports in some cases
 // @ts-ignore
+import { ProjectApplicationDtoProjectMember } from './project-application-dto-project-member';
+// May contain unused imports in some cases
+// @ts-ignore
 import { ProjectApplicationDtoProjectRole } from './project-application-dto-project-role';
 // May contain unused imports in some cases
 // @ts-ignore
@@ -67,6 +70,12 @@ export interface ProjectApplicationDto {
      * @type {string}
      * @memberof ProjectApplicationDto
      */
+    'reviewMessage'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectApplicationDto
+     */
     'createdAt': string;
     /**
      * 
@@ -86,6 +95,12 @@ export interface ProjectApplicationDto {
      * @memberof ProjectApplicationDto
      */
     'reviewer'?: UserBasicDto;
+    /**
+     * 
+     * @type {ProjectApplicationDtoProjectMember}
+     * @memberof ProjectApplicationDto
+     */
+    'projectMember'?: ProjectApplicationDtoProjectMember;
 }
 
 export const ProjectApplicationDtoStatusEnum = {

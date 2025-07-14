@@ -43,8 +43,6 @@ export function SimplePaginationControl({
   const hasPreviousPage = currentPage > 1
 
   const updateParams = useCallback((updates: Partial<{ page: number; limit: number }>) => {
-    console.log('SimplePaginationControl - updateParams called with:', updates)
-    console.log('SimplePaginationControl - current searchParams:', Object.fromEntries(searchParams))
     
     const currentParams = new URLSearchParams(searchParams)
     

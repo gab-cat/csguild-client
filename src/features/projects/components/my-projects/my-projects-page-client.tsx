@@ -2,7 +2,8 @@
 
 import { motion } from 'framer-motion'
 import { Plus, Search, Filter, FolderOpen } from 'lucide-react'
-import { useState } from 'react'
+import { useSearchParams } from 'next/navigation'
+import { useState, useMemo } from 'react'
 
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
@@ -10,7 +11,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
-import { usePagination } from '@/hooks/use-pagination'
 
 import { useMyProjects } from '../../hooks/use-projects-queries'
 import { toProjectCard } from '../../types'
@@ -23,31 +23,51 @@ export function MyProjectsPageClient() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'ALL'>('ALL')
+  const [activeTab, setActiveTab] = useState<'owned' | 'member'>('owned')
+
+  const searchParams = useSearchParams()
+  const currentPage = parseInt(searchParams.get('page') || '1', 10)
+  const currentLimit = parseInt(searchParams.get('limit') || '12', 10)
 
   const { data: myProjectsData, isLoading, error } = useMyProjects()
 
-  // Get filtered projects first (for pagination total)
-  const allFilteredProjects = myProjectsData?.ownedProjects
-    ?.map(toProjectCard)
-    .filter((project): project is NonNullable<typeof project> => Boolean(project))
-    .filter((project) => {
-      const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                           project.description.toLowerCase().includes(searchQuery.toLowerCase())
-      const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
-      return matchesSearch && matchesStatus
-    }) || []
+  // Get filtered owned projects
+  const allFilteredOwnedProjects = useMemo(() => {
+    return myProjectsData?.ownedProjects
+      ?.map(toProjectCard)
+      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+      .filter((project) => {
+        const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             project.description.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
+        return matchesSearch && matchesStatus
+      }) || []
+  }, [myProjectsData?.ownedProjects, searchQuery, statusFilter])
 
-  // Initialize pagination with filtered projects count
-  const pagination = usePagination({
-    defaultPage: 1,
-    defaultLimit: 12,
-    total: allFilteredProjects.length
-  })
+  // Get filtered member projects
+  const allFilteredMemberProjects = useMemo(() => {
+    return myProjectsData?.memberProjects
+      ?.map(toProjectCard)
+      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+      .filter((project) => {
+        const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             project.description.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
+        return matchesSearch && matchesStatus
+      }) || []
+  }, [myProjectsData?.memberProjects, searchQuery, statusFilter])
+
+  // Current projects to display based on active tab
+  const currentProjects = useMemo(() => {
+    return activeTab === 'owned' ? allFilteredOwnedProjects : allFilteredMemberProjects
+  }, [activeTab, allFilteredOwnedProjects, allFilteredMemberProjects])
 
   // Get paginated projects
-  const startIndex = (pagination.page - 1) * pagination.limit
-  const endIndex = startIndex + pagination.limit
-  const paginatedProjects = allFilteredProjects.slice(startIndex, endIndex)
+  const paginatedProjects = useMemo(() => {
+    const startIndex = (currentPage - 1) * currentLimit
+    const endIndex = startIndex + currentLimit
+    return currentProjects.slice(startIndex, endIndex)
+  }, [currentProjects, currentPage, currentLimit])
 
   // Early loading return
   if (isLoading) {
@@ -185,6 +205,45 @@ export function MyProjectsPageClient() {
           </div>
         </motion.div>
 
+        {/* Tab Navigation */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.05 }}
+          className="mb-6"
+        >
+          <Card className="bg-gray-900/50 border-gray-800 p-2">
+            <CardContent className="">
+              <div className="flex items-center gap-2">
+                <Button
+                  size="sm"
+                  variant={activeTab === 'owned' ? 'default' : 'outline'}
+                  onClick={() => setActiveTab('owned')}
+                  className={
+                    activeTab === 'owned'
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
+                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'
+                  }
+                >
+                  My Projects ({myProjectsData?.ownedProjects?.length || 0})
+                </Button>
+                <Button
+                  size="sm"
+                  variant={activeTab === 'member' ? 'default' : 'outline'}
+                  onClick={() => setActiveTab('member')}
+                  className={
+                    activeTab === 'member'
+                      ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
+                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'
+                  }
+                >
+                  Member Of ({myProjectsData?.memberProjects?.length || 0})
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
         {/* Search and Filters */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
@@ -233,7 +292,7 @@ export function MyProjectsPageClient() {
         </motion.div>
 
         {/* Projects List */}
-        {allFilteredProjects.length === 0 ? (
+        {currentProjects.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -242,14 +301,17 @@ export function MyProjectsPageClient() {
           >
             <FolderOpen className="w-16 h-16 text-gray-600 mb-4" />
             <h2 className="text-xl font-semibold text-white mb-2">
-              {searchQuery || statusFilter !== 'ALL' ? 'No projects found' : 'No projects yet'}
+              {searchQuery || statusFilter !== 'ALL' ? 'No projects found' : 
+                activeTab === 'owned' ? 'No owned projects yet' : 'Not a member of any projects yet'}
             </h2>
             <p className="text-gray-400 mb-6 max-w-md">
               {searchQuery || statusFilter !== 'ALL' 
                 ? 'Try adjusting your search or filter criteria.'
-                : 'You haven\'t created any projects yet. Start by creating your first project!'}
+                : activeTab === 'owned' 
+                  ? 'You haven\'t created any projects yet. Start by creating your first project!'
+                  : 'You haven\'t joined any projects yet. Browse available projects to find opportunities!'}
             </p>
-            {(!searchQuery && statusFilter === 'ALL') && (
+            {(!searchQuery && statusFilter === 'ALL' && activeTab === 'owned') && (
               <Button 
                 onClick={() => setIsCreateModalOpen(true)}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
@@ -279,9 +341,10 @@ export function MyProjectsPageClient() {
 
             {/* Pagination */}
             <SimplePaginationControl
-              currentPage={pagination.page}
-              currentLimit={pagination.limit}
-              total={allFilteredProjects.length}
+              key={`pagination-${activeTab}`}
+              currentPage={currentPage}
+              currentLimit={currentLimit}
+              total={currentProjects.length}
               showLimitSelector={true}
               showInfo={true}
               className="mt-6"
@@ -298,9 +361,12 @@ export function MyProjectsPageClient() {
             className="mt-8 text-center text-gray-400"
           >
             <p>
-              Showing {paginatedProjects.length} of {totalOwnedProjects} projects
-              {totalMemberProjects > 0 && (
+              Showing {paginatedProjects.length} of {currentProjects.length} {activeTab === 'owned' ? 'owned' : 'member'} projects
+              {activeTab === 'owned' && totalMemberProjects > 0 && (
                 <span> • You&apos;re also a member of {totalMemberProjects} other projects</span>
+              )}
+              {activeTab === 'member' && totalOwnedProjects > 0 && (
+                <span> • You own {totalOwnedProjects} projects</span>
               )}
             </p>
           </motion.div>

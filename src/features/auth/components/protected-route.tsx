@@ -36,10 +36,6 @@ export function ProtectedRoute({
     if (user.signupMethod === 'GOOGLE' && !pathname.includes('/register')) {
       // RFID is optional, so only check for required fields: birthdate and course
       const needsProfileCompletion = !user.rfidId || !user.birthdate || !user.course
-      console.log('rfidId', user.rfidId)
-      console.log('birthdate', user.birthdate)
-      console.log('course', user.course)
-      console.log('needsProfileCompletion', needsProfileCompletion)
       
       if (needsProfileCompletion && !isLoading) {
         router.push('/register?google=true')

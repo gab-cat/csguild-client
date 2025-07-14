@@ -124,6 +124,22 @@ export const projectsApi = {
     return response.data
   },
 
+  // Remove project member
+  removeProjectMember: async (slug: string, memberUserSlug: string): Promise<void> => {
+    await projectsClient.projectsCommandControllerRemoveProjectMember({ 
+      slug, 
+      memberUserSlug 
+    })
+  },
+
+  // Reactivate project member
+  reactivateProjectMember: async (slug: string, memberUserSlug: string): Promise<void> => {
+    await projectsClient.projectsCommandControllerReactivateProjectMember({ 
+      slug, 
+      memberUserSlug 
+    })
+  },
+
   // Get all roles for project creation
   getRoles: async (params?: {
     search?: string

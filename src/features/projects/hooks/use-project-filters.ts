@@ -9,7 +9,6 @@ export function useProjectFilters(): ProjectFilters {
   const searchParams = useSearchParams()
   
   return useMemo(() => {
-    console.log('useProjectFilters - computing filters from searchParams:', Object.fromEntries(searchParams))
     const params = new URLSearchParams(searchParams)
     const filters: ProjectFilters = {
       // Set default values
@@ -28,7 +27,6 @@ export function useProjectFilters(): ProjectFilters {
     if (params.get('page')) filters.page = parseInt(params.get('page') as string) || 1
     if (params.get('limit')) filters.limit = parseInt(params.get('limit') as string) || 12
     
-    console.log('useProjectFilters - computed filters:', filters)
     return filters
   }, [searchParams])
 }

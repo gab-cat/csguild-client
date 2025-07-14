@@ -44,6 +44,7 @@ models/login-dto.ts
 models/my-applications-response-dto.ts
 models/my-projects-response-dto.ts
 models/pagination-dto.ts
+models/project-application-dto-project-member.ts
 models/project-application-dto-project-role-role.ts
 models/project-application-dto-project-role.ts
 models/project-application-dto.ts
@@ -60,7 +61,9 @@ models/project-role-dto.ts
 models/project-status-update-response-dto.ts
 models/project-summary-dto.ts
 models/project-update-response-dto.ts
+models/reactivate-project-member-response-dto.ts
 models/register-rfid-dto.ts
+models/remove-project-member-response-dto.ts
 models/reset-password-dto.ts
 models/review-application-dto.ts
 models/review-application-response-dto.ts
