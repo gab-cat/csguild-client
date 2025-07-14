@@ -19,7 +19,7 @@ const Footer = () => {
             </div>
             <p className="text-gray-200 mb-4 max-w-md">
               Empowering the next generation of developers through community, collaboration, and continuous
-              learning. Join 10,000+ students transforming their careers.
+              learning. Join 100+ students transforming their careers.
             </p>
             <div className="font-space-mono text-sm text-pink-400 flex items-center gap-2">
               <Code2 className="h-4 w-4" />

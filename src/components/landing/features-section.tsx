@@ -234,7 +234,7 @@ export function FeaturesSection() {
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 2.4 }}
             >
-              Join 10,000+ students who&apos;ve already accelerated their careers with CS Guild. Your future starts with the next click.
+              Join 100+ students who&apos;ve already accelerated their careers with CS Guild. Your future starts with the next click.
             </motion.p>
             <motion.div
               initial={{ opacity: 0, scale: 0.9 }}

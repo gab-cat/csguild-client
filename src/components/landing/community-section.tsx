@@ -403,7 +403,7 @@ export function CommunitySection() {
           animate={isInView ? "visible" : "hidden"}
         >
           {[
-            { number: "10,000+", label: "Students Transformed", desc: "And counting" },
+            { number: "100+", label: "Students Transformed", desc: "And counting" },
             { number: "97%", label: "Job Placement Rate", desc: "Within 6 months" },
             { number: "$125K", label: "Average Starting Salary", desc: "Above industry average" },
             { number: "500+", label: "Success Stories", desc: "At top companies" },
@@ -469,7 +469,7 @@ export function CommunitySection() {
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 3.9 }}
             >
-              Join thousands of students who&apos;ve already transformed their careers. Your success story starts here.
+              Join hundreds of students who&apos;ve already transformed their careers. Your success story starts here.
             </motion.p>
           </motion.div>
         </motion.div>

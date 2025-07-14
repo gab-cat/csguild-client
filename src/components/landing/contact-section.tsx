@@ -103,7 +103,7 @@ export function ContactSection() {
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.6 }}
           >
-            Ready to transform your CS journey? Join 10,000+ students who&apos;ve already accelerated their careers. Let&apos;s build something amazing together.
+            Ready to transform your CS journey? Join 100+ students who&apos;ve already accelerated their careers. Let&apos;s build something amazing together.
           </motion.p>
         </motion.div>
 
