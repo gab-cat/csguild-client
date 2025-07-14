@@ -26,7 +26,7 @@ function RegisterPageContent() {
   return (
     <AuthLayout
       title="Join CS Guild"
-      subtitle="Create your account and join 10,000+ developers building the future together."
+      subtitle="Create your account and join 100+ developers building the future together."
     >
       <MultiStepRegisterForm />
     </AuthLayout>

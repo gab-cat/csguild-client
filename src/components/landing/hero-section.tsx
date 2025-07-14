@@ -41,8 +41,8 @@ export function HeroSection() {
             </h1>
 
             <p className="text-base md:text-lg text-gray-200 max-w-2xl leading-relaxed tracking-tight animate-fade-in-up-delay-600">
-              Join thousands of Computer Science students in the ultimate learning ecosystem. Build projects, share
-              knowledge, and level up your coding journey together.
+              Join hundreds of students in the College of Computer Studies in the ultimate learning ecosystem. Build projects, share
+              knowledge, and level up your coding journey together with the Computer Studies Guild for United Innovation, Learning and Development (CSGUILD).
             </p>
 
             <div className="flex flex-col justify-center md:justify-start sm:flex-row gap-4 animate-fade-in-up-delay-800">

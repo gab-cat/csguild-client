@@ -92,8 +92,8 @@ export function CommunitySection() {
 
   const testimonials = [
     {
-      name: "Sarah Chen",
-      role: "Software Engineer @ Meta",
+      name: "Kyla",
+      role: "Chief Executive Officer",
       avatar: "/placeholder.svg?height=40&width=40",
       content:
         "CS Guild was the game-changer in my career. The mentorship program connected me with a senior engineer who guided me through system design interviews. I landed my dream job at Meta within 6 months!",
@@ -103,8 +103,8 @@ export function CommunitySection() {
       color: "from-blue-500 to-cyan-500",
     },
     {
-      name: "Marcus Johnson",
-      role: "Senior SWE @ Google",
+      name: "Gabriel",
+      role: "Chief Technology Officer",
       avatar: "/placeholder.svg?height=40&width=40",
       content:
         "Started as a CS Guild member struggling with algorithms. The peer learning groups and weekly coding sessions transformed my problem-solving skills. Now I'm a Google engineer mentoring the next generation.",
@@ -114,8 +114,8 @@ export function CommunitySection() {
       color: "from-green-500 to-emerald-500",
     },
     {
-      name: "Priya Patel",
-      role: "Full-Stack Developer @ Stripe",
+      name: "Kabs",
+      role: "Chief Information Officer",
       avatar: "/placeholder.svg?height=40&width=40",
       content:
         "The hackathons and collaborative projects at CS Guild helped me build a portfolio that stood out to recruiters. I went from zero industry experience to landing internships at 3 top companies.",
@@ -125,8 +125,8 @@ export function CommunitySection() {
       color: "from-purple-500 to-violet-500",
     },
     {
-      name: "Alex Rivera",
-      role: "Tech Lead @ Y Combinator Startup",
+      name: "Mark",
+      role: "Chief Financial Officer",
       avatar: "/placeholder.svg?height=40&width=40",
       content:
         "CS Guild's industry workshops exposed me to the startup ecosystem. I met my co-founder there, and we built our MVP through the accelerator program. We're now backed by top VCs.",
@@ -403,7 +403,7 @@ export function CommunitySection() {
           animate={isInView ? "visible" : "hidden"}
         >
           {[
-            { number: "10,000+", label: "Students Transformed", desc: "And counting" },
+            { number: "100+", label: "Students Transformed", desc: "And counting" },
             { number: "97%", label: "Job Placement Rate", desc: "Within 6 months" },
             { number: "$125K", label: "Average Starting Salary", desc: "Above industry average" },
             { number: "500+", label: "Success Stories", desc: "At top companies" },
@@ -469,7 +469,7 @@ export function CommunitySection() {
               animate={isInView ? { opacity: 1 } : { opacity: 0 }}
               transition={{ duration: 0.6, delay: 3.9 }}
             >
-              Join thousands of students who&apos;ve already transformed their careers. Your success story starts here.
+              Join hundreds of students who&apos;ve already transformed their careers. Your success story starts here.
             </motion.p>
           </motion.div>
         </motion.div>

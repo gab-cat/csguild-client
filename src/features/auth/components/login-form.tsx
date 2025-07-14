@@ -210,7 +210,7 @@ export function LoginForm() {
           </Link>
         </p>
         <p className="text-gray-500 text-xs mt-2 font-space-mono">
-          {"// Join the community of 10,000+ developers"}
+          {"// Join the community of 100+ developers"}
         </p>
       </div>
     </form>

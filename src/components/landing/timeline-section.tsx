@@ -19,7 +19,7 @@ export function TimelineSection() {
 
   const timelineEvents = [
     {
-      year: "2019",
+      year: "April 2023",
       title: "The Spark",
       description: "Founded by passionate CS students who dreamed of building the ultimate programming community",
       icon: Rocket,
@@ -28,7 +28,7 @@ export function TimelineSection() {
       color: "from-pink-500 to-violet-500"
     },
     {
-      year: "2020",
+      year: "June 2023",
       title: "Digital Era",
       description: "Successfully pivoted to virtual events during the pandemic, reaching students globally",
       icon: Globe,
@@ -37,7 +37,7 @@ export function TimelineSection() {
       color: "from-pink-500 to-violet-500"
     },
     {
-      year: "2021",
+      year: "December 2023",
       title: "1K Members",
       description: "Community explosion as we hit our first major milestone with members worldwide",
       icon: Users,
@@ -46,7 +46,7 @@ export function TimelineSection() {
       color: "from-pink-500 to-violet-500"
     },
     {
-      year: "2022",
+      year: "April 2024",
       title: "Industry Links",
       description: "Partnered with top tech companies, achieving an incredible internship success rate",
       icon: Building,
@@ -55,7 +55,7 @@ export function TimelineSection() {
       color: "from-pink-500 to-violet-500"
     },
     {
-      year: "2023",
+      year: "August 2024",
       title: "Global Award",
       description: "Recognized as the best computer science community by international tech organizations",
       icon: Trophy,
@@ -64,11 +64,11 @@ export function TimelineSection() {
       color: "from-pink-500 to-violet-500"
     },
     {
-      year: "2024",
+      year: "February 2025",
       title: "10K+ Guild",
-      description: "Launched our innovation hub and crossed 10,000 active members building the future",
+      description: "Launched our innovation hub and crossed 100 active members building the future",
       icon: Code,
-      stats: "10,000+ Members",
+      stats: "100+ Members",
       highlight: "Innovation Hub",
       color: "from-pink-500 to-violet-500"
     }
@@ -243,7 +243,7 @@ export function TimelineSection() {
           animate={isInView ? { opacity: 1 } : { opacity: 0 }}
           transition={{ duration: 0.8, delay: 0.9 }}
         >
-              From a small group of passionate students to a global community of 10,000+ developers
+              From a small group of passionate students to a global community of 100+ developers
         </motion.p>
       </motion.div>
 
