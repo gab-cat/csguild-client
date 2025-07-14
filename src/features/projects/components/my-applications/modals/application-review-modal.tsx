@@ -35,7 +35,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
       return {
         icon: CheckCircle,
         color: 'text-green-400',
-        bgColor: 'bg-green-500/20',
+        bgColor: 'bg-green-500/10',
         borderColor: 'border-green-500/50',
         gradientFrom: 'from-green-600/20',
         gradientTo: 'to-emerald-600/20'
@@ -44,7 +44,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
       return {
         icon: XCircle,
         color: 'text-red-400',
-        bgColor: 'bg-red-500/20',
+        bgColor: 'bg-red-500/10',
         borderColor: 'border-red-500/50',
         gradientFrom: 'from-red-600/20',
         gradientTo: 'to-rose-600/20'
@@ -86,7 +86,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
                   <Shield className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <DialogTitle className="text-xl font-bold text-white">
+                  <DialogTitle className="text-xl font-bold text-white tracking-tight">
                     Application Review
                   </DialogTitle>
                   <p className="text-sm text-gray-400 mt-1">
@@ -113,7 +113,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
                   <FileText className="w-4 h-4 text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Project</p>
+                  <p className="text-xs font-medium text-gray-400 tracking-tight">Project</p>
                   <p className="text-white font-semibold">{projectTitle}</p>
                 </div>
               </div>
@@ -123,7 +123,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
                   <User className="w-4 h-4 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Role</p>
+                  <p className="text-xs font-medium text-gray-400 tracking-tight">Role</p>
                   <p className="text-white font-semibold">{roleName}</p>
                 </div>
               </div>
@@ -133,7 +133,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
                   <Calendar className="w-4 h-4 text-orange-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Reviewed On</p>
+                  <p className="text-xs font-medium text-gray-400 tracking-tight">Reviewed On</p>
                   <p className="text-white font-semibold">{reviewedDate}</p>
                 </div>
               </div>
@@ -161,7 +161,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
                     <p className={`text-xl font-bold ${statusConfig.color}`}>
                       {application.status.charAt(0) + application.status.slice(1).toLowerCase()}
                     </p>
-                    <p className="text-gray-400 text-sm">
+                    <p className="text-gray-200 text-sm">
                       {application.status === 'APPROVED' && 'Congratulations! Your application has been accepted.'}
                       {application.status === 'REJECTED' && 'Your application was not accepted this time.'}
                       {application.status === 'PENDING' && 'Your application is currently under review.'}

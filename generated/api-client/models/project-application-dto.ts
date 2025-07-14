@@ -67,6 +67,12 @@ export interface ProjectApplicationDto {
      * @type {string}
      * @memberof ProjectApplicationDto
      */
+    'reviewMessage'?: string;
+    /**
+     * 
+     * @type {string}
+     * @memberof ProjectApplicationDto
+     */
     'createdAt': string;
     /**
      * 

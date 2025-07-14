@@ -48,6 +48,10 @@ import { ProjectStatusUpdateResponseDto } from '../models';
 // @ts-ignore
 import { ProjectUpdateResponseDto } from '../models';
 // @ts-ignore
+import { ReactivateProjectMemberResponseDto } from '../models';
+// @ts-ignore
+import { RemoveProjectMemberResponseDto } from '../models';
+// @ts-ignore
 import { ReviewApplicationDto } from '../models';
 // @ts-ignore
 import { ReviewApplicationResponseDto } from '../models';
@@ -134,6 +138,44 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
+         * Reactivate a previously removed member back to the project. Only the project owner can reactivate members.
+         * @summary Reactivate a removed project member
+         * @param {string} slug Project slug
+         * @param {string} memberUserSlug Username of the removed member to reactivate
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerReactivateProjectMember: async (slug: string, memberUserSlug: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'slug' is not null or undefined
+            assertParamExists('projectsCommandControllerReactivateProjectMember', 'slug', slug)
+            // verify required parameter 'memberUserSlug' is not null or undefined
+            assertParamExists('projectsCommandControllerReactivateProjectMember', 'memberUserSlug', memberUserSlug)
+            const localVarPath = `/api/projects/{slug}/members/{memberUserSlug}/reactivate`
+                .replace(`{${"slug"}}`, encodeURIComponent(String(slug)))
+                .replace(`{${"memberUserSlug"}}`, encodeURIComponent(String(memberUserSlug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'PATCH', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Delete a project permanently. Only the project owner can delete the project.
          * @summary Delete a project
          * @param {string} slug Project slug
@@ -145,6 +187,44 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
             assertParamExists('projectsCommandControllerRemove', 'slug', slug)
             const localVarPath = `/api/projects/{slug}`
                 .replace(`{${"slug"}}`, encodeURIComponent(String(slug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Remove a member from a project and free up their role slot. Only the project owner can remove members.
+         * @summary Remove a project member
+         * @param {string} slug Project slug
+         * @param {string} memberUserSlug Username of the member to remove
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerRemoveProjectMember: async (slug: string, memberUserSlug: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'slug' is not null or undefined
+            assertParamExists('projectsCommandControllerRemoveProjectMember', 'slug', slug)
+            // verify required parameter 'memberUserSlug' is not null or undefined
+            assertParamExists('projectsCommandControllerRemoveProjectMember', 'memberUserSlug', memberUserSlug)
+            const localVarPath = `/api/projects/{slug}/members/{memberUserSlug}`
+                .replace(`{${"slug"}}`, encodeURIComponent(String(slug)))
+                .replace(`{${"memberUserSlug"}}`, encodeURIComponent(String(memberUserSlug)));
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
             let baseOptions;
@@ -592,6 +672,18 @@ export const ProjectsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Reactivate a previously removed member back to the project. Only the project owner can reactivate members.
+         * @summary Reactivate a removed project member
+         * @param {string} slug Project slug
+         * @param {string} memberUserSlug Username of the removed member to reactivate
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async projectsCommandControllerReactivateProjectMember(slug: string, memberUserSlug: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ReactivateProjectMemberResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsCommandControllerReactivateProjectMember(slug, memberUserSlug, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Delete a project permanently. Only the project owner can delete the project.
          * @summary Delete a project
          * @param {string} slug Project slug
@@ -600,6 +692,18 @@ export const ProjectsApiFp = function(configuration?: Configuration) {
          */
         async projectsCommandControllerRemove(slug: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectDeleteResponseDto>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.projectsCommandControllerRemove(slug, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Remove a member from a project and free up their role slot. Only the project owner can remove members.
+         * @summary Remove a project member
+         * @param {string} slug Project slug
+         * @param {string} memberUserSlug Username of the member to remove
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async projectsCommandControllerRemoveProjectMember(slug: string, memberUserSlug: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<RemoveProjectMemberResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsCommandControllerRemoveProjectMember(slug, memberUserSlug, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -752,6 +856,16 @@ export const ProjectsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.projectsCommandControllerJoinProject(requestParameters.joinProjectDto, options).then((request) => request(axios, basePath));
         },
         /**
+         * Reactivate a previously removed member back to the project. Only the project owner can reactivate members.
+         * @summary Reactivate a removed project member
+         * @param {ProjectsApiProjectsCommandControllerReactivateProjectMemberRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerReactivateProjectMember(requestParameters: ProjectsApiProjectsCommandControllerReactivateProjectMemberRequest, options?: AxiosRequestConfig): AxiosPromise<ReactivateProjectMemberResponseDto> {
+            return localVarFp.projectsCommandControllerReactivateProjectMember(requestParameters.slug, requestParameters.memberUserSlug, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Delete a project permanently. Only the project owner can delete the project.
          * @summary Delete a project
          * @param {ProjectsApiProjectsCommandControllerRemoveRequest} requestParameters Request parameters.
@@ -760,6 +874,16 @@ export const ProjectsApiFactory = function (configuration?: Configuration, baseP
          */
         projectsCommandControllerRemove(requestParameters: ProjectsApiProjectsCommandControllerRemoveRequest, options?: AxiosRequestConfig): AxiosPromise<ProjectDeleteResponseDto> {
             return localVarFp.projectsCommandControllerRemove(requestParameters.slug, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Remove a member from a project and free up their role slot. Only the project owner can remove members.
+         * @summary Remove a project member
+         * @param {ProjectsApiProjectsCommandControllerRemoveProjectMemberRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerRemoveProjectMember(requestParameters: ProjectsApiProjectsCommandControllerRemoveProjectMemberRequest, options?: AxiosRequestConfig): AxiosPromise<RemoveProjectMemberResponseDto> {
+            return localVarFp.projectsCommandControllerRemoveProjectMember(requestParameters.slug, requestParameters.memberUserSlug, options).then((request) => request(axios, basePath));
         },
         /**
          * Approve or reject a project application. Only the project owner can review applications.
@@ -889,6 +1013,17 @@ export interface ProjectsApiInterface {
     projectsCommandControllerJoinProject(joinProjectDto: JoinProjectDto, options?: AxiosRequestConfig): AxiosPromise<JoinProjectResponseDto>;
 
     /**
+     * Reactivate a previously removed member back to the project. Only the project owner can reactivate members.
+     * @summary Reactivate a removed project member
+     * @param {string} slug Project slug
+     * @param {string} memberUserSlug Username of the removed member to reactivate
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApiInterface
+     */
+    projectsCommandControllerReactivateProjectMember(slug: string, memberUserSlug: string, options?: AxiosRequestConfig): AxiosPromise<ReactivateProjectMemberResponseDto>;
+
+    /**
      * Delete a project permanently. Only the project owner can delete the project.
      * @summary Delete a project
      * @param {string} slug Project slug
@@ -897,6 +1032,17 @@ export interface ProjectsApiInterface {
      * @memberof ProjectsApiInterface
      */
     projectsCommandControllerRemove(slug: string, options?: AxiosRequestConfig): AxiosPromise<ProjectDeleteResponseDto>;
+
+    /**
+     * Remove a member from a project and free up their role slot. Only the project owner can remove members.
+     * @summary Remove a project member
+     * @param {string} slug Project slug
+     * @param {string} memberUserSlug Username of the member to remove
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApiInterface
+     */
+    projectsCommandControllerRemoveProjectMember(slug: string, memberUserSlug: string, options?: AxiosRequestConfig): AxiosPromise<RemoveProjectMemberResponseDto>;
 
     /**
      * Approve or reject a project application. Only the project owner can review applications.
@@ -1038,6 +1184,27 @@ export interface ProjectsApiProjectsCommandControllerJoinProjectRequest {
 }
 
 /**
+ * Request parameters for projectsCommandControllerReactivateProjectMember operation in ProjectsApi.
+ * @export
+ * @interface ProjectsApiProjectsCommandControllerReactivateProjectMemberRequest
+ */
+export interface ProjectsApiProjectsCommandControllerReactivateProjectMemberRequest {
+    /**
+     * Project slug
+     * @type {string}
+     * @memberof ProjectsApiProjectsCommandControllerReactivateProjectMember
+     */
+    readonly slug: string
+
+    /**
+     * Username of the removed member to reactivate
+     * @type {string}
+     * @memberof ProjectsApiProjectsCommandControllerReactivateProjectMember
+     */
+    readonly memberUserSlug: string
+}
+
+/**
  * Request parameters for projectsCommandControllerRemove operation in ProjectsApi.
  * @export
  * @interface ProjectsApiProjectsCommandControllerRemoveRequest
@@ -1049,6 +1216,27 @@ export interface ProjectsApiProjectsCommandControllerRemoveRequest {
      * @memberof ProjectsApiProjectsCommandControllerRemove
      */
     readonly slug: string
+}
+
+/**
+ * Request parameters for projectsCommandControllerRemoveProjectMember operation in ProjectsApi.
+ * @export
+ * @interface ProjectsApiProjectsCommandControllerRemoveProjectMemberRequest
+ */
+export interface ProjectsApiProjectsCommandControllerRemoveProjectMemberRequest {
+    /**
+     * Project slug
+     * @type {string}
+     * @memberof ProjectsApiProjectsCommandControllerRemoveProjectMember
+     */
+    readonly slug: string
+
+    /**
+     * Username of the member to remove
+     * @type {string}
+     * @memberof ProjectsApiProjectsCommandControllerRemoveProjectMember
+     */
+    readonly memberUserSlug: string
 }
 
 /**
@@ -1272,6 +1460,18 @@ export class ProjectsApi extends BaseAPI implements ProjectsApiInterface {
     }
 
     /**
+     * Reactivate a previously removed member back to the project. Only the project owner can reactivate members.
+     * @summary Reactivate a removed project member
+     * @param {ProjectsApiProjectsCommandControllerReactivateProjectMemberRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApi
+     */
+    public projectsCommandControllerReactivateProjectMember(requestParameters: ProjectsApiProjectsCommandControllerReactivateProjectMemberRequest, options?: AxiosRequestConfig) {
+        return ProjectsApiFp(this.configuration).projectsCommandControllerReactivateProjectMember(requestParameters.slug, requestParameters.memberUserSlug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Delete a project permanently. Only the project owner can delete the project.
      * @summary Delete a project
      * @param {ProjectsApiProjectsCommandControllerRemoveRequest} requestParameters Request parameters.
@@ -1281,6 +1481,18 @@ export class ProjectsApi extends BaseAPI implements ProjectsApiInterface {
      */
     public projectsCommandControllerRemove(requestParameters: ProjectsApiProjectsCommandControllerRemoveRequest, options?: AxiosRequestConfig) {
         return ProjectsApiFp(this.configuration).projectsCommandControllerRemove(requestParameters.slug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Remove a member from a project and free up their role slot. Only the project owner can remove members.
+     * @summary Remove a project member
+     * @param {ProjectsApiProjectsCommandControllerRemoveProjectMemberRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApi
+     */
+    public projectsCommandControllerRemoveProjectMember(requestParameters: ProjectsApiProjectsCommandControllerRemoveProjectMemberRequest, options?: AxiosRequestConfig) {
+        return ProjectsApiFp(this.configuration).projectsCommandControllerRemoveProjectMember(requestParameters.slug, requestParameters.memberUserSlug, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**

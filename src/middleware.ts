@@ -12,9 +12,11 @@ const publicRoutes = [
   '/contact',
   '/privacy',
   '/terms',
+  '/code-of-conduct',
   '/login',
   '/register',
   '/callback', // OAuth callback route
+  '/verify-email',
   '/forgot-password',
   '/reset-password',
   '/projects', // Public projects page

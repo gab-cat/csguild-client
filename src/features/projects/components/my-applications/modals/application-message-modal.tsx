@@ -39,13 +39,13 @@ export function ApplicationMessageModal({ application, isOpen, onClose }: Applic
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
                   <MessageSquare className="w-5 h-5 text-white" />
                 </div>
-                <div>
-                  <DialogTitle className="text-xl font-bold text-white">
+                <div className=''>
+                  <DialogTitle className="text-xl font-bold text-white tracking-tight">
                     Application Message
-                  </DialogTitle>
-                  <p className="text-sm text-gray-400 mt-1">
+                    <p className="text-sm font-normal text-gray-400 mt-1">
                     Your message to the project team
-                  </p>
+                    </p>
+                  </DialogTitle>
                 </div>
               </div>
             </div>
@@ -67,7 +67,7 @@ export function ApplicationMessageModal({ application, isOpen, onClose }: Applic
                   <FileText className="w-4 h-4 text-purple-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Project</p>
+                  <p className="text-xs font-medium text-gray-400 tracking-tight">Project</p>
                   <p className="text-white font-semibold">{projectTitle}</p>
                 </div>
               </div>
@@ -77,7 +77,7 @@ export function ApplicationMessageModal({ application, isOpen, onClose }: Applic
                   <User className="w-4 h-4 text-blue-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Role</p>
+                  <p className="text-xs font-medium text-gray-400 tracking-tight">Role</p>
                   <p className="text-white font-semibold">{roleName}</p>
                 </div>
               </div>
@@ -87,7 +87,7 @@ export function ApplicationMessageModal({ application, isOpen, onClose }: Applic
                   <Calendar className="w-4 h-4 text-green-400" />
                 </div>
                 <div>
-                  <p className="text-xs font-medium text-gray-400 uppercase tracking-wide">Applied On</p>
+                  <p className="text-xs font-medium text-gray-400 tracking-tight">Applied On</p>
                   <p className="text-white font-semibold">{appliedDate}</p>
                 </div>
               </div>

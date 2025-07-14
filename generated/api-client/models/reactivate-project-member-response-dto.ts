@@ -17,38 +17,20 @@
 /**
  * 
  * @export
- * @interface ProjectOwnerDto
+ * @interface ReactivateProjectMemberResponseDto
  */
-export interface ProjectOwnerDto {
+export interface ReactivateProjectMemberResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof ProjectOwnerDto
+     * @memberof ReactivateProjectMemberResponseDto
      */
-    'username': string;
+    'message': string;
     /**
      * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
+     * @type {number}
+     * @memberof ReactivateProjectMemberResponseDto
      */
-    'firstName': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'lastName': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'imageUrl'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'email'?: string;
+    'statusCode': number;
 }
 

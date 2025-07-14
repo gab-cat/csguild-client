@@ -7,7 +7,7 @@ import { useForm } from 'react-hook-form'
 import { AuthGuard } from '@/components/shared/auth-guard'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useJoinProject, useMyApplications } from '../../hooks/use-projects-queries'
+import { useJoinProject, useMyApplications, useCurrentUserMembershipStatus } from '../../hooks/use-projects-queries'
 import { joinProjectSchema, type JoinProjectFormData } from '../../schemas'
 import type { ProjectCardType } from '../../types'
 
@@ -27,6 +27,7 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
   const dropdownRef = useRef<HTMLDivElement>(null)
   const joinProjectMutation = useJoinProject()
   const { data: myApplicationsData, isLoading: isLoadingApplications } = useMyApplications()
+  const { isRemoved } = useCurrentUserMembershipStatus(project.slug)
 
   const form = useForm<JoinProjectFormData>({
     resolver: zodResolver(joinProjectSchema),
@@ -51,6 +52,10 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
   const existingApplication = myApplicationsData?.applications?.find(
     app => app.projectSlug === project.slug
   )
+
+  // Users who were removed should not be allowed to reapply automatically
+  // They must contact the project lead to be re-added
+  const canReapply = false
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -122,13 +127,8 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
       title="Join This Project"
       description="Sign in to your CS Guild account to apply for this project and start collaborating with other developers."
     >
-      {/* Show existing application if user has already applied */}
-      {existingApplication ? (
-        <ExistingApplicationDisplay 
-          existingApplication={existingApplication}
-          project={project}
-        />
-      ) : (
+      {/* Show application form if no existing application OR if user can reapply */}
+      {(!existingApplication || canReapply) ? (
         <ApplicationForm 
           project={project}
           onSuccess={onSuccess}
@@ -144,6 +144,13 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
           selectedRoleInfo={selectedRoleInfo}
           onSubmit={onSubmit}
           setValue={setValue}
+        />
+      ) : (
+        /* Show existing application status */
+        <ExistingApplicationDisplay 
+          existingApplication={existingApplication}
+          project={project}
+          isRemoved={isRemoved}
         />
       )}
     </AuthGuard>

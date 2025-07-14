@@ -36,8 +36,7 @@ const createAxiosWithInterceptors = (): AxiosInstance => {
           return Promise.reject(error)
         }
       }
-
-      return Promise.reject(error)
+      return Promise.reject(error.response?.data || error)
     }
   )
 
@@ -148,9 +147,10 @@ export async function apiClient<T = unknown>(
 
   if (!response.ok) {
     const errorData = await response.json().catch(() => ({}))
+    console.error('API request failed:', errorData.response?.data)
     throw new ApiError(
       response.status,
-      errorData.message || `Request failed with status ${response.status}`,
+      errorData.response.data.message || `Request failed with status ${response.status}`,
       errorData
     )
   }

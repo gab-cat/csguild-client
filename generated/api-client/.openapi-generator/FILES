@@ -60,7 +60,9 @@ models/project-role-dto.ts
 models/project-status-update-response-dto.ts
 models/project-summary-dto.ts
 models/project-update-response-dto.ts
+models/reactivate-project-member-response-dto.ts
 models/register-rfid-dto.ts
+models/remove-project-member-response-dto.ts
 models/reset-password-dto.ts
 models/review-application-dto.ts
 models/review-application-response-dto.ts

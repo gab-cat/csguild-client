@@ -17,38 +17,20 @@
 /**
  * 
  * @export
- * @interface ProjectOwnerDto
+ * @interface RemoveProjectMemberResponseDto
  */
-export interface ProjectOwnerDto {
+export interface RemoveProjectMemberResponseDto {
     /**
      * 
      * @type {string}
-     * @memberof ProjectOwnerDto
+     * @memberof RemoveProjectMemberResponseDto
      */
-    'username': string;
+    'message': string;
     /**
      * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
+     * @type {number}
+     * @memberof RemoveProjectMemberResponseDto
      */
-    'firstName': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'lastName': string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'imageUrl'?: string;
-    /**
-     * 
-     * @type {string}
-     * @memberof ProjectOwnerDto
-     */
-    'email'?: string;
+    'statusCode': number;
 }
 

@@ -7,8 +7,10 @@ import {
   HelpCircle,
   MessageSquare,
   XCircle,
+  UserX,
 } from 'lucide-react'
 
+import { useCurrentUserMembershipStatus } from '../../hooks/use-projects-queries'
 import type { ProjectCardType } from '../../types'
 
 interface ExistingApplicationDisplayProps {
@@ -19,14 +21,33 @@ interface ExistingApplicationDisplayProps {
     reviewMessage?: string
   }
   project: ProjectCardType
+  isRemoved?: boolean
 }
 
 function hasReviewMessage(application: { reviewMessage?: string }): boolean {
   return Boolean(application.reviewMessage && application.reviewMessage.trim().length > 0)
 }
 
-export function ExistingApplicationDisplay({ existingApplication, project }: ExistingApplicationDisplayProps) {
+export function ExistingApplicationDisplay({ existingApplication, project, isRemoved }: ExistingApplicationDisplayProps) {
+  const { isRemoved: membershipIsRemoved, isActive } = useCurrentUserMembershipStatus(project.slug)
+  
+  // Use the passed isRemoved prop if available, otherwise use the hook result
+  const userIsRemoved = isRemoved ?? membershipIsRemoved
+
   const getStatusInfo = () => {
+    // Special case: User was approved but then removed from the project
+    if (existingApplication.status === 'APPROVED' && userIsRemoved) {
+      return {
+        color: 'from-orange-600/20 to-red-600/20',
+        iconBg: 'bg-orange-500/20',
+        iconColor: 'text-orange-400',
+        title: 'Membership Removed',
+        message: 'You were previously approved for this project but have since been removed. To rejoin this project, please contact the project lead directly.',
+        icon: UserX,
+        showContactLead: true
+      }
+    }
+
     switch (existingApplication.status) {
     case 'PENDING':
       return {
@@ -35,16 +56,21 @@ export function ExistingApplicationDisplay({ existingApplication, project }: Exi
         iconColor: 'text-yellow-400',
         title: 'Application Submitted',
         message: 'Your application is currently under review. We\'ll notify you once the project owner makes a decision.',
-        icon: Clock
+        icon: Clock,
+        showContactLead: false
       }
     case 'APPROVED':
+      // Regular approved case (still active member)
       return {
         color: 'from-green-600/20 to-emerald-600/20',
         iconBg: 'bg-green-500/20',
         iconColor: 'text-green-400',
         title: 'Application Approved',
-        message: 'Congratulations! Your application has been approved. You should receive further instructions from the project owner soon.',
-        icon: CheckCircle
+        message: isActive 
+          ? 'Congratulations! You are an active member of this project. You should receive further instructions from the project owner soon.'
+          : 'Congratulations! Your application has been approved. You should receive further instructions from the project owner soon.',
+        icon: CheckCircle,
+        showContactLead: false
       }
     case 'REJECTED':
       return {
@@ -53,7 +79,8 @@ export function ExistingApplicationDisplay({ existingApplication, project }: Exi
         iconColor: 'text-red-400',
         title: 'Application Not Approved',
         message: 'Unfortunately, your application was not approved for this project. Don\'t be discouraged - there are many other opportunities available!',
-        icon: XCircle
+        icon: XCircle,
+        showContactLead: false
       }
     default:
       return {
@@ -62,7 +89,8 @@ export function ExistingApplicationDisplay({ existingApplication, project }: Exi
         iconColor: 'text-gray-400',
         title: 'Application Status Unknown',
         message: "We're having trouble determining your application status. Please try refreshing the page.",
-        icon: HelpCircle
+        icon: HelpCircle,
+        showContactLead: false
       }
     }
   }
@@ -136,7 +164,7 @@ export function ExistingApplicationDisplay({ existingApplication, project }: Exi
             </div>
           )}
 
-          {existingApplication.status === 'APPROVED' && (
+          {existingApplication.status === 'APPROVED' && !statusInfo.showContactLead && (
             <div className="bg-green-500/10 border border-green-500/30 p-4 rounded-xl">
               <p className="text-green-300 text-sm">
                 <strong>Next steps:</strong> Check your email for project details and communication channels. 
@@ -151,6 +179,25 @@ export function ExistingApplicationDisplay({ existingApplication, project }: Exi
                 <strong>Keep exploring!</strong> Check out other projects that match your skills and interests. 
                 Every application is a learning opportunity.
               </p>
+            </div>
+          )}
+
+          {/* Contact Lead Option for Removed Members */}
+          {statusInfo.showContactLead && (
+            <div className="bg-orange-500/10 border border-orange-500/30 p-4 rounded-xl">
+              <div className="text-center">
+                <p className="text-orange-300 text-sm mb-3">
+                  <strong>Want to rejoin?</strong> Contact the project lead to discuss re-joining this project.
+                </p>
+                <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
+                  <p className="text-gray-300 text-sm">
+                    <strong>Project Lead:</strong> {project.owner?.firstName} {project.owner?.lastName}
+                  </p>
+                  <p className="text-purple-400 text-sm">
+                    {project.owner?.email ?? project.owner?.username ?? 'No contact info available'}
+                  </p>
+                </div>
+              </div>
             </div>
           )}
         </div>

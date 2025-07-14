@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { CalendarDays, Users, Tag, User, Settings, Eye, X, Edit, Clock, Check, AlertCircle } from 'lucide-react'
+import { CalendarDays, Users, Tag, User, Settings, Eye, X, Edit, Clock, Check, AlertCircle, UserMinus, UserPlus } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
 
@@ -10,9 +10,11 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 
 import { useProject, useProjectMembers } from '../../hooks/use-projects-queries'
-import type { ProjectCardType } from '../../types'
-import { RoleMemberDisplay } from '../role-member-display'
+import { useRoleMemberCounts, getRoleMemberCount } from '../../hooks/use-role-member-counts'
+import type { ProjectCardType, ProjectMemberDto } from '../../types'
 
+import { ReactivateMemberDialog } from './reactivate-member-dialog'
+import { RemoveMemberDialog } from './remove-member-dialog'
 import { UpdateProjectModal } from './update-project-modal'
 
 interface ProjectDetailsModalProps {
@@ -29,9 +31,16 @@ export function ProjectDetailsModal({
   canEdit = false 
 }: ProjectDetailsModalProps) {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
+  const [memberToRemove, setMemberToRemove] = useState<ProjectMemberDto | null>(null)
+  const [memberToReactivate, setMemberToReactivate] = useState<ProjectMemberDto | null>(null)
   
   const { data: fullProject } = useProject(project.slug)
   const { data: members } = useProjectMembers(project.slug)
+  const { roleMemberCounts, isLoading: isLoadingCounts } = useRoleMemberCounts(
+    project.slug, 
+    fullProject?.roles || project.roles || [], 
+    true
+  )
 
   const displayProject = fullProject || project
 
@@ -264,18 +273,90 @@ export function ProjectDetailsModal({
                   </div>
                 )}
 
-                {/* Role Requirements */}
+                {/* Open Positions */}
                 {displayProject.roles && displayProject.roles.length > 0 && (
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
                       <Users className="w-5 h-5 text-purple-400" />
-                      Open Positions
+                      Open Positions ({displayProject.roles.length})
                     </h2>
-                    <RoleMemberDisplay 
-                      projectSlug={displayProject.slug}
-                      roles={displayProject.roles}
-                      compact={false}
-                    />
+                    <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                      {displayProject.roles.map((roleDto, index) => {
+                        const memberCount = getRoleMemberCount(roleMemberCounts, roleDto.roleSlug)
+                        const isAvailable = memberCount.availablePositions > 0
+                        
+                        return (
+                          <motion.div
+                            key={index}
+                            initial={{ opacity: 0, y: 20 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: index * 0.1 }}
+                            className="group relative overflow-hidden"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                            <div className="relative p-4 bg-gray-800/40 border border-gray-700/50 rounded-xl hover:border-purple-500/30 transition-all h-full flex flex-col">
+                              <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                                    <Users className="w-4 h-4 text-purple-400" />
+                                  </div>
+                                  <h4 className="text-white font-semibold text-base">
+                                    {roleDto.role?.name || roleDto.role?.slug || roleDto.roleSlug || 'Unknown Role'}
+                                  </h4>
+                                </div>
+                                <div className="text-right flex-shrink-0">
+                                  {isLoadingCounts ? (
+                                    <div className="text-lg font-bold text-gray-400 flex items-center gap-1">
+                                      <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                                      <span>...</span>
+                                    </div>
+                                  ) : (
+                                    <>
+                                      <div className={`text-lg font-bold ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                                        {memberCount.currentMembers}/{memberCount.maxMembers}
+                                      </div>
+                                      <div className="text-xs text-gray-400 uppercase tracking-wide">
+                                        {isAvailable ? 'available' : 'filled'}
+                                      </div>
+                                      {isAvailable && (
+                                        <div className="text-xs text-green-400 mt-1">
+                                          {memberCount.availablePositions} open
+                                        </div>
+                                      )}
+                                    </>
+                                  )}
+                                </div>
+                              </div>
+                              
+                              {roleDto.requirements && (
+                                <div className="flex-1">
+                                  <h5 className="text-sm font-medium text-gray-300 mb-2">Requirements:</h5>
+                                  <p className="text-gray-400 text-sm leading-relaxed">
+                                    {roleDto.requirements}
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {!roleDto.requirements && (
+                                <div className="flex-1 flex items-center justify-center py-4">
+                                  <p className="text-gray-500 text-sm italic">
+                                    No specific requirements listed
+                                  </p>
+                                </div>
+                              )}
+                              
+                              {!isLoadingCounts && !isAvailable && (
+                                <div className="mt-3 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                                  <p className="text-red-400 text-xs text-center">
+                                    Position currently filled
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </motion.div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
 
@@ -283,47 +364,143 @@ export function ProjectDetailsModal({
                 <div className="grid grid-cols-1 gap-4">
 
                   {/* Current Team */}
-                  <div className="space-y-3">
+                  <div className="space-y-4">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
                       <Users className="w-5 h-5 text-green-400" />
-                      Current Team ({'memberCount' in displayProject ? displayProject.memberCount : members?.length || 0})
+                      Team Members ({'memberCount' in displayProject ? displayProject.memberCount : members?.length || 0})
                     </h2>
                     {members && members.length > 0 ? (
-                      <div className="space-y-2">
-                        {members.map((member) => (
-                          <div 
-                            key={member.id} 
-                            className="flex items-center gap-3 p-3 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:bg-gray-800/50 transition-colors"
-                          >
-                            {member.user?.imageUrl ? (
-                              <Image 
-                                src={member.user.imageUrl} 
-                                alt={`${member.user.firstName} ${member.user.lastName}`}
-                                width={40}
-                                height={40}
-                                className="w-10 h-10 rounded-full object-cover ring-2 ring-purple-500/30"
-                              />
-                            ) : (
-                              <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-bold text-sm">
-                                {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
-                              </div>
-                            )}
-                            <div className="flex-1">
-                              <p className="text-white font-semibold text-sm">
-                                {`${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'}
-                                <span className='text-pink-400 text-xs ml-1'>
-                                    @{member.user?.username || 'unknown'}
-                                </span>
-                              </p>
-                              <p className="text-purple-400 text-xs">
-                                {member.projectRole.role?.name}
-                              </p>
-                              <p className="text-gray-400 text-xs">
-                                Joined {new Date(member.joinedAt || '').toLocaleDateString()}
-                              </p>
+                      <div className="space-y-4">
+                        {/* Active Members */}
+                        <div className="space-y-4">
+                          <h3 className="text-md font-semibold text-green-400 flex items-center gap-2">
+                            <Users className="w-4 h-4" />
+                            Active Members ({members.filter(m => m.status === 'ACTIVE').length})
+                          </h3>
+                          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                            {members.filter(member => member.status === 'ACTIVE').map((member, index) => (
+                              <motion.div
+                                key={member.id}
+                                initial={{ opacity: 0, x: -20 }}
+                                animate={{ opacity: 1, x: 0 }}
+                                transition={{ delay: index * 0.1 }}
+                                className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:border-green-500/30 transition-all"
+                              >
+                                <div className="flex items-center gap-3">
+                                  {member.user?.imageUrl ? (
+                                    <Image 
+                                      src={member.user.imageUrl} 
+                                      alt={`${member.user.firstName} ${member.user.lastName}`}
+                                      width={48}
+                                      height={48}
+                                      className="w-12 h-12 rounded-full object-cover ring-2 ring-green-500/30"
+                                    />
+                                  ) : (
+                                    <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                                      {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                                    </div>
+                                  )}
+                                  <div className="flex-1 min-w-0">
+                                    <p className="text-white font-semibold truncate">
+                                      {`${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'}
+                                    </p>
+                                    <p className="text-green-400 text-sm font-medium truncate">
+                                      {member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'}
+                                    </p>
+                                    <p className="text-purple-400 text-xs truncate">
+                                      @{member.user?.username || 'unknown'}
+                                    </p>
+                                    <p className="text-gray-400 text-xs truncate">
+                                      {member.user?.email || 'Email not available'}
+                                    </p>
+                                  </div>
+                                  <div className="flex flex-col items-end gap-2">
+                                    <div className="text-xs text-gray-400">
+                                      Joined {new Date(member.joinedAt || '').toLocaleDateString()}
+                                    </div>
+                                    {canEdit && (
+                                      <Button
+                                        size="sm"
+                                        variant="destructive"
+                                        onClick={() => setMemberToRemove(member)}
+                                        className="bg-red-600/20 hover:bg-red-600/30 text-red-400 border-red-600/50 hover:border-red-600/70 h-8 px-2"
+                                      >
+                                        <UserMinus className="w-3 h-3 mr-1" />
+                                        Remove
+                                      </Button>
+                                    )}
+                                  </div>
+                                </div>
+                              </motion.div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Inactive Members */}
+                        {members.filter(m => m.status === 'REMOVED').length > 0 && (
+                          <div className="space-y-4">
+                            <h3 className="text-md font-semibold text-gray-400 flex items-center gap-2">
+                              <UserMinus className="w-4 h-4" />
+                              Removed Members ({members.filter(m => m.status === 'REMOVED').length})
+                            </h3>
+                            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+                              {members.filter(member => member.status === 'REMOVED').map((member, index) => (
+                                <motion.div
+                                  key={member.id}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: index * 0.1 }}
+                                  className="p-4 bg-gray-800/20 border border-gray-700/30 rounded-lg hover:border-yellow-500/30 transition-all opacity-75"
+                                >
+                                  <div className="flex items-center gap-3">
+                                    {member.user?.imageUrl ? (
+                                      <Image 
+                                        src={member.user.imageUrl} 
+                                        alt={`${member.user.firstName} ${member.user.lastName}`}
+                                        width={48}
+                                        height={48}
+                                        className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-500/30 grayscale"
+                                      />
+                                    ) : (
+                                      <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center text-white font-bold">
+                                        {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                                      </div>
+                                    )}
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-gray-300 font-semibold truncate">
+                                        {`${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'}
+                                      </p>
+                                      <p className="text-gray-400 text-sm font-medium truncate">
+                                        {member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'}
+                                      </p>
+                                      <p className="text-gray-500 text-xs truncate">
+                                        @{member.user?.username || 'unknown'}
+                                      </p>
+                                      <p className="text-red-400 text-xs truncate">
+                                        Removed from project
+                                      </p>
+                                    </div>
+                                    <div className="flex flex-col items-end gap-2">
+                                      <div className="text-xs text-gray-500">
+                                        Previously joined {new Date(member.joinedAt || '').toLocaleDateString()}
+                                      </div>
+                                      {canEdit && (
+                                        <Button
+                                          size="sm"
+                                          onClick={() => setMemberToReactivate(member)}
+                                          className="bg-green-600/20 hover:bg-green-600/30 text-green-400 border-green-600/50 hover:border-green-600/70 h-8 px-2"
+                                        >
+                                          <UserPlus className="w-3 h-3 mr-1" />
+                                          Reactivate
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                </motion.div>
+                              ))}
                             </div>
                           </div>
-                        ))}
+                        )}
                       </div>
                     ) : (
                       <div className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg text-center">
@@ -349,6 +526,28 @@ export function ProjectDetailsModal({
           isOpen={showUpdateModal}
           onClose={() => setShowUpdateModal(false)}
           onSuccess={() => setShowUpdateModal(false)}
+        />
+      )}
+
+      {/* Remove Member Dialog */}
+      {memberToRemove && (
+        <RemoveMemberDialog
+          isOpen={!!memberToRemove}
+          onClose={() => setMemberToRemove(null)}
+          member={memberToRemove}
+          projectSlug={project.slug}
+          projectTitle={project.title}
+        />
+      )}
+
+      {/* Reactivate Member Dialog */}
+      {memberToReactivate && (
+        <ReactivateMemberDialog
+          isOpen={!!memberToReactivate}
+          onClose={() => setMemberToReactivate(null)}
+          member={memberToReactivate}
+          projectSlug={project.slug}
+          projectTitle={project.title}
         />
       )}
     </>

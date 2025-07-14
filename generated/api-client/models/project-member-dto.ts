@@ -78,7 +78,8 @@ export interface ProjectMemberDto {
 
 export const ProjectMemberDtoStatusEnum = {
     ACTIVE: 'ACTIVE',
-    INACTIVE: 'INACTIVE'
+    INACTIVE: 'INACTIVE',
+    REMOVED: 'REMOVED'
 } as const;
 
 export type ProjectMemberDtoStatusEnum = typeof ProjectMemberDtoStatusEnum[keyof typeof ProjectMemberDtoStatusEnum];

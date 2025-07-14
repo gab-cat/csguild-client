@@ -85,6 +85,12 @@ export interface ReviewApplicationData {
   reviewMessage?: string
 }
 
+// Remove member data
+export interface RemoveMemberData {
+  slug: string
+  memberUserSlug: string
+}
+
 // Extended application type that includes review information and full project data
 export interface ExtendedProjectApplicationDto extends Omit<ProjectApplicationDto, 'projectRole'> {
   reviewMessage?: string
@@ -150,6 +156,28 @@ export function toProjectCard(summary: ProjectSummaryDto): ProjectCardType | nul
     ...summary,
     dueDate: summary.dueDate,
   }
+}
+
+// Utility function to convert ProjectDetailDto to ProjectCard
+export function toProjectCardFromDetail(detail: ProjectDetailDto, memberCount: number = 0, applicationCount: number = 0): ProjectCardType | null {
+  if (!detail.dueDate) {
+    return null // Skip projects without due dates
+  }
+  
+  return {
+    id: detail.id,
+    slug: detail.slug,
+    title: detail.title,
+    description: detail.description,
+    tags: detail.tags,
+    dueDate: detail.dueDate,
+    status: detail.status,
+    createdAt: detail.createdAt,
+    owner: detail.owner,
+    roles: detail.roles,
+    memberCount,
+    applicationCount,
+  } as ProjectCardType
 }
 
 // API Error types

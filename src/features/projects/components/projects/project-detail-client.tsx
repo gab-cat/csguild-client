@@ -7,8 +7,9 @@ import Image from 'next/image';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 
+import { useProjectMembers } from '../../hooks/use-projects-queries';
+import { useRoleMemberCounts, getRoleMemberCount } from '../../hooks/use-role-member-counts';
 import type { ProjectCardType } from '../../types';
-import { RoleMemberDisplay } from '../role-member-display';
 
 import { ProjectApplicationForm } from './project-application-form';
 
@@ -18,6 +19,13 @@ interface ProjectDetailClientProps {
 }
 
 export function ProjectDetailClient({ project, onClose }: ProjectDetailClientProps) {
+  const { data: membersData, isLoading: isLoadingMembers } = useProjectMembers(project.slug)
+  const { roleMemberCounts, isLoading: isLoadingCounts } = useRoleMemberCounts(
+    project.slug, 
+    project.roles, 
+    true
+  )
+
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
     case 'OPEN':
@@ -114,7 +122,7 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                       <Users className="w-4 h-4 text-purple-400" />
                       <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Team Size</span>
                     </div>
-                    <div className="text-xl font-bold text-white">{project.memberCount}</div>
+                    <div className="text-xl font-bold text-white">{membersData?.filter((member) => member.status === "ACTIVE").length || 0}</div>
                     <div className="text-xs text-gray-400">current members</div>
                   </div>
                   
@@ -225,26 +233,149 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
 
         {/* Open Positions */}
         {project.roles && project.roles.length > 0 && (
-          <div className="space-y-3">
+          <div className="space-y-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-purple-400" />
-              Open Positions
+              Open Positions ({project.roles.length})
             </h2>
-            <RoleMemberDisplay 
-              projectSlug={project.slug}
-              roles={project.roles}
-              compact={true}
-            />
+            <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
+              {project.roles.map((roleDto, index) => {
+                const memberCount = getRoleMemberCount(roleMemberCounts, roleDto.roleSlug)
+                const isAvailable = memberCount.availablePositions > 0
+                
+                return (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="group relative overflow-hidden"
+                  >
+                    <div className="absolute inset-0 bg-gradient-to-r from-purple-600/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
+                    <div className="relative p-4 bg-gray-800/40 border border-gray-700/50 rounded-xl hover:border-purple-500/30 transition-all h-full flex flex-col">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg flex items-center justify-center border border-purple-500/30">
+                            <Users className="w-4 h-4 text-purple-400" />
+                          </div>
+                          <h4 className="text-white font-semibold text-base">
+                            {roleDto.role?.name || roleDto.role?.slug || roleDto.roleSlug || 'Unknown Role'}
+                          </h4>
+                        </div>
+                        <div className="text-right flex-shrink-0">
+                          {isLoadingCounts ? (
+                            <div className="text-lg font-bold text-gray-400 flex items-center gap-1">
+                              <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                              <span>...</span>
+                            </div>
+                          ) : (
+                            <>
+                              <div className={`text-lg font-bold ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
+                                {memberCount.currentMembers}/{memberCount.maxMembers}
+                              </div>
+                              <div className="text-xs text-gray-400 uppercase tracking-wide">
+                                {isAvailable ? 'available' : 'filled'}
+                              </div>
+                              {isAvailable && (
+                                <div className="text-xs text-green-400 mt-1">
+                                  {memberCount.availablePositions} open
+                                </div>
+                              )}
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      {roleDto.requirements && (
+                        <div className="flex-1">
+                          <h5 className="text-sm font-medium text-gray-300 mb-2">Requirements:</h5>
+                          <p className="text-gray-400 text-sm leading-relaxed">
+                            {roleDto.requirements}
+                          </p>
+                        </div>
+                      )}
+                      
+                      {!roleDto.requirements && (
+                        <div className="flex-1 flex items-center justify-center py-4">
+                          <p className="text-gray-500 text-sm italic">
+                            No specific requirements listed
+                          </p>
+                        </div>
+                      )}
+                      
+                      {!isLoadingCounts && !isAvailable && (
+                        <div className="mt-3 px-3 py-2 bg-red-500/10 border border-red-500/20 rounded-lg">
+                          <p className="text-red-400 text-xs text-center">
+                            Position currently filled
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                )
+              })}
+            </div>
           </div>
         )}
 
         {/* Current Team */}
-        <div className="space-y-3">
+        <div className="space-y-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-green-400" />
-            Current Team ({project.memberCount})
+            Current Team ({membersData ? membersData.filter(member => member.status === 'ACTIVE').length : 0})
           </h2>
-          {project.memberCount > 0 ? (
+          {isLoadingMembers ? (
+            <div className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-4 h-4 border-2 border-gray-400 border-t-transparent rounded-full animate-spin" />
+                <span className="text-gray-400 text-sm">Loading team members...</span>
+              </div>
+            </div>
+          ) : membersData && membersData.filter(member => member.status === 'ACTIVE').length > 0 ? (
+            <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
+              {membersData.filter(member => member.status === 'ACTIVE').map((member, index) => (
+                <motion.div
+                  key={member.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: index * 0.1 }}
+                  className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:border-green-500/30 transition-all"
+                >
+                  <div className="flex items-center gap-3">
+                    {member.user.imageUrl ? (
+                      <Image 
+                        src={member.user.imageUrl} 
+                        alt={`${member.user.firstName} ${member.user.lastName}`}
+                        width={40}
+                        height={40}
+                        className="w-10 h-10 rounded-full object-cover ring-2 ring-green-500/30"
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
+                        {member.user.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                      </div>
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white font-semibold truncate">
+                        {`${member.user.firstName || ''} ${member.user.lastName || ''}`.trim() || 'Unknown User'}
+                      </p>
+                      <p className="text-green-400 text-sm font-medium truncate">
+                        {member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'}
+                      </p>
+                      <p className="text-gray-400 text-xs">
+                        @{member.user.username || 'unknown'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-xs text-gray-400">
+                        Joined {new Date(member.joinedAt || '').toLocaleDateString()}
+                      </div>
+                    </div>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          ) : project.memberCount > 0 ? (
             <div className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg">
               <p className="text-gray-400 leading-relaxed text-sm">
                 This project currently has <span className="text-white font-semibold">{project.memberCount}</span> active member{project.memberCount === 1 ? '' : 's'}. 
