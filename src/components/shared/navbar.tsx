@@ -94,7 +94,7 @@ const NavBar = () => {
                     className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
                   >
                     <UsersIcon className="h-4 w-4" />
-                    <span className="hidden xl:inline">Partner Orgs</span>
+                    <span className="hidden xl:inline">Community</span>
                     <ChevronDown className="h-3 w-3 text-gray-400" />
                   </Button>
                 </DropdownMenuTrigger>
