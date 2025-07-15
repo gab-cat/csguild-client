@@ -1,8 +1,9 @@
 'use client';
 
 import { motion } from 'framer-motion';
-import { CalendarDays, Users, Tag, User, Settings, Eye, Clock, Check, AlertCircle, X } from 'lucide-react';
+import { CalendarDays, Users, Tag, User, Settings, Eye, Clock, Check, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
 import Image from 'next/image';
+import { useState, useRef, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -16,6 +17,58 @@ import { ProjectApplicationForm } from './project-application-form';
 interface ProjectDetailClientProps {
   project: ProjectCardType;
   onClose: () => void;
+}
+
+// Component for expandable requirements text
+function ExpandableRequirements({ requirements }: { requirements: string }) {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [shouldShowToggle, setShouldShowToggle] = useState(false);
+  const textRef = useRef<HTMLParagraphElement>(null);
+
+  useEffect(() => {
+    if (textRef.current) {
+      const lineHeight = parseInt(window.getComputedStyle(textRef.current).lineHeight);
+      const actualHeight = textRef.current.scrollHeight;
+      const maxHeight = lineHeight * 2; // 2 lines
+      
+      setShouldShowToggle(actualHeight > maxHeight);
+    }
+  }, [requirements]);
+
+  const handleToggle = () => {
+    setIsExpanded(!isExpanded);
+  };
+
+  return (
+    <div className="flex-1">
+      <p 
+        ref={textRef}
+        className={`text-gray-400 text-sm leading-relaxed transition-all duration-300 ${
+          !isExpanded && shouldShowToggle ? 'line-clamp-2' : ''
+        }`}
+      >
+        {requirements}
+      </p>
+      {shouldShowToggle && (
+        <button
+          onClick={handleToggle}
+          className="flex items-center gap-1 mt-2 text-purple-400 hover:text-purple-300 text-xs font-medium transition-colors"
+        >
+          {isExpanded ? (
+            <>
+              <span>Show less</span>
+              <ChevronUp className="w-3 h-3" />
+            </>
+          ) : (
+            <>
+              <span>Show more</span>
+              <ChevronDown className="w-3 h-3" />
+            </>
+          )}
+        </button>
+      )}
+    </div>
+  );
 }
 
 export function ProjectDetailClient({ project, onClose }: ProjectDetailClientProps) {
@@ -203,12 +256,12 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
           </div>
         </div>
 
-        {/* Technology Stack */}
+        {/* Tags */}
         {project.tags && project.tags.length > 0 && (
           <div className="space-y-3">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Tag className="w-5 h-5 text-purple-400" />
-              Technology Stack
+              Tags
             </h2>
             <div className="flex flex-wrap gap-2">
               {project.tags.map((tag, index) => (
@@ -287,16 +340,11 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                       </div>
                       
                       {roleDto.requirements && (
-                        <div className="flex-1">
-                          <h5 className="text-sm font-medium text-gray-300 mb-2">Requirements:</h5>
-                          <p className="text-gray-400 text-sm leading-relaxed">
-                            {roleDto.requirements}
-                          </p>
-                        </div>
+                        <ExpandableRequirements requirements={roleDto.requirements} />
                       )}
                       
                       {!roleDto.requirements && (
-                        <div className="flex-1 flex items-center justify-center py-4">
+                        <div className="flex-1 flex items-center justify-center py-1">
                           <p className="text-gray-500 text-sm italic">
                             No specific requirements listed
                           </p>

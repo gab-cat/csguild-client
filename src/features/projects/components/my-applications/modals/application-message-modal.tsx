@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { MessageSquare, Calendar, User, FileText} from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,6 +16,7 @@ interface ApplicationMessageModalProps {
 }
 
 export function ApplicationMessageModal({ application, isOpen, onClose }: ApplicationMessageModalProps) {
+  const router = useRouter();
   if (!application) return null;
 
   const projectTitle = application.project?.title || application.projectSlug;
@@ -134,8 +136,7 @@ export function ApplicationMessageModal({ application, isOpen, onClose }: Applic
             </Button>
             <Button
               onClick={() => {
-                const encodedTitle = encodeURIComponent(projectTitle);
-                window.location.href = `/projects?search=${encodedTitle}`;
+                router.push(`/projects/${application.projectSlug}`);
               }}
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >

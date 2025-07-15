@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import { Shield, Calendar, User, FileText, CheckCircle, XCircle, Clock, AlertTriangle } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -15,8 +16,9 @@ interface ApplicationReviewModalProps {
 }
 
 export function ApplicationReviewModal({ application, isOpen, onClose }: ApplicationReviewModalProps) {
+  const router = useRouter();
   if (!application) return null;
-
+  
   const projectTitle = application.project?.title || application.projectSlug;
   const roleName = application.projectRole.role?.name || application.roleSlug;
   const reviewedDate = application.reviewedAt 
@@ -226,7 +228,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
             </Button>
             {application.status === 'REJECTED' && (
               <Button
-                onClick={() => window.location.href = '/projects'}
+                onClick={() => router.push('/projects')}
                 className="bg-purple-600 hover:bg-purple-700 text-white"
               >
                 Find More Projects
@@ -235,8 +237,7 @@ export function ApplicationReviewModal({ application, isOpen, onClose }: Applica
             {application.status === 'APPROVED' && (
               <Button
                 onClick={() => {
-                  const encodedTitle = encodeURIComponent(projectTitle);
-                  window.location.href = `/projects?search=${encodedTitle}`;
+                  router.push(`/projects/${application.projectSlug}`);
                 }}
                 className="bg-green-600 hover:bg-green-700 text-white"
               >

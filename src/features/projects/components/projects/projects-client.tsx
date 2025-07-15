@@ -63,7 +63,7 @@ export function ProjectsClient() {
 
           {/* Project Modal with Auth Guard */}
           <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
-            <DialogContent className={`${!isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-5xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
+            <DialogContent className={`${!isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-7xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
               <AuthGuard 
                 title="Authentication Required" 
                 description="Please sign in or create an account to post a new project."
