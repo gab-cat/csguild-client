@@ -41,9 +41,9 @@ const NavBar = () => {
   const aboutItems = [
     { href: '/cs-guild', label: 'CS Guild', description: 'Computer Science Guild' },
     { href: '/aws-cloud-club', label: 'AWS Cloud Club', description: 'Amazon Web Services Cloud Club' },
-    { href: '/tactics', label: 'TACTICS', description: 'Technology and Creative Thinking in Computer Science' },
-    { href: '/notion', label: 'Notion', description: 'Our Digital Workspace' },
-    { href: '/pixels', label: 'PIXELS', description: 'Photography and Visual Arts' },
+    // { href: '/tactics', label: 'TACTICS', description: 'Technology and Creative Thinking in Computer Science' },
+    // { href: '/notion', label: 'Notion', description: 'Our Digital Workspace' },
+    // { href: '/pixels', label: 'PIXELS', description: 'Photography and Visual Arts' },
   ]
 
   return (
