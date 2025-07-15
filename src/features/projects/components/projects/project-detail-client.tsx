@@ -430,7 +430,6 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
 
           <ProjectApplicationForm 
             project={project} 
-            onSuccess={onClose}
           />
         </div>
       </div>
