@@ -3,10 +3,32 @@ import type { NextRequest } from 'next/server'
 
 import { User } from './features/auth'
 
+/**
+ * Convert simplified route patterns to regex patterns
+ * Supports wildcards (*) and optional path segments
+ * Examples:
+ * - '/' -> exact root match
+ * - '/about' -> exact about page match
+ * - '/about-*' -> matches /about-anything
+ * - '/projects/*' -> matches /projects/anything
+ */
+function createRoutePattern(pattern: string): RegExp {
+  // Escape special regex characters except * which we'll handle separately
+  let regexPattern = pattern.replace(/[.+?^${}()|[\]\\]/g, '\\$&')
+  
+  // Handle wildcards:
+  // * at the end means match anything after
+  // * in the middle means match any segment
+  regexPattern = regexPattern.replace(/\*/g, '.*')
+  
+  // Ensure pattern starts with ^ and ends with $
+  regexPattern = `^${regexPattern}$`
+  
+  return new RegExp(regexPattern)
+}
 
-// Define public routes that don't require authentication
-// All other routes are protected by default and will redirect to login
-const publicRoutes = [
+// Define public routes using simplified patterns
+const publicRoutePatterns: string[] = [
   '/',
   '/about',
   '/contact',
@@ -15,31 +37,29 @@ const publicRoutes = [
   '/code-of-conduct',
   '/login',
   '/register',
-  '/callback', // OAuth callback route
+  '/callback',
   '/verify-email',
   '/forgot-password',
   '/reset-password',
-  '/projects', // Public projects page
-  '/events', // Public events page
-  '/community', // Public community page
+  '/projects',
+  '/projects/*',
+  '/events',
+  '/events/*',
+  '/community',
+  '/community/*',
+  '/cs-guild*',
+  '/tactics*',
+  '/notion*',
+  '/aws-cloud-club*',
+  '/pixels*',
 ]
 
-// Helper function to check if a route is public
+// Convert simplified patterns to regex patterns
+const compiledPublicRoutePatterns: RegExp[] = publicRoutePatterns.map(createRoutePattern)
+
+// Helper function to check if a route is public using compiled regex patterns
 function isPublicRoute(pathname: string): boolean {
-  // Exact match for root path
-  if (pathname === '/') {
-    return true
-  }
-  
-  // For other routes, check if the pathname starts with the route
-  // but ensure it's either an exact match or followed by a '/' or query parameter
-  return publicRoutes.some(route => {
-    if (route === '/') {
-      return pathname === '/' // Only exact match for root
-    }
-    // Check if pathname starts with route and is followed by '/', '?', or end of string
-    return pathname === route || pathname.startsWith(route + '/') || pathname.startsWith(route + '?')
-  })
+  return compiledPublicRoutePatterns.some(pattern => pattern.test(pathname))
 }
 
 export function middleware(request: NextRequest) {

@@ -2,7 +2,7 @@
 
 import { DialogTitle } from '@radix-ui/react-dialog'
 import { motion } from 'framer-motion'
-import { Calendar, Users, Eye, Tag } from 'lucide-react'
+import { Calendar, Users, Eye, Tag, Share, Check } from 'lucide-react'
 import { useState } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -10,6 +10,8 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
+import { useClipboard } from '@/hooks/use-clipboard'
+import { showSuccessToast } from '@/lib/toast'
 
 import type { ProjectCardType } from '../../types'
 import { RoleMemberDisplay } from '../role-member-display'
@@ -23,6 +25,15 @@ interface ProjectCardProps {
 
 export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const { copied, copy } = useClipboard({
+    onSuccess: () => {
+      showSuccessToast(
+        'Link Copied!', 
+        'Project link has been copied to your clipboard'
+      )
+    }
+  })
+
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('en-US', {
       year: 'numeric',
@@ -49,6 +60,35 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
   const isOverdue = project.dueDate
     ? new Date(project.dueDate) < new Date()
     : false
+
+  // Get looking for roles text
+  const lookingForRoles = project.roles
+    ?.filter(role => role.maxMembers > 0)
+    ?.map(role => role.role?.name)
+    ?.slice(0, 3)
+    ?.join(', ') || 'contributors'
+
+  const handleShare = async () => {
+    const projectUrl = `${window.location.origin}/projects/${project.slug}`
+    const shareText = `${project.title} is looking for ${lookingForRoles}! Check out this exciting project on CS Guild: ${projectUrl}`
+    
+    try {
+      if (navigator.share && /Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+        // Use native share on mobile devices
+        await navigator.share({
+          title: project.title,
+          text: `${project.title} is looking for ${lookingForRoles}!`,
+          url: projectUrl,
+        })
+      } else {
+        // Fallback to clipboard copy
+        await copy(shareText)
+      }
+    } catch {
+      // If native share fails, fallback to clipboard
+      await copy(shareText)
+    }
+  }
 
   return (
     <motion.div
@@ -144,26 +184,44 @@ export function ProjectCard({ project, index = 0 }: ProjectCardProps) {
             </div>
           </div>
 
-          {/* Action Button */}
-          <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
-            <DialogTrigger asChild>
-              <Button
-                size="sm"
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                View Details
-              </Button>
-            </DialogTrigger>
-            <DialogContent className="!max-w-[95vw] bg-gray-950 !w-[95vw] !h-[95vh] overflow-hidden p-0 sm:!max-w-[90vw] sm:!w-[90vw] sm:!h-[90vh]">
-              <DialogTitle className='sr-only'>{project.title}</DialogTitle>
-              <div className="h-full overflow-y-auto p-4 sm:p-6">
-                <ProjectDetailClient 
-                  project={project} 
-                  onClose={() => setIsDetailModalOpen(false)} 
-                />
-              </div>
-            </DialogContent>
-          </Dialog>
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
+            {/* Share Button */}
+            <Button
+              size="sm"
+              variant="outline"
+              onClick={handleShare}
+              className="border-gray-700 text-gray-300 hover:bg-gray-800 hover:border-purple-500/50 p-2"
+              title="Share project"
+            >
+              {copied ? (
+                <Check className="w-4 h-4 text-green-400" />
+              ) : (
+                <Share className="w-4 h-4" />
+              )}
+            </Button>
+
+            {/* View Details Button */}
+            <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+              <DialogTrigger asChild>
+                <Button
+                  size="sm"
+                  className="bg-purple-600 hover:bg-purple-700 text-white"
+                >
+                  View Details
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="!max-w-[95vw] bg-gray-950 !w-[95vw] !h-[95vh] overflow-hidden p-0 sm:!max-w-[90vw] sm:!w-[90vw] sm:!h-[90vh]">
+                <DialogTitle className='sr-only'>{project.title}</DialogTitle>
+                <div className="h-full overflow-y-auto p-4 sm:p-6">
+                  <ProjectDetailClient 
+                    project={project} 
+                    onClose={() => setIsDetailModalOpen(false)} 
+                  />
+                </div>
+              </DialogContent>
+            </Dialog>
+          </div>
         </CardFooter>
       </Card>
     </motion.div>

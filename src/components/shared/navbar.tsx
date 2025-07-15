@@ -35,7 +35,15 @@ const NavBar = () => {
     { href: '/', label: 'Home', icon: Home },
     { href: '/events', label: 'Events', icon: Calendar },
     { href: '/projects', label: 'Projects', icon: FolderOpen },
-    { href: '/community', label: 'Community', icon: UsersIcon },
+  ]
+
+  // About dropdown items
+  const aboutItems = [
+    { href: '/cs-guild', label: 'CS Guild', description: 'Computer Science Guild' },
+    { href: '/aws-cloud-club', label: 'AWS Cloud Club', description: 'Amazon Web Services Cloud Club' },
+    { href: '/tactics', label: 'TACTICS', description: 'Technology and Creative Thinking in Computer Science' },
+    { href: '/notion', label: 'Notion', description: 'Our Digital Workspace' },
+    { href: '/pixels', label: 'PIXELS', description: 'Photography and Visual Arts' },
   ]
 
   return (
@@ -76,6 +84,42 @@ const NavBar = () => {
                   </Button>
                 </Link>
               ))}
+
+              {/* About Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
+                  >
+                    <UsersIcon className="h-4 w-4" />
+                    <span className="hidden xl:inline">Partner Orgs</span>
+                    <ChevronDown className="h-3 w-3 text-gray-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="center" className="w-64 bg-gray-900/95 border-pink-500/20 backdrop-blur-md">
+                  <DropdownMenuLabel className="font-space-mono text-pink-400">
+                    {"// About Us"}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-pink-500/20" />
+                  
+                  {aboutItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link 
+                        href={item.href}
+                        className="flex flex-col items-start gap-1 cursor-pointer text-gray-300 hover:text-violet-400 hover:bg-violet-500/10 p-3"
+                      >
+                        <span className="font-medium">{item.label}</span>
+                        <span className="text-xs text-gray-400 font-space-mono">
+                          {"// " + item.description}
+                        </span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
             </nav>
           </>
         </div>
