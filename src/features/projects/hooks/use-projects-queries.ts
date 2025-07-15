@@ -370,8 +370,9 @@ export function useReactivateProjectMember() {
     },
     onError: (error, { memberName }) => {
       // Show error toast
+      console.error('Failed to reactivate member:', error)
       showErrorToast(
-        'Failed to Reactivate Member',
+        `Failed to Reactivate ${memberName || 'Member'}`,
         error instanceof Error 
           ? error.message 
           : memberName

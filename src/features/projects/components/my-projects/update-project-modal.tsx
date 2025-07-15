@@ -178,10 +178,10 @@ export function UpdateProjectModal({
       
       onSuccess?.()
       onClose()
-    } catch {
+    } catch (error: unknown) {
       showErrorToast(
         'Update Failed',
-        'Failed to update project. Please try again.'
+        (error as Error).message || 'Failed to update project. Please try again.'
       )
     }
   }
