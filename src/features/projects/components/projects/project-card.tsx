@@ -127,7 +127,7 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
         {/* Pinned Indicator */}
         {isPinned && (
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 z-50">
-            <div className="bg-white/10 backdrop-blur-md text-yellow-500 text-xs font-medium px-3 py-1.5 rounded-b-lg flex items-center gap-1.5 border border-t-0 border-white/20 min-w-fit shadow-lg">
+            <div className="bg-gray-500/10 backdrop-blur-md text-yellow-500 text-xs font-medium px-3 py-1.5 rounded-b-lg flex items-center gap-1.5 border border-t border-yellow-500/80 border-t-yellow-500/30 shadow-yellow-500/30 min-w-fit shadow-lg">
               <Star className="w-3.5 h-3.5 fill-yellow-500" />
               <span className="tracking-wide text-xs font-medium">Featured</span>
             </div>

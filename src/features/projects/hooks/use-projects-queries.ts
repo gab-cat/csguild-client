@@ -72,10 +72,11 @@ export function usePinnedProjects() {
 }
 
 // Get saved projects
-export function useSavedProjects(filters?: { page?: number; limit?: number }) {
+export function useSavedProjects(filters?: { page?: number; limit?: number }, enabled: boolean = true) {
   return useQuery({
     queryKey: projectsQueryKeys.savedList(filters),
     queryFn: () => projectsApi.getSavedProjects(filters),
+    enabled: enabled,
     staleTime: 2 * 60 * 1000, // 2 minutes
   })
 }

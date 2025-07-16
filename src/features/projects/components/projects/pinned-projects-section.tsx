@@ -2,18 +2,36 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { Pin, ChevronUp, ChevronDown } from 'lucide-react'
+import { useMemo } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { useAuthStore } from '@/features/auth'
 
-import { usePinnedProjects, usePinnedProjectsVisibility } from '../../hooks'
+import { usePinnedProjects, usePinnedProjectsVisibility, useSavedProjects } from '../../hooks'
 import { toProjectCard } from '../../types'
 
 import { ProjectCard } from './project-card'
 
 export function PinnedProjectsSection() {
+  const { isAuthenticated } = useAuthStore()
   const { data: pinnedProjectsData, isLoading, error } = usePinnedProjects()
+  
+  // Only fetch saved projects if authenticated
+  const { data: savedProjectsData } = useSavedProjects(
+    { limit: 1000 },
+    isAuthenticated // Only fetch if authenticated
+  )
+  
   const { cardsVisible, toggleCards } = usePinnedProjectsVisibility()
+
+  // Create a Set of saved project slugs for efficient lookup
+  const savedProjectSlugs = useMemo(() => {
+    if (!isAuthenticated || !savedProjectsData?.data) {
+      return new Set<string>()
+    }
+    return new Set(savedProjectsData.data.map(project => project.slug))
+  }, [isAuthenticated, savedProjectsData])
 
   // Don't render anything if there are no pinned projects or if loading/error
   if (isLoading || error || !pinnedProjectsData?.data?.length) {
@@ -81,18 +99,23 @@ export function PinnedProjectsSection() {
               className="relative"
             >
               <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
-                {pinnedProjects.map((project, index) => (
-                  <div
-                    key={project.id}
-                    className="flex-shrink-0 w-72 sm:w-80 md:w-96"
-                  >
-                    <ProjectCard
-                      project={project}
-                      index={index}
-                      isPinned={true}
-                    />
-                  </div>
-                ))}
+                {pinnedProjects.map((project, index) => {
+                  const isSaved = savedProjectSlugs.has(project.slug)
+                  
+                  return (
+                    <div
+                      key={project.id}
+                      className="flex-shrink-0 w-72 sm:w-80 md:w-96"
+                    >
+                      <ProjectCard
+                        project={project}
+                        index={index}
+                        isPinned={true}
+                        isSaved={isSaved}
+                      />
+                    </div>
+                  )
+                })}
               </div>
 
               {/* Gradient Fade on Right */}
