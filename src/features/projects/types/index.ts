@@ -53,6 +53,7 @@ export interface ProjectFilters {
   limit?: number
   sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title'
   sortOrder?: 'asc' | 'desc'
+  pinned?: boolean
 }
 
 // Project role for creation

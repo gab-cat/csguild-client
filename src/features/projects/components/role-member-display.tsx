@@ -105,7 +105,7 @@ export function RoleMemberDisplay({
         className="space-y-2" 
         ref={containerRef}
       >
-        <h4 className="text-sm font-medium text-gray-400 flex items-center gap-1">
+        <h4 className="text-sm font-medium text-gray-200 flex items-center gap-1">
           <Users className="w-4 h-4" />
           {titleWithCount}
           {isLoading && <Loader2 className="w-3 h-3 animate-spin" />}
