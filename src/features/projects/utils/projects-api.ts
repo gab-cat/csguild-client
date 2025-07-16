@@ -30,8 +30,24 @@ export const projectsApi = {
     limit?: number
     sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title'
     sortOrder?: 'asc' | 'desc'
+    pinned?: boolean
   }): Promise<ProjectListResponseDto> => {
     const response = await projectsClient.projectsQueryControllerFindAll(params || {})
+    return response.data
+  },
+
+  // Get pinned projects
+  getPinnedProjects: async (): Promise<ProjectListResponseDto> => {
+    const response = await projectsClient.projectsQueryControllerFindAll({ pinned: true })
+    return response.data
+  },
+
+  // Get saved projects
+  getSavedProjects: async (params?: {
+    page?: number
+    limit?: number
+  }): Promise<ProjectListResponseDto> => {
+    const response = await projectsClient.projectsQueryControllerGetSavedProjects(params || {})
     return response.data
   },
 
@@ -138,6 +154,16 @@ export const projectsApi = {
       slug, 
       memberUserSlug 
     })
+  },
+
+  // Save project
+  saveProject: async (slug: string): Promise<void> => {
+    await projectsClient.projectsCommandControllerSaveProject({ slug })
+  },
+
+  // Unsave project
+  unsaveProject: async (slug: string): Promise<void> => {
+    await projectsClient.projectsCommandControllerUnsaveProject({ slug })
   },
 
   // Get all roles for project creation

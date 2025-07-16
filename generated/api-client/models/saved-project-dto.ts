@@ -14,11 +14,35 @@
 
 
 
-export * from './api/app-api';
-export * from './api/authentication-api';
-export * from './api/facilities-api';
-export * from './api/projects-api';
-export * from './api/projects-admin-api';
-export * from './api/roles-api';
-export * from './api/users-api';
+/**
+ * 
+ * @export
+ * @interface SavedProjectDto
+ */
+export interface SavedProjectDto {
+    /**
+     * Unique identifier for the saved project record
+     * @type {string}
+     * @memberof SavedProjectDto
+     */
+    'id': string;
+    /**
+     * Username of the user who saved the project
+     * @type {string}
+     * @memberof SavedProjectDto
+     */
+    'userSlug': string;
+    /**
+     * Project slug that was saved
+     * @type {string}
+     * @memberof SavedProjectDto
+     */
+    'projectSlug': string;
+    /**
+     * Timestamp when the project was saved
+     * @type {string}
+     * @memberof SavedProjectDto
+     */
+    'savedAt': string;
+}
 

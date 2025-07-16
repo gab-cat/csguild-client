@@ -8,6 +8,7 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { generateRandomId } from '@/lib/utils'
 
 import { registrationStep2Schema, type RegistrationStep2Data } from '../schemas'
 
@@ -119,7 +120,9 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
   }
 
   const handleSkip = () => {
-    onNext({ rfidId: '' })
+    // Generate a random 8-character ID when skipping RFID setup
+    const randomId = generateRandomId()
+    onNext({ rfidId: randomId })
   }
 
   return (
@@ -282,7 +285,7 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
             <li>• Secure and convenient authentication</li>
           </ul>
           <p className="text-xs text-blue-300 mt-3 italic">
-            You can skip this step and set up your RFID later in your profile settings.
+            You can skip this step and we&apos;ll generate a temporary ID for you. You can set up your RFID later in your profile settings.
           </p>
         </div>
       </div>
@@ -307,7 +310,7 @@ export function RegistrationStep2({ onNext, onBack, initialData }: RegistrationS
           variant="outline"
           className="flex-1 border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10"
         >
-          <span>Skip for Now</span>
+          <span>Skip for now</span>
         </Button>
 
         <Button

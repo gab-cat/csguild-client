@@ -56,6 +56,14 @@ import { ReviewApplicationDto } from '../models';
 // @ts-ignore
 import { ReviewApplicationResponseDto } from '../models';
 // @ts-ignore
+import { SaveProjectErrorResponseDto } from '../models';
+// @ts-ignore
+import { SaveProjectResponseDto } from '../models';
+// @ts-ignore
+import { UnsaveProjectErrorResponseDto } from '../models';
+// @ts-ignore
+import { UnsaveProjectResponseDto } from '../models';
+// @ts-ignore
 import { UpdateProjectDto } from '../models';
 // @ts-ignore
 import { UpdateProjectStatusDto } from '../models';
@@ -284,6 +292,74 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
+         * Save a project to your personal saved projects list for easy access later.
+         * @summary Save a project
+         * @param {string} slug Project slug to save
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerSaveProject: async (slug: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'slug' is not null or undefined
+            assertParamExists('projectsCommandControllerSaveProject', 'slug', slug)
+            const localVarPath = `/api/projects/{slug}/save`
+                .replace(`{${"slug"}}`, encodeURIComponent(String(slug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'POST', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
+         * Remove a project from your personal saved projects list.
+         * @summary Unsave a project
+         * @param {string} slug Project slug to unsave
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerUnsaveProject: async (slug: string, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            // verify required parameter 'slug' is not null or undefined
+            assertParamExists('projectsCommandControllerUnsaveProject', 'slug', slug)
+            const localVarPath = `/api/projects/{slug}/unsave`
+                .replace(`{${"slug"}}`, encodeURIComponent(String(slug)));
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'DELETE', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
+        /**
          * Update project details. Only the project owner can update the project.
          * @summary Update a project
          * @param {string} slug Project slug
@@ -364,12 +440,13 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
             };
         },
         /**
-         * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. No authentication required.
+         * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. Use ?pinned=true with authentication to get pinned projects.
          * @summary Get all projects with filtering and pagination
          * @param {'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'} [status] Filter by project status
          * @param {string} [tags] Comma-separated list of tags to filter by
          * @param {string} [search] Search in project title and description
          * @param {string} [ownerSlug] Filter by project owner username
+         * @param {boolean} [pinned] Filter to show only pinned projects (requires authentication)
          * @param {'asc' | 'desc'} [sortOrder] Sort direction
          * @param {'createdAt' | 'updatedAt' | 'dueDate' | 'title'} [sortBy] Field to sort by
          * @param {number} [limit] Number of items per page (minimum: 1, maximum: 100)
@@ -377,7 +454,7 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        projectsQueryControllerFindAll: async (status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED', tags?: string, search?: string, ownerSlug?: string, sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+        projectsQueryControllerFindAll: async (status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED', tags?: string, search?: string, ownerSlug?: string, pinned?: boolean, sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
             const localVarPath = `/api/projects`;
             // use dummy base URL string because the URL constructor only accepts absolute URLs.
             const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
@@ -404,6 +481,10 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
 
             if (ownerSlug !== undefined) {
                 localVarQueryParameter['ownerSlug'] = ownerSlug;
+            }
+
+            if (pinned !== undefined) {
+                localVarQueryParameter['pinned'] = pinned;
             }
 
             if (sortOrder !== undefined) {
@@ -639,6 +720,56 @@ export const ProjectsApiAxiosParamCreator = function (configuration?: Configurat
                 options: localVarRequestOptions,
             };
         },
+        /**
+         * Retrieve all projects saved by the current user with pagination
+         * @summary Get saved projects
+         * @param {'asc' | 'desc'} [sortOrder] Sort direction
+         * @param {'createdAt' | 'updatedAt' | 'dueDate' | 'title'} [sortBy] Field to sort by
+         * @param {number} [limit] Number of items per page (minimum: 1, maximum: 100)
+         * @param {number} [page] Page number for pagination (minimum: 1)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsQueryControllerGetSavedProjects: async (sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options: AxiosRequestConfig = {}): Promise<RequestArgs> => {
+            const localVarPath = `/api/projects/saved`;
+            // use dummy base URL string because the URL constructor only accepts absolute URLs.
+            const localVarUrlObj = new URL(localVarPath, DUMMY_BASE_URL);
+            let baseOptions;
+            if (configuration) {
+                baseOptions = configuration.baseOptions;
+            }
+
+            const localVarRequestOptions = { method: 'GET', ...baseOptions, ...options};
+            const localVarHeaderParameter = {} as any;
+            const localVarQueryParameter = {} as any;
+
+            if (sortOrder !== undefined) {
+                localVarQueryParameter['sortOrder'] = sortOrder;
+            }
+
+            if (sortBy !== undefined) {
+                localVarQueryParameter['sortBy'] = sortBy;
+            }
+
+            if (limit !== undefined) {
+                localVarQueryParameter['limit'] = limit;
+            }
+
+            if (page !== undefined) {
+                localVarQueryParameter['page'] = page;
+            }
+
+
+    
+            setSearchParams(localVarUrlObj, localVarQueryParameter);
+            let headersFromBaseOptions = baseOptions && baseOptions.headers ? baseOptions.headers : {};
+            localVarRequestOptions.headers = {...localVarHeaderParameter, ...headersFromBaseOptions, ...options.headers};
+
+            return {
+                url: toPathString(localVarUrlObj),
+                options: localVarRequestOptions,
+            };
+        },
     }
 };
 
@@ -718,6 +849,28 @@ export const ProjectsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
+         * Save a project to your personal saved projects list for easy access later.
+         * @summary Save a project
+         * @param {string} slug Project slug to save
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async projectsCommandControllerSaveProject(slug: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<SaveProjectResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsCommandControllerSaveProject(slug, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Remove a project from your personal saved projects list.
+         * @summary Unsave a project
+         * @param {string} slug Project slug to unsave
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async projectsCommandControllerUnsaveProject(slug: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<UnsaveProjectResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsCommandControllerUnsaveProject(slug, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
          * Update project details. Only the project owner can update the project.
          * @summary Update a project
          * @param {string} slug Project slug
@@ -742,12 +895,13 @@ export const ProjectsApiFp = function(configuration?: Configuration) {
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
-         * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. No authentication required.
+         * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. Use ?pinned=true with authentication to get pinned projects.
          * @summary Get all projects with filtering and pagination
          * @param {'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'} [status] Filter by project status
          * @param {string} [tags] Comma-separated list of tags to filter by
          * @param {string} [search] Search in project title and description
          * @param {string} [ownerSlug] Filter by project owner username
+         * @param {boolean} [pinned] Filter to show only pinned projects (requires authentication)
          * @param {'asc' | 'desc'} [sortOrder] Sort direction
          * @param {'createdAt' | 'updatedAt' | 'dueDate' | 'title'} [sortBy] Field to sort by
          * @param {number} [limit] Number of items per page (minimum: 1, maximum: 100)
@@ -755,8 +909,8 @@ export const ProjectsApiFp = function(configuration?: Configuration) {
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
-        async projectsQueryControllerFindAll(status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED', tags?: string, search?: string, ownerSlug?: string, sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectListResponseDto>> {
-            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsQueryControllerFindAll(status, tags, search, ownerSlug, sortOrder, sortBy, limit, page, options);
+        async projectsQueryControllerFindAll(status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED', tags?: string, search?: string, ownerSlug?: string, pinned?: boolean, sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectListResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsQueryControllerFindAll(status, tags, search, ownerSlug, pinned, sortOrder, sortBy, limit, page, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
         /**
@@ -823,6 +977,20 @@ export const ProjectsApiFp = function(configuration?: Configuration) {
          */
         async projectsQueryControllerGetProjectMembers(slug: string, roleSlug?: string, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<Array<ProjectMemberDto>>> {
             const localVarAxiosArgs = await localVarAxiosParamCreator.projectsQueryControllerGetProjectMembers(slug, roleSlug, options);
+            return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
+        },
+        /**
+         * Retrieve all projects saved by the current user with pagination
+         * @summary Get saved projects
+         * @param {'asc' | 'desc'} [sortOrder] Sort direction
+         * @param {'createdAt' | 'updatedAt' | 'dueDate' | 'title'} [sortBy] Field to sort by
+         * @param {number} [limit] Number of items per page (minimum: 1, maximum: 100)
+         * @param {number} [page] Page number for pagination (minimum: 1)
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        async projectsQueryControllerGetSavedProjects(sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options?: AxiosRequestConfig): Promise<(axios?: AxiosInstance, basePath?: string) => AxiosPromise<ProjectListResponseDto>> {
+            const localVarAxiosArgs = await localVarAxiosParamCreator.projectsQueryControllerGetSavedProjects(sortOrder, sortBy, limit, page, options);
             return createRequestFunction(localVarAxiosArgs, globalAxios, BASE_PATH, configuration);
         },
     }
@@ -896,6 +1064,26 @@ export const ProjectsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.projectsCommandControllerReviewApplication(requestParameters.reviewApplicationDto, options).then((request) => request(axios, basePath));
         },
         /**
+         * Save a project to your personal saved projects list for easy access later.
+         * @summary Save a project
+         * @param {ProjectsApiProjectsCommandControllerSaveProjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerSaveProject(requestParameters: ProjectsApiProjectsCommandControllerSaveProjectRequest, options?: AxiosRequestConfig): AxiosPromise<SaveProjectResponseDto> {
+            return localVarFp.projectsCommandControllerSaveProject(requestParameters.slug, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Remove a project from your personal saved projects list.
+         * @summary Unsave a project
+         * @param {ProjectsApiProjectsCommandControllerUnsaveProjectRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsCommandControllerUnsaveProject(requestParameters: ProjectsApiProjectsCommandControllerUnsaveProjectRequest, options?: AxiosRequestConfig): AxiosPromise<UnsaveProjectResponseDto> {
+            return localVarFp.projectsCommandControllerUnsaveProject(requestParameters.slug, options).then((request) => request(axios, basePath));
+        },
+        /**
          * Update project details. Only the project owner can update the project.
          * @summary Update a project
          * @param {ProjectsApiProjectsCommandControllerUpdateRequest} requestParameters Request parameters.
@@ -916,14 +1104,14 @@ export const ProjectsApiFactory = function (configuration?: Configuration, baseP
             return localVarFp.projectsCommandControllerUpdateStatus(requestParameters.slug, requestParameters.updateProjectStatusDto, options).then((request) => request(axios, basePath));
         },
         /**
-         * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. No authentication required.
+         * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. Use ?pinned=true with authentication to get pinned projects.
          * @summary Get all projects with filtering and pagination
          * @param {ProjectsApiProjectsQueryControllerFindAllRequest} requestParameters Request parameters.
          * @param {*} [options] Override http request option.
          * @throws {RequiredError}
          */
         projectsQueryControllerFindAll(requestParameters: ProjectsApiProjectsQueryControllerFindAllRequest = {}, options?: AxiosRequestConfig): AxiosPromise<ProjectListResponseDto> {
-            return localVarFp.projectsQueryControllerFindAll(requestParameters.status, requestParameters.tags, requestParameters.search, requestParameters.ownerSlug, requestParameters.sortOrder, requestParameters.sortBy, requestParameters.limit, requestParameters.page, options).then((request) => request(axios, basePath));
+            return localVarFp.projectsQueryControllerFindAll(requestParameters.status, requestParameters.tags, requestParameters.search, requestParameters.ownerSlug, requestParameters.pinned, requestParameters.sortOrder, requestParameters.sortBy, requestParameters.limit, requestParameters.page, options).then((request) => request(axios, basePath));
         },
         /**
          * Retrieve detailed information about a specific project
@@ -982,6 +1170,16 @@ export const ProjectsApiFactory = function (configuration?: Configuration, baseP
          */
         projectsQueryControllerGetProjectMembers(requestParameters: ProjectsApiProjectsQueryControllerGetProjectMembersRequest, options?: AxiosRequestConfig): AxiosPromise<Array<ProjectMemberDto>> {
             return localVarFp.projectsQueryControllerGetProjectMembers(requestParameters.slug, requestParameters.roleSlug, options).then((request) => request(axios, basePath));
+        },
+        /**
+         * Retrieve all projects saved by the current user with pagination
+         * @summary Get saved projects
+         * @param {ProjectsApiProjectsQueryControllerGetSavedProjectsRequest} requestParameters Request parameters.
+         * @param {*} [options] Override http request option.
+         * @throws {RequiredError}
+         */
+        projectsQueryControllerGetSavedProjects(requestParameters: ProjectsApiProjectsQueryControllerGetSavedProjectsRequest = {}, options?: AxiosRequestConfig): AxiosPromise<ProjectListResponseDto> {
+            return localVarFp.projectsQueryControllerGetSavedProjects(requestParameters.sortOrder, requestParameters.sortBy, requestParameters.limit, requestParameters.page, options).then((request) => request(axios, basePath));
         },
     };
 };
@@ -1055,6 +1253,26 @@ export interface ProjectsApiInterface {
     projectsCommandControllerReviewApplication(reviewApplicationDto: ReviewApplicationDto, options?: AxiosRequestConfig): AxiosPromise<ReviewApplicationResponseDto>;
 
     /**
+     * Save a project to your personal saved projects list for easy access later.
+     * @summary Save a project
+     * @param {string} slug Project slug to save
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApiInterface
+     */
+    projectsCommandControllerSaveProject(slug: string, options?: AxiosRequestConfig): AxiosPromise<SaveProjectResponseDto>;
+
+    /**
+     * Remove a project from your personal saved projects list.
+     * @summary Unsave a project
+     * @param {string} slug Project slug to unsave
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApiInterface
+     */
+    projectsCommandControllerUnsaveProject(slug: string, options?: AxiosRequestConfig): AxiosPromise<UnsaveProjectResponseDto>;
+
+    /**
      * Update project details. Only the project owner can update the project.
      * @summary Update a project
      * @param {string} slug Project slug
@@ -1077,12 +1295,13 @@ export interface ProjectsApiInterface {
     projectsCommandControllerUpdateStatus(slug: string, updateProjectStatusDto: UpdateProjectStatusDto, options?: AxiosRequestConfig): AxiosPromise<ProjectStatusUpdateResponseDto>;
 
     /**
-     * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. No authentication required.
+     * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. Use ?pinned=true with authentication to get pinned projects.
      * @summary Get all projects with filtering and pagination
      * @param {'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'} [status] Filter by project status
      * @param {string} [tags] Comma-separated list of tags to filter by
      * @param {string} [search] Search in project title and description
      * @param {string} [ownerSlug] Filter by project owner username
+     * @param {boolean} [pinned] Filter to show only pinned projects (requires authentication)
      * @param {'asc' | 'desc'} [sortOrder] Sort direction
      * @param {'createdAt' | 'updatedAt' | 'dueDate' | 'title'} [sortBy] Field to sort by
      * @param {number} [limit] Number of items per page (minimum: 1, maximum: 100)
@@ -1091,7 +1310,7 @@ export interface ProjectsApiInterface {
      * @throws {RequiredError}
      * @memberof ProjectsApiInterface
      */
-    projectsQueryControllerFindAll(status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED', tags?: string, search?: string, ownerSlug?: string, sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options?: AxiosRequestConfig): AxiosPromise<ProjectListResponseDto>;
+    projectsQueryControllerFindAll(status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED', tags?: string, search?: string, ownerSlug?: string, pinned?: boolean, sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options?: AxiosRequestConfig): AxiosPromise<ProjectListResponseDto>;
 
     /**
      * Retrieve detailed information about a specific project
@@ -1152,6 +1371,19 @@ export interface ProjectsApiInterface {
      * @memberof ProjectsApiInterface
      */
     projectsQueryControllerGetProjectMembers(slug: string, roleSlug?: string, options?: AxiosRequestConfig): AxiosPromise<Array<ProjectMemberDto>>;
+
+    /**
+     * Retrieve all projects saved by the current user with pagination
+     * @summary Get saved projects
+     * @param {'asc' | 'desc'} [sortOrder] Sort direction
+     * @param {'createdAt' | 'updatedAt' | 'dueDate' | 'title'} [sortBy] Field to sort by
+     * @param {number} [limit] Number of items per page (minimum: 1, maximum: 100)
+     * @param {number} [page] Page number for pagination (minimum: 1)
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApiInterface
+     */
+    projectsQueryControllerGetSavedProjects(sortOrder?: 'asc' | 'desc', sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title', limit?: number, page?: number, options?: AxiosRequestConfig): AxiosPromise<ProjectListResponseDto>;
 
 }
 
@@ -1254,6 +1486,34 @@ export interface ProjectsApiProjectsCommandControllerReviewApplicationRequest {
 }
 
 /**
+ * Request parameters for projectsCommandControllerSaveProject operation in ProjectsApi.
+ * @export
+ * @interface ProjectsApiProjectsCommandControllerSaveProjectRequest
+ */
+export interface ProjectsApiProjectsCommandControllerSaveProjectRequest {
+    /**
+     * Project slug to save
+     * @type {string}
+     * @memberof ProjectsApiProjectsCommandControllerSaveProject
+     */
+    readonly slug: string
+}
+
+/**
+ * Request parameters for projectsCommandControllerUnsaveProject operation in ProjectsApi.
+ * @export
+ * @interface ProjectsApiProjectsCommandControllerUnsaveProjectRequest
+ */
+export interface ProjectsApiProjectsCommandControllerUnsaveProjectRequest {
+    /**
+     * Project slug to unsave
+     * @type {string}
+     * @memberof ProjectsApiProjectsCommandControllerUnsaveProject
+     */
+    readonly slug: string
+}
+
+/**
  * Request parameters for projectsCommandControllerUpdate operation in ProjectsApi.
  * @export
  * @interface ProjectsApiProjectsCommandControllerUpdateRequest
@@ -1328,6 +1588,13 @@ export interface ProjectsApiProjectsQueryControllerFindAllRequest {
      * @memberof ProjectsApiProjectsQueryControllerFindAll
      */
     readonly ownerSlug?: string
+
+    /**
+     * Filter to show only pinned projects (requires authentication)
+     * @type {boolean}
+     * @memberof ProjectsApiProjectsQueryControllerFindAll
+     */
+    readonly pinned?: boolean
 
     /**
      * Sort direction
@@ -1429,6 +1696,41 @@ export interface ProjectsApiProjectsQueryControllerGetProjectMembersRequest {
 }
 
 /**
+ * Request parameters for projectsQueryControllerGetSavedProjects operation in ProjectsApi.
+ * @export
+ * @interface ProjectsApiProjectsQueryControllerGetSavedProjectsRequest
+ */
+export interface ProjectsApiProjectsQueryControllerGetSavedProjectsRequest {
+    /**
+     * Sort direction
+     * @type {'asc' | 'desc'}
+     * @memberof ProjectsApiProjectsQueryControllerGetSavedProjects
+     */
+    readonly sortOrder?: 'asc' | 'desc'
+
+    /**
+     * Field to sort by
+     * @type {'createdAt' | 'updatedAt' | 'dueDate' | 'title'}
+     * @memberof ProjectsApiProjectsQueryControllerGetSavedProjects
+     */
+    readonly sortBy?: 'createdAt' | 'updatedAt' | 'dueDate' | 'title'
+
+    /**
+     * Number of items per page (minimum: 1, maximum: 100)
+     * @type {number}
+     * @memberof ProjectsApiProjectsQueryControllerGetSavedProjects
+     */
+    readonly limit?: number
+
+    /**
+     * Page number for pagination (minimum: 1)
+     * @type {number}
+     * @memberof ProjectsApiProjectsQueryControllerGetSavedProjects
+     */
+    readonly page?: number
+}
+
+/**
  * ProjectsApi - object-oriented interface
  * @export
  * @class ProjectsApi
@@ -1508,6 +1810,30 @@ export class ProjectsApi extends BaseAPI implements ProjectsApiInterface {
     }
 
     /**
+     * Save a project to your personal saved projects list for easy access later.
+     * @summary Save a project
+     * @param {ProjectsApiProjectsCommandControllerSaveProjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApi
+     */
+    public projectsCommandControllerSaveProject(requestParameters: ProjectsApiProjectsCommandControllerSaveProjectRequest, options?: AxiosRequestConfig) {
+        return ProjectsApiFp(this.configuration).projectsCommandControllerSaveProject(requestParameters.slug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Remove a project from your personal saved projects list.
+     * @summary Unsave a project
+     * @param {ProjectsApiProjectsCommandControllerUnsaveProjectRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApi
+     */
+    public projectsCommandControllerUnsaveProject(requestParameters: ProjectsApiProjectsCommandControllerUnsaveProjectRequest, options?: AxiosRequestConfig) {
+        return ProjectsApiFp(this.configuration).projectsCommandControllerUnsaveProject(requestParameters.slug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
      * Update project details. Only the project owner can update the project.
      * @summary Update a project
      * @param {ProjectsApiProjectsCommandControllerUpdateRequest} requestParameters Request parameters.
@@ -1532,7 +1858,7 @@ export class ProjectsApi extends BaseAPI implements ProjectsApiInterface {
     }
 
     /**
-     * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. No authentication required.
+     * Retrieve a paginated list of projects with optional filtering by status, tags, search term, and owner. Use ?pinned=true with authentication to get pinned projects.
      * @summary Get all projects with filtering and pagination
      * @param {ProjectsApiProjectsQueryControllerFindAllRequest} requestParameters Request parameters.
      * @param {*} [options] Override http request option.
@@ -1540,7 +1866,7 @@ export class ProjectsApi extends BaseAPI implements ProjectsApiInterface {
      * @memberof ProjectsApi
      */
     public projectsQueryControllerFindAll(requestParameters: ProjectsApiProjectsQueryControllerFindAllRequest = {}, options?: AxiosRequestConfig) {
-        return ProjectsApiFp(this.configuration).projectsQueryControllerFindAll(requestParameters.status, requestParameters.tags, requestParameters.search, requestParameters.ownerSlug, requestParameters.sortOrder, requestParameters.sortBy, requestParameters.limit, requestParameters.page, options).then((request) => request(this.axios, this.basePath));
+        return ProjectsApiFp(this.configuration).projectsQueryControllerFindAll(requestParameters.status, requestParameters.tags, requestParameters.search, requestParameters.ownerSlug, requestParameters.pinned, requestParameters.sortOrder, requestParameters.sortBy, requestParameters.limit, requestParameters.page, options).then((request) => request(this.axios, this.basePath));
     }
 
     /**
@@ -1611,5 +1937,17 @@ export class ProjectsApi extends BaseAPI implements ProjectsApiInterface {
      */
     public projectsQueryControllerGetProjectMembers(requestParameters: ProjectsApiProjectsQueryControllerGetProjectMembersRequest, options?: AxiosRequestConfig) {
         return ProjectsApiFp(this.configuration).projectsQueryControllerGetProjectMembers(requestParameters.slug, requestParameters.roleSlug, options).then((request) => request(this.axios, this.basePath));
+    }
+
+    /**
+     * Retrieve all projects saved by the current user with pagination
+     * @summary Get saved projects
+     * @param {ProjectsApiProjectsQueryControllerGetSavedProjectsRequest} requestParameters Request parameters.
+     * @param {*} [options] Override http request option.
+     * @throws {RequiredError}
+     * @memberof ProjectsApi
+     */
+    public projectsQueryControllerGetSavedProjects(requestParameters: ProjectsApiProjectsQueryControllerGetSavedProjectsRequest = {}, options?: AxiosRequestConfig) {
+        return ProjectsApiFp(this.configuration).projectsQueryControllerGetSavedProjects(requestParameters.sortOrder, requestParameters.sortBy, requestParameters.limit, requestParameters.page, options).then((request) => request(this.axios, this.basePath));
     }
 }

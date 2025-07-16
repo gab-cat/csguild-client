@@ -13,12 +13,15 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { SavedProjectDto } from './saved-project-dto';
 
-export * from './api/app-api';
-export * from './api/authentication-api';
-export * from './api/facilities-api';
-export * from './api/projects-api';
-export * from './api/projects-admin-api';
-export * from './api/roles-api';
-export * from './api/users-api';
+/**
+ * @type SaveProjectResponseDtoSavedProject
+ * Details of the saved project
+ * @export
+ */
+export type SaveProjectResponseDtoSavedProject = SavedProjectDto;
+
 

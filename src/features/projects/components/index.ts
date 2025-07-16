@@ -3,6 +3,7 @@ export { CreateProjectModal } from './create-project-modal';
 export { MyApplicationsPageClient } from './my-applications/my-applications-page-client';
 export { MyProjectCard } from './my-projects/my-project-card';
 export { MyProjectsPageClient } from './my-projects/my-projects-page-client';
+export { PinnedProjectsSection } from './projects/pinned-projects-section';
 export { ProjectApplicationForm } from './projects/project-application-form';
 export { ProjectCard } from './projects/project-card';
 export { ProjectDetailClient } from './projects/project-detail-client';

@@ -13,12 +13,33 @@
  */
 
 
+// May contain unused imports in some cases
+// @ts-ignore
+import { PinProjectResponseDtoPinnedProject } from './pin-project-response-dto-pinned-project';
 
-export * from './api/app-api';
-export * from './api/authentication-api';
-export * from './api/facilities-api';
-export * from './api/projects-api';
-export * from './api/projects-admin-api';
-export * from './api/roles-api';
-export * from './api/users-api';
+/**
+ * 
+ * @export
+ * @interface PinProjectResponseDto
+ */
+export interface PinProjectResponseDto {
+    /**
+     * Success message
+     * @type {string}
+     * @memberof PinProjectResponseDto
+     */
+    'message': string;
+    /**
+     * HTTP status code
+     * @type {number}
+     * @memberof PinProjectResponseDto
+     */
+    'statusCode': number;
+    /**
+     * 
+     * @type {PinProjectResponseDtoPinnedProject}
+     * @memberof PinProjectResponseDto
+     */
+    'pinnedProject': PinProjectResponseDtoPinnedProject;
+}
 

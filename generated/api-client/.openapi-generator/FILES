@@ -5,6 +5,7 @@ api.ts
 api/app-api.ts
 api/authentication-api.ts
 api/facilities-api.ts
+api/projects-admin-api.ts
 api/projects-api.ts
 api/roles-api.ts
 api/users-api.ts
@@ -44,6 +45,10 @@ models/login-dto.ts
 models/my-applications-response-dto.ts
 models/my-projects-response-dto.ts
 models/pagination-dto.ts
+models/pin-project-error-response-dto.ts
+models/pin-project-response-dto-pinned-project.ts
+models/pin-project-response-dto.ts
+models/pinned-project-dto.ts
 models/project-application-dto-project-member.ts
 models/project-application-dto-project-role-role.ts
 models/project-application-dto-project-role.ts
@@ -72,7 +77,15 @@ models/rfid-login-response-dto.ts
 models/rfid-registration-response-dto.ts
 models/role-list-response-dto.ts
 models/role-response-dto.ts
+models/save-project-error-response-dto.ts
+models/save-project-response-dto-saved-project.ts
+models/save-project-response-dto.ts
+models/saved-project-dto.ts
 models/send-email-verification-dto.ts
+models/unpin-project-error-response-dto.ts
+models/unpin-project-response-dto.ts
+models/unsave-project-error-response-dto.ts
+models/unsave-project-response-dto.ts
 models/update-facility-dto.ts
 models/update-project-dto.ts
 models/update-project-status-dto.ts

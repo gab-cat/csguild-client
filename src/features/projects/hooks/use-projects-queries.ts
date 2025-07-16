@@ -21,6 +21,10 @@ export const projectsQueryKeys = {
   lists: () => [...projectsQueryKeys.all, 'list'] as const,
   list: (filters?: ProjectFilters) => 
     [...projectsQueryKeys.lists(), { filters }] as const,
+  pinned: () => [...projectsQueryKeys.all, 'pinned'] as const,
+  saved: () => [...projectsQueryKeys.all, 'saved'] as const,
+  savedList: (filters?: { page?: number; limit?: number }) => 
+    [...projectsQueryKeys.saved(), { filters }] as const,
   details: () => [...projectsQueryKeys.all, 'detail'] as const,
   detail: (slug: string) => [...projectsQueryKeys.details(), slug] as const,
   members: (slug: string, roleSlug?: string) => 
@@ -49,11 +53,30 @@ export function useProjects(filters?: ProjectFilters) {
         limit: filters.limit,
         sortBy: filters.sortBy,
         sortOrder: filters.sortOrder,
+        pinned: filters.pinned,
       } : undefined
       
       return projectsApi.getProjects(params)
     },
     staleTime: 5 * 60 * 1000, // 5 minutes
+  })
+}
+
+// Get pinned projects
+export function usePinnedProjects() {
+  return useQuery({
+    queryKey: projectsQueryKeys.pinned(),
+    queryFn: () => projectsApi.getPinnedProjects(),
+    staleTime: 10 * 60 * 1000, // 10 minutes - pinned projects don't change often
+  })
+}
+
+// Get saved projects
+export function useSavedProjects(filters?: { page?: number; limit?: number }) {
+  return useQuery({
+    queryKey: projectsQueryKeys.savedList(filters),
+    queryFn: () => projectsApi.getSavedProjects(filters),
+    staleTime: 2 * 60 * 1000, // 2 minutes
   })
 }
 
@@ -378,6 +401,50 @@ export function useReactivateProjectMember() {
           : memberName
             ? `Failed to reactivate ${memberName}. Please try again.`
             : 'Failed to reactivate member. Please try again.'
+      )
+    },
+  })
+}
+
+// Save project mutation
+export function useSaveProject() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (slug: string) => projectsApi.saveProject(slug),
+    onSuccess: () => {
+      showSuccessToast('Project Saved', 'Project has been added to your saved list')
+      
+      // Invalidate saved projects list
+      queryClient.invalidateQueries({ queryKey: projectsQueryKeys.saved() })
+      queryClient.invalidateQueries({ queryKey: projectsQueryKeys.myProjects() })
+    },
+    onError: (error) => {
+      showErrorToast(
+        'Failed to Save Project',
+        error instanceof Error ? error.message : 'Please try again.'
+      )
+    },
+  })
+}
+
+// Unsave project mutation
+export function useUnsaveProject() {
+  const queryClient = useQueryClient()
+
+  return useMutation({
+    mutationFn: (slug: string) => projectsApi.unsaveProject(slug),
+    onSuccess: () => {
+      showSuccessToast('Project Unsaved', 'Project has been removed from your saved list')
+      
+      // Invalidate saved projects list
+      queryClient.invalidateQueries({ queryKey: projectsQueryKeys.saved() })
+      queryClient.invalidateQueries({ queryKey: projectsQueryKeys.myProjects() })
+    },
+    onError: (error) => {
+      showErrorToast(
+        'Failed to Unsave Project',
+        error instanceof Error ? error.message : 'Please try again.'
       )
     },
   })

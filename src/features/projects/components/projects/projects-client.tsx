@@ -3,7 +3,7 @@
 import { motion } from 'framer-motion'
 import { Plus, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useMemo } from 'react'
 
 import { AuthGuard } from '@/components/shared/auth-guard'
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
@@ -11,10 +11,11 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useAuthStore } from '@/features/auth'
 
-import { useProjects, useProjectFilters } from '../../hooks'
+import { useProjects, useProjectFilters, useSavedProjects } from '../../hooks'
 import { toProjectCard } from '../../types'
 import { CreateProjectModal } from '../create-project-modal'
 
+import { PinnedProjectsSection } from './pinned-projects-section'
 import { ProjectCard } from './project-card'
 import { ProjectFiltersComponent } from './project-filters'
 
@@ -25,7 +26,19 @@ export function ProjectsClient() {
   const filters = useProjectFilters()
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
-  const { data: projectsData, isLoading, error } = useProjects(filters)
+  // Get regular projects (excluding pinned ones)
+  const regularFilters = useMemo(() => ({
+    ...filters,
+    pinned: false, // Explicitly exclude pinned projects
+  }), [filters])
+
+  const { data: projectsData, isLoading, error } = useProjects(regularFilters)
+  const { data: savedProjectsData } = useSavedProjects()
+
+  // Create a set of saved project slugs for quick lookup
+  const savedProjectSlugs = useMemo(() => {
+    return new Set(savedProjectsData?.data?.map(project => project.slug) || [])
+  }, [savedProjectsData])
 
   const handleCreateButtonClick = useCallback(() => {
     setIsProjectModalOpen(true)
@@ -46,6 +59,9 @@ export function ProjectsClient() {
   return (
     <div className="relative min-h-screen">
       <div className="container mx-auto px-4 py-8 space-y-8">
+
+        {/* Pinned Projects Section */}
+        <PinnedProjectsSection />
 
         {/* Filters and Create Button */}
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
@@ -121,13 +137,14 @@ export function ProjectsClient() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5 }}
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
           >
             {validProjects.map((project, index) => (
               <ProjectCard
                 key={project.id}
                 project={project}
                 index={index}
+                isSaved={savedProjectSlugs.has(project.slug)}
               />
             ))}
           </motion.div>

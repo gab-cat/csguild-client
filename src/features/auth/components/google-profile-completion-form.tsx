@@ -38,20 +38,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+import { cn, generateRandomId } from '@/lib/utils'
 
+import { COURSE_OPTIONS } from '../constants/course-options'
 import { useUpdateUserProfileMutation } from '../hooks'
 import { googleUserUpdateSchema, type GoogleUserUpdateData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
-
-// Predefined course options
-const courseOptions = [
-  { value: 'bs-computer-science', label: 'BS Computer Science' },
-  { value: 'bs-information-technology', label: 'BS Information Technology' },
-  { value: 'bs-information-systems', label: 'BS Information Systems' },
-  { value: 'bs-digital-illustration-animation', label: 'BS Digital Illustration and Animation' },
-  { value: 'custom', label: 'Other (specify below)' },
-]
 
 export function GoogleProfileCompletionForm() {
   const router = useRouter()
@@ -97,11 +89,11 @@ export function GoogleProfileCompletionForm() {
         
         // Set course dropdown based on existing data
         if (user.course) {
-          const predefinedCourse = courseOptions.find(option => option.label === user.course)
+          const predefinedCourse = COURSE_OPTIONS.find(option => option.label === user.course)
           if (predefinedCourse) {
             setSelectedCourse(predefinedCourse.value)
           } else {
-            setSelectedCourse('custom')
+            setSelectedCourse('others')
             setCustomCourse(user.course)
           }
         }
@@ -189,10 +181,10 @@ export function GoogleProfileCompletionForm() {
     setSelectedCourse(value)
     setCourseDropdownOpen(false)
     
-    if (value === 'custom') {
+    if (value === 'others') {
       setValue('course', customCourse)
     } else {
-      const selectedOption = courseOptions.find(option => option.value === value)
+      const selectedOption = COURSE_OPTIONS.find(option => option.value === value)
       if (selectedOption) {
         setValue('course', selectedOption.label)
         setCustomCourse('')
@@ -229,6 +221,19 @@ export function GoogleProfileCompletionForm() {
       window.location.reload()
     } catch (error) {
       console.error('Profile update error:', error)
+    }
+  }
+
+  const handleSkipRfid = async () => {
+    try {
+      // Generate a random 8-character ID when skipping RFID setup
+      const randomId = generateRandomId()
+      const data: GoogleUserUpdateData = { rfidId: randomId }
+      
+      await updateProfileMutation.mutateAsync(data)
+      window.location.reload()
+    } catch (error) {
+      console.error('Skip RFID error:', error)
     }
   }
 
@@ -412,7 +417,7 @@ export function GoogleProfileCompletionForm() {
                       <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pink-400 h-5 w-5" />
                       <span className="flex-1 text-left ml-6">
                         {selectedCourse
-                          ? courseOptions.find((course) => course.value === selectedCourse)?.label
+                          ? COURSE_OPTIONS.find((course) => course.value === selectedCourse)?.label
                           : "Select your course..."}
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -427,7 +432,7 @@ export function GoogleProfileCompletionForm() {
                       <CommandList>
                         <CommandEmpty className="text-gray-400 p-4">No course found.</CommandEmpty>
                         <CommandGroup>
-                          {courseOptions.map((course) => (
+                          {COURSE_OPTIONS.map((course) => (
                             <CommandItem
                               key={course.value}
                               value={course.value}
@@ -451,7 +456,7 @@ export function GoogleProfileCompletionForm() {
               </div>
 
               {/* Custom Course Input (shown when "Other" is selected) */}
-              {selectedCourse === 'custom' && (
+              {selectedCourse === 'others' && (
                 <div className="relative">
                   <Input
                     value={customCourse}
@@ -539,8 +544,8 @@ export function GoogleProfileCompletionForm() {
               </div>
             </div>
 
-            {/* Scan Button */}
-            <div className="flex justify-center">
+            {/* Scan Buttons */}
+            <div className="flex justify-center gap-3">
               <Button
                 type="button"
                 onClick={handleStartScanning}
@@ -560,6 +565,17 @@ export function GoogleProfileCompletionForm() {
                     <span>Start Scanning</span>
                   </div>
                 )}
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={handleSkipRfid}
+                disabled={isScanning || updateProfileMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10 transition-all duration-300"
+              >
+                <span>Skip & Generate ID</span>
               </Button>
             </div>
 
@@ -630,6 +646,9 @@ export function GoogleProfileCompletionForm() {
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
           <p className="text-sm text-blue-400 font-space-mono">
             {"// You can skip optional fields and complete them later in your profile settings"}
+          </p>
+          <p className="text-xs text-blue-300 mt-2">
+            For RFID setup, you can skip and we&apos;ll generate a temporary ID for you.
           </p>
         </div>
 

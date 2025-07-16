@@ -11,11 +11,13 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
 
-import { useMyProjects } from '../../hooks/use-projects-queries'
+import { useMyProjects, useSavedProjects } from '../../hooks/use-projects-queries'
 import { toProjectCard } from '../../types'
 import type { ProjectStatus } from '../../types'
 import { CreateProjectModal } from '../create-project-modal'
+import { ProjectCard } from '../projects/project-card'
 
 import { MyProjectCard } from './my-project-card'
 
@@ -23,13 +25,17 @@ export function MyProjectsPageClient() {
   const [searchQuery, setSearchQuery] = useState('')
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<ProjectStatus | 'ALL'>('ALL')
-  const [activeTab, setActiveTab] = useState<'owned' | 'member'>('owned')
+  const [activeTab, setActiveTab] = useState<'owned' | 'member' | 'saved'>('owned')
 
   const searchParams = useSearchParams()
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
   const currentLimit = parseInt(searchParams.get('limit') || '12', 10)
 
   const { data: myProjectsData, isLoading, error } = useMyProjects()
+  const { data: savedProjectsData, isLoading: isSavedLoading } = useSavedProjects({
+    page: currentPage,
+    limit: currentLimit,
+  })
 
   // Get filtered owned projects
   const allFilteredOwnedProjects = useMemo(() => {
@@ -57,10 +63,25 @@ export function MyProjectsPageClient() {
       }) || []
   }, [myProjectsData?.memberProjects, searchQuery, statusFilter])
 
+  // Get filtered saved projects
+  const allFilteredSavedProjects = useMemo(() => {
+    return savedProjectsData?.data
+      ?.map(toProjectCard)
+      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+      .filter((project) => {
+        const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                             project.description.toLowerCase().includes(searchQuery.toLowerCase())
+        const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
+        return matchesSearch && matchesStatus
+      }) || []
+  }, [savedProjectsData?.data, searchQuery, statusFilter])
+
   // Current projects to display based on active tab
   const currentProjects = useMemo(() => {
-    return activeTab === 'owned' ? allFilteredOwnedProjects : allFilteredMemberProjects
-  }, [activeTab, allFilteredOwnedProjects, allFilteredMemberProjects])
+    if (activeTab === 'owned') return allFilteredOwnedProjects
+    if (activeTab === 'member') return allFilteredMemberProjects
+    return allFilteredSavedProjects
+  }, [activeTab, allFilteredOwnedProjects, allFilteredMemberProjects, allFilteredSavedProjects])
 
   // Get paginated projects
   const paginatedProjects = useMemo(() => {
@@ -70,7 +91,7 @@ export function MyProjectsPageClient() {
   }, [currentProjects, currentPage, currentLimit])
 
   // Early loading return
-  if (isLoading) {
+  if (isLoading || (activeTab === 'saved' && isSavedLoading)) {
     return (
       <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
@@ -167,6 +188,7 @@ export function MyProjectsPageClient() {
   // Safe access to project counts
   const totalOwnedProjects = myProjectsData?.ownedProjects?.length || 0
   const totalMemberProjects = myProjectsData?.memberProjects?.length || 0
+  const totalSavedProjects = savedProjectsData?.pagination?.total || 0
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
@@ -205,152 +227,264 @@ export function MyProjectsPageClient() {
           </div>
         </motion.div>
 
-        {/* Tab Navigation */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.05 }}
-          className="mb-6"
+        {/* Tab Navigation and Content */}
+        <Tabs 
+          value={activeTab} 
+          onValueChange={(value) => setActiveTab(value as 'owned' | 'member' | 'saved')}
+          className="w-full"
         >
-          <Card className="bg-gray-900/50 border-gray-800 p-2">
-            <CardContent className="">
-              <div className="flex items-center gap-2">
-                <Button
-                  size="sm"
-                  variant={activeTab === 'owned' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('owned')}
-                  className={
-                    activeTab === 'owned'
-                      ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'
-                  }
-                >
-                  My Projects ({myProjectsData?.ownedProjects?.length || 0})
-                </Button>
-                <Button
-                  size="sm"
-                  variant={activeTab === 'member' ? 'default' : 'outline'}
-                  onClick={() => setActiveTab('member')}
-                  className={
-                    activeTab === 'member'
-                      ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
-                      : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'
-                  }
-                >
-                  Member Of ({myProjectsData?.memberProjects?.length || 0})
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Search and Filters */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="mb-6"
-        >
-          <Card className="bg-gray-900/50 border-gray-800">
-            <CardContent className="py-0">
-              <div className="flex flex-col sm:flex-row gap-4">
-                {/* Search */}
-                <div className="relative flex-1">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
-                  <Input
-                    placeholder="Search your projects..."
-                    value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
-                  />
-                </div>
-
-                {/* Status Filter */}
-                <div className="flex items-center gap-2">
-                  <Filter className="text-gray-400 w-4 h-4" />
-                  <div className="flex gap-1">
-                    {statusOptions.map((option) => (
-                      <Button
-                        key={option.value}
-                        size="sm"
-                        variant={statusFilter === option.value ? 'default' : 'outline'}
-                        onClick={() => setStatusFilter(option.value)}
-                        className={
-                          statusFilter === option.value
-                            ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
-                            : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'
-                        }
-                      >
-                        {option.label}
-                      </Button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </motion.div>
-
-        {/* Projects List */}
-        {currentProjects.length === 0 ? (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="flex flex-col items-center justify-center min-h-[40vh] text-center"
+            transition={{ delay: 0.05 }}
+            className="mb-6"
           >
-            <FolderOpen className="w-16 h-16 text-gray-600 mb-4" />
-            <h2 className="text-xl font-semibold text-white mb-2">
-              {searchQuery || statusFilter !== 'ALL' ? 'No projects found' : 
-                activeTab === 'owned' ? 'No owned projects yet' : 'Not a member of any projects yet'}
-            </h2>
-            <p className="text-gray-400 mb-6 max-w-md">
-              {searchQuery || statusFilter !== 'ALL' 
-                ? 'Try adjusting your search or filter criteria.'
-                : activeTab === 'owned' 
-                  ? 'You haven\'t created any projects yet. Start by creating your first project!'
-                  : 'You haven\'t joined any projects yet. Browse available projects to find opportunities!'}
-            </p>
-            {(!searchQuery && statusFilter === 'ALL' && activeTab === 'owned') && (
-              <Button 
-                onClick={() => setIsCreateModalOpen(true)}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
+            <TabsList className="bg-gray-900/80 border border-gray-800 h-12 p-1 rounded-lg">
+              <TabsTrigger 
+                value="owned"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md font-medium"
               >
-                <Plus className="w-4 h-4 mr-2" />
-                Create Your First Project
-              </Button>
-            )}
+                My Projects ({myProjectsData?.ownedProjects?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="member"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md font-medium"
+              >
+                Member Of ({myProjectsData?.memberProjects?.length || 0})
+              </TabsTrigger>
+              <TabsTrigger 
+                value="saved"
+                className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md font-medium"
+              >
+                Saved ({savedProjectsData?.pagination?.total || 0})
+              </TabsTrigger>
+            </TabsList>
           </motion.div>
-        ) : (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.2 }}
-            className="space-y-6"
-          >
-            {/* Projects Grid */}
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {paginatedProjects.map((project, index) => (
-                <MyProjectCard 
-                  key={project.slug} 
-                  project={project} 
-                  index={index}
-                />
-              ))}
-            </div>
 
-            {/* Pagination */}
-            <SimplePaginationControl
-              key={`pagination-${activeTab}`}
-              currentPage={currentPage}
-              currentLimit={currentLimit}
-              total={currentProjects.length}
-              showLimitSelector={true}
-              showInfo={true}
-              className="mt-6"
-            />
+          {/* Search and Filters */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="mb-6"
+          >
+            <Card className="bg-gray-900/50 border-gray-800">
+              <CardContent className="py-0">
+                <div className="flex flex-col sm:flex-row gap-4">
+                  {/* Search */}
+                  <div className="relative flex-1">
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 w-4 h-4" />
+                    <Input
+                      placeholder="Search your projects..."
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      className="pl-10 bg-gray-800 border-gray-700 text-white placeholder-gray-400"
+                    />
+                  </div>
+
+                  {/* Status Filter */}
+                  <div className="flex items-center gap-2">
+                    <Filter className="text-gray-400 w-4 h-4" />
+                    <div className="flex gap-1">
+                      {statusOptions.map((option) => (
+                        <Button
+                          key={option.value}
+                          size="sm"
+                          variant={statusFilter === option.value ? 'default' : 'outline'}
+                          onClick={() => setStatusFilter(option.value)}
+                          className={
+                            statusFilter === option.value
+                              ? 'bg-purple-600 hover:bg-purple-700 text-white border-purple-600'
+                              : 'bg-gray-800 hover:bg-gray-700 text-gray-300 border-gray-600'
+                          }
+                        >
+                          {option.label}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
           </motion.div>
-        )}
+
+          {/* Tab Content */}
+          <TabsContent value="owned" className="mt-0">
+            {activeTab === 'owned' && (
+              <>
+                {/* Projects List */}
+                {allFilteredOwnedProjects.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col items-center justify-center min-h-[40vh] text-center"
+                  >
+                    <FolderOpen className="w-16 h-16 text-gray-600 mb-4" />
+                    <h2 className="text-xl font-semibold text-white mb-2">
+                      {searchQuery || statusFilter !== 'ALL' ? 'No projects found' : 'No owned projects yet'}
+                    </h2>
+                    <p className="text-gray-400 mb-6 max-w-md">
+                      {searchQuery || statusFilter !== 'ALL' 
+                        ? 'Try adjusting your search or filter criteria.'
+                        : 'You haven\'t created any projects yet. Start by creating your first project!'}
+                    </p>
+                    {(!searchQuery && statusFilter === 'ALL') && (
+                      <Button 
+                        onClick={() => setIsCreateModalOpen(true)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white"
+                      >
+                        <Plus className="w-4 h-4 mr-2" />
+                        Create Your First Project
+                      </Button>
+                    )}
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="space-y-6"
+                  >
+                    {/* Projects Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {paginatedProjects.map((project, index) => (
+                        <MyProjectCard 
+                          key={project.slug} 
+                          project={project} 
+                          index={index}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <SimplePaginationControl
+                      key={`pagination-${activeTab}`}
+                      currentPage={currentPage}
+                      currentLimit={currentLimit}
+                      total={allFilteredOwnedProjects.length}
+                      showLimitSelector={true}
+                      showInfo={true}
+                      className="mt-6"
+                    />
+                  </motion.div>
+                )}
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="member" className="mt-0">
+            {activeTab === 'member' && (
+              <>
+                {/* Projects List */}
+                {allFilteredMemberProjects.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col items-center justify-center min-h-[40vh] text-center"
+                  >
+                    <FolderOpen className="w-16 h-16 text-gray-600 mb-4" />
+                    <h2 className="text-xl font-semibold text-white mb-2">
+                      {searchQuery || statusFilter !== 'ALL' ? 'No projects found' : 'Not a member of any projects yet'}
+                    </h2>
+                    <p className="text-gray-400 mb-6 max-w-md">
+                      {searchQuery || statusFilter !== 'ALL' 
+                        ? 'Try adjusting your search or filter criteria.'
+                        : 'You haven\'t joined any projects yet. Browse available projects to find opportunities!'}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="space-y-6"
+                  >
+                    {/* Projects Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {paginatedProjects.map((project, index) => (
+                        <MyProjectCard 
+                          key={project.slug} 
+                          project={project} 
+                          index={index}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <SimplePaginationControl
+                      key={`pagination-${activeTab}`}
+                      currentPage={currentPage}
+                      currentLimit={currentLimit}
+                      total={allFilteredMemberProjects.length}
+                      showLimitSelector={true}
+                      showInfo={true}
+                      className="mt-6"
+                    />
+                  </motion.div>
+                )}
+              </>
+            )}
+          </TabsContent>
+
+          <TabsContent value="saved" className="mt-0">
+            {activeTab === 'saved' && (
+              <>
+                {/* Projects List */}
+                {allFilteredSavedProjects.length === 0 ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.2 }}
+                    className="flex flex-col items-center justify-center min-h-[40vh] text-center"
+                  >
+                    <FolderOpen className="w-16 h-16 text-gray-600 mb-4" />
+                    <h2 className="text-xl font-semibold text-white mb-2">
+                      {searchQuery || statusFilter !== 'ALL' ? 'No projects found' : 'No saved projects yet'}
+                    </h2>
+                    <p className="text-gray-400 mb-6 max-w-md">
+                      {searchQuery || statusFilter !== 'ALL' 
+                        ? 'Try adjusting your search or filter criteria.'
+                        : 'You haven\'t saved any projects yet. Start exploring projects and save the ones that interest you!'}
+                    </p>
+                  </motion.div>
+                ) : (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="space-y-6"
+                  >
+                    {/* Projects Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+                      {paginatedProjects.map((project, index) => (
+                        <ProjectCard 
+                          key={project.slug} 
+                          project={project} 
+                          index={index}
+                          isSaved={true}
+                          isPinned={false}
+                        />
+                      ))}
+                    </div>
+
+                    {/* Pagination */}
+                    <SimplePaginationControl
+                      key={`pagination-${activeTab}`}
+                      currentPage={currentPage}
+                      currentLimit={currentLimit}
+                      total={allFilteredSavedProjects.length}
+                      showLimitSelector={true}
+                      showInfo={true}
+                      className="mt-6"
+                    />
+                  </motion.div>
+                )}
+              </>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Stats Summary */}
         {myProjectsData && (
@@ -361,12 +495,28 @@ export function MyProjectsPageClient() {
             className="mt-8 text-center text-gray-400"
           >
             <p>
-              Showing {paginatedProjects.length} of {currentProjects.length} {activeTab === 'owned' ? 'owned' : 'member'} projects
+              Showing {paginatedProjects.length} of {currentProjects.length} {
+                activeTab === 'owned' ? 'owned' : 
+                  activeTab === 'member' ? 'member' : 
+                    'saved'
+              } projects
               {activeTab === 'owned' && totalMemberProjects > 0 && (
                 <span> • You&apos;re also a member of {totalMemberProjects} other projects</span>
               )}
+              {activeTab === 'owned' && totalSavedProjects > 0 && (
+                <span> • You have {totalSavedProjects} saved projects</span>
+              )}
               {activeTab === 'member' && totalOwnedProjects > 0 && (
                 <span> • You own {totalOwnedProjects} projects</span>
+              )}
+              {activeTab === 'member' && totalSavedProjects > 0 && (
+                <span> • You have {totalSavedProjects} saved projects</span>
+              )}
+              {activeTab === 'saved' && totalOwnedProjects > 0 && (
+                <span> • You own {totalOwnedProjects} projects</span>
+              )}
+              {activeTab === 'saved' && totalMemberProjects > 0 && (
+                <span> • You&apos;re a member of {totalMemberProjects} projects</span>
               )}
             </p>
           </motion.div>
