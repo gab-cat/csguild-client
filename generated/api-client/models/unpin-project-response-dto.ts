@@ -14,11 +14,23 @@
 
 
 
-export * from './api/app-api';
-export * from './api/authentication-api';
-export * from './api/facilities-api';
-export * from './api/projects-api';
-export * from './api/projects-admin-api';
-export * from './api/roles-api';
-export * from './api/users-api';
+/**
+ * 
+ * @export
+ * @interface UnpinProjectResponseDto
+ */
+export interface UnpinProjectResponseDto {
+    /**
+     * Success message
+     * @type {string}
+     * @memberof UnpinProjectResponseDto
+     */
+    'message': string;
+    /**
+     * HTTP status code
+     * @type {number}
+     * @memberof UnpinProjectResponseDto
+     */
+    'statusCode': number;
+}
 

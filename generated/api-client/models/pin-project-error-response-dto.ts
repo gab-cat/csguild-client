@@ -14,11 +14,29 @@
 
 
 
-export * from './api/app-api';
-export * from './api/authentication-api';
-export * from './api/facilities-api';
-export * from './api/projects-api';
-export * from './api/projects-admin-api';
-export * from './api/roles-api';
-export * from './api/users-api';
+/**
+ * 
+ * @export
+ * @interface PinProjectErrorResponseDto
+ */
+export interface PinProjectErrorResponseDto {
+    /**
+     * Error message
+     * @type {string}
+     * @memberof PinProjectErrorResponseDto
+     */
+    'message': string;
+    /**
+     * HTTP status code
+     * @type {number}
+     * @memberof PinProjectErrorResponseDto
+     */
+    'statusCode': number;
+    /**
+     * Error type
+     * @type {string}
+     * @memberof PinProjectErrorResponseDto
+     */
+    'error': string;
+}
 
