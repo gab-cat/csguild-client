@@ -2,14 +2,28 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, User, Calendar, GraduationCap, ArrowRight, Loader2 } from 'lucide-react'
+import { Eye, EyeOff, Mail, Lock, User, Calendar, GraduationCap, ArrowRight, Loader2, ChevronDown, Check } from 'lucide-react'
 import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+} from '@/components/ui/command'
 import { Input } from '@/components/ui/input'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
+import { cn } from '@/lib/utils'
 
+import { COURSE_OPTIONS } from '../constants/course-options'
 import { registrationStep1Schema, type RegistrationStep1Data } from '../schemas'
 import { authApi } from '../utils/auth-api'
 
@@ -21,11 +35,16 @@ interface RegistrationStep1Props {
 export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Props) {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
+  const [courseDropdownOpen, setCourseDropdownOpen] = useState(false)
+  const [selectedCourse, setSelectedCourse] = useState('')
+  const [customCourse, setCustomCourse] = useState('')
 
   const {
     register,
     handleSubmit,
     formState: { errors, isSubmitting },
+    setValue,
+    watch,
     reset,
   } = useForm<RegistrationStep1Data>({
     resolver: zodResolver(registrationStep1Schema),
@@ -33,11 +52,48 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
     defaultValues: initialData || undefined,
   })
 
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const watchedCourse = watch('course')
+
   useEffect(() => {
     if (initialData) {
       reset(initialData)
+      
+      // Set course dropdown based on existing data
+      if (initialData.course) {
+        const predefinedCourse = COURSE_OPTIONS.find(option => option.label === initialData.course)
+        if (predefinedCourse) {
+          setSelectedCourse(predefinedCourse.value)
+        } else {
+          setSelectedCourse('others')
+          setCustomCourse(initialData.course)
+        }
+      }
     }
   }, [initialData, reset])
+
+  // Handle course selection
+  const handleCourseSelect = (value: string) => {
+    setSelectedCourse(value)
+    setCourseDropdownOpen(false)
+    
+    if (value === 'others') {
+      setValue('course', customCourse)
+    } else {
+      const selectedOption = COURSE_OPTIONS.find(option => option.value === value)
+      if (selectedOption) {
+        setValue('course', selectedOption.label)
+        setCustomCourse('')
+      }
+    }
+  }
+
+  // Handle custom course input
+  const handleCustomCourseChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const value = e.target.value
+    setCustomCourse(value)
+    setValue('course', value)
+  }
 
   const onSubmit = async (data: RegistrationStep1Data) => {
     onNext(data)
@@ -172,17 +228,68 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
           <label htmlFor="course" className="block text-sm font-medium text-gray-200">
             Course/Program
           </label>
-          <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <GraduationCap className="h-4 w-4 text-pink-400" />
+          <div className="space-y-3">
+            {/* Course Dropdown */}
+            <div className="relative">
+              <Popover open={courseDropdownOpen} onOpenChange={setCourseDropdownOpen}>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    role="combobox"
+                    aria-expanded={courseDropdownOpen}
+                    className="w-full justify-between bg-black/40 border-pink-500/30 text-white hover:bg-black/60 hover:border-pink-400 h-auto py-3"
+                  >
+                    <div className="flex items-center gap-3 flex-1">
+                      <GraduationCap className="h-4 w-4 text-pink-400 shrink-0" />
+                      <span className="truncate text-left">
+                        {selectedCourse 
+                          ? COURSE_OPTIONS.find(option => option.value === selectedCourse)?.label || customCourse || "Select course..."
+                          : "Select course..."
+                        }
+                      </span>
+                    </div>
+                    <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-full p-0 bg-black/90 border-pink-500/50">
+                  <Command>
+                    <CommandInput placeholder="Search courses..." className="text-white" />
+                    <CommandEmpty>No course found.</CommandEmpty>
+                    <CommandGroup>
+                      {COURSE_OPTIONS.map((option) => (
+                        <CommandItem
+                          key={option.value}
+                          value={option.value}
+                          onSelect={() => handleCourseSelect(option.value)}
+                          className="text-white hover:bg-pink-500/10"
+                        >
+                          <Check
+                            className={cn(
+                              "mr-2 h-4 w-4",
+                              selectedCourse === option.value ? "opacity-100" : "opacity-0"
+                            )}
+                          />
+                          {option.label}
+                        </CommandItem>
+                      ))}
+                    </CommandGroup>
+                  </Command>
+                </PopoverContent>
+              </Popover>
             </div>
-            <Input
-              {...register('course')}
-              type="text"
-              id="course"
-              placeholder="Bachelor of Science in Computer Science"
-              className="pl-10 bg-black/40 border-pink-500/30 text-white placeholder:text-gray-400 focus:border-pink-400 focus:ring-pink-400/20"
-            />
+
+            {/* Custom Course Input (shown when "Others" is selected) */}
+            {selectedCourse === 'others' && (
+              <div className="relative">
+                <Input
+                  value={customCourse}
+                  onChange={handleCustomCourseChange}
+                  type="text"
+                  placeholder="Enter your course name"
+                  className="w-full pl-4 pr-4 bg-black/40 border-pink-500/30 text-white placeholder:text-gray-400 focus:border-pink-400 focus:ring-pink-400/20"
+                />
+              </div>
+            )}
           </div>
           {errors.course && (
             <motion.p
@@ -207,7 +314,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
               {...register('birthdate')}
               type="date"
               id="birthdate"
-              className="pl-10 bg-black/40 border-pink-500/30 text-white focus:border-pink-400 focus:ring-pink-400/20"
+              className="pl-10 bg-black/40 border-pink-500/30 text-white focus:border-pink-400 focus:ring-pink-400/20 [&::-webkit-calendar-picker-indicator]:invert"
               autoComplete="bday"
             />
           </div>
