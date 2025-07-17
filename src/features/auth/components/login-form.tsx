@@ -18,7 +18,7 @@ import { authApi } from '../utils/auth-api'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
-  const { isLoading, error } = useAuthStore()
+  const { isLoading, error, setError } = useAuthStore()
   const loginMutation = useLoginMutation()
   const router = useRouter()
 
@@ -35,13 +35,11 @@ export function LoginForm() {
     try {
       await loginMutation.mutateAsync(data)
     } catch (error) {
-      // Error handling is done in the mutation
-      console.error('Login error:', error)
-      
       // Check if the error is related to unverified email
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      if (errorMessage.includes('UNVERIFIED EMAIL') || errorMessage.includes('verify')) {
+      // @ts-expect-error - not typed properly
+      if ((error as Error).statusCode === 409) {
         router.push(`/verify-email?email=${data.email}`)
+        setError('Please verify your email before logging in.')
       }
     }
   }
