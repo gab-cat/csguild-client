@@ -21,6 +21,11 @@ const createAxiosWithInterceptors = (): AxiosInstance => {
     async (error) => {
       const originalRequest = error.config
 
+      // If path is /api/auth/login, we don't want to refresh the token
+      if (originalRequest.url.includes('/api/auth/login')) {
+        return Promise.reject(error.response?.data || error)
+      }
+
       // If we get a 401 and haven't already tried to refresh, attempt token refresh
       if (error.response?.status === 401 && !originalRequest._retry && !isRefreshing) {
         originalRequest._retry = true

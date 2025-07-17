@@ -50,11 +50,16 @@ export function useLoginMutation() {
       }
     },
     onError: (error: Error) => {
-      setError(error.message || 'Login failed')
+      if (error.message.includes('locked')) {
+        setError(error.message)
+      } else {
+        setError('Invalid credentials. Double-check your email and password.')
+      }
+      
       setLoading(false)
       showErrorToast(
         'Login failed',
-        error.message || 'Invalid credentials. Double-check your email and password.'
+        'Invalid credentials. Double-check your email and password.'
       )
     },
   })
