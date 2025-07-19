@@ -81,6 +81,34 @@
 | `PATCH`  | `/roles/:slug` | Update role                | JWT Cookie + STAFF/ADMIN | `UpdateRoleDto`  | `200` - `UpdateRoleResponseDto` with updated role details           | Only staff/admin can update. Validates uniqueness.        |
 | `DELETE` | `/roles/:slug` | Delete role                | JWT Cookie + STAFF/ADMIN | None             | `200` - `{ message: "Role deleted successfully" }`                  | Only staff/admin can delete. Prevents deletion if in use. |
 
+### Event Management Endpoints
+
+| Method   | Endpoint                     | Description                        | Authentication           | Request Body           | Response Body                                                                            | Notes                                                                |
+| -------- | ---------------------------- | ---------------------------------- | ------------------------ | ---------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `GET`    | `/events`                    | Get all events with filtering      | None                     | Query parameters       | `200` - `EventListResponseDto` with events array, pagination meta, and filtering options | Public endpoint. Supports search, tags, organizer, pinned filtering. |
+| `GET`    | `/events/:slug`              | Get event by slug                  | None                     | None                   | `200` - `EventDetailResponseDto` with complete event details and organizer info          | Public endpoint. Returns detailed event information.                 |
+| `GET`    | `/events/pinned`             | Get all pinned events              | None                     | None                   | `200` - Array of `EventDetailResponseDto` objects                                        | Public endpoint. No pagination for pinned events.                    |
+| `GET`    | `/events/my-attended`        | Get current user's attended events | JWT Cookie               | Query parameters       | `200` - `EventListResponseDto` with attended events and pagination                       | Shows events user has attended with filtering options.               |
+| `GET`    | `/events/my-created`         | Get current user's created events  | JWT Cookie               | Query parameters       | `200` - `EventListResponseDto` with created events and pagination                        | Shows events user has organized with filtering options.              |
+| `GET`    | `/events/sessions/:slug`     | Get event sessions by slug         | JWT Cookie               | None                   | `200` - Event sessions data with attendee information                                    | Returns all attendees and their sessions for an event.               |
+| `GET`    | `/events/:eventId/attendees` | Get event attendees                | JWT Cookie               | Query: `page`, `limit` | `200` - `{ attendees: AttendeeInfo[], meta: PaginationMeta }` with attendance stats      | Paginated attendee list with attendance eligibility and duration.    |
+| `POST`   | `/events`                    | Create new event                   | JWT Cookie               | `CreateEventDto`       | `201` - `EventCreateResponseDto` with created event details                              | Auto-generates slug from title. Validates date constraints.          |
+| `PUT`    | `/events/:slug`              | Update event                       | JWT Cookie               | `UpdateEventDto`       | `200` - `EventUpdateResponseDto` with updated event details                              | Only event organizer can update. Cannot change organizer.            |
+| `DELETE` | `/events/:slug`              | Delete event                       | JWT Cookie               | None                   | `200` - `EventDeleteResponseDto` with success message                                    | Only event organizer can delete. Cascade deletes sessions.           |
+| `POST`   | `/events/sessions/toggle`    | Toggle event session (RFID)        | None                     | `{ rfidId, eventId }`  | `201` - `{ message, statusCode, data: { action, user, event, session } }`                | Smart check-in/check-out via RFID. Auto-detects action type.         |
+| `POST`   | `/admin/events/:slug/pin`    | Pin event (Admin only)             | JWT Cookie + ADMIN/STAFF | None                   | `200` - `EventPinResponseDto` with pinned event details                                  | Global pinning for visibility. Admin/Staff only.                     |
+| `DELETE` | `/admin/events/:slug/pin`    | Unpin event (Admin only)           | JWT Cookie + ADMIN/STAFF | None                   | `200` - `EventUnpinResponseDto` with unpinned event details                              | Remove from global pinned list. Admin/Staff only.                    |
+
+### Event Feedback Endpoints
+
+| Method | Endpoint                                | Description                       | Authentication           | Request Body                | Response Body                                                        | Notes                                                                     |
+| ------ | --------------------------------------- | --------------------------------- | ------------------------ | --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `POST` | `/feedback/forms`                       | Create feedback form              | JWT Cookie + ADMIN/STAFF | `CreateFeedbackFormDto`     | `201` - `FeedbackFormResponseDto` with form details and fields       | Create feedback forms for events. Admin/Staff only.                       |
+| `GET`  | `/feedback/forms/event/:eventId`        | Get feedback form (authenticated) | JWT Cookie               | None                        | `200` - `FeedbackFormResponseDto` with form structure and fields     | Get feedback form for event. Requires authentication.                     |
+| `GET`  | `/feedback/forms/event/:eventId/public` | Get feedback form (public token)  | None                     | Query: `token`, `userId`    | `200` - `FeedbackFormResponseDto` with form structure and fields     | Public access with secure token. No authentication required.              |
+| `POST` | `/feedback/responses`                   | Submit feedback (authenticated)   | JWT Cookie               | `SubmitFeedbackResponseDto` | `201` - `FeedbackSubmissionResponseDto` with submission confirmation | Submit feedback responses. Uses authenticated user ID.                    |
+| `POST` | `/feedback/responses/public`            | Submit feedback (public token)    | None                     | `SubmitFeedbackResponseDto` | `201` - `FeedbackSubmissionResponseDto` with submission confirmation | Public feedback submission with secure token. No authentication required. |
+
 ### System Endpoints
 
 | Method | Endpoint  | Description          | Authentication | Request Body | Response Body                                                         | Notes                  |
@@ -302,14 +330,21 @@
 }
 ```
 
-#### Reset Password (`POST /auth/reset-password`)
+#### Create Event (`POST /events`)
+
+**Authentication Required:** JWT Cookie in `Authorization` header
 
 **Request:**
 
 ```json
 {
-  "token": "abc123def456ghi789jkl012mno345pqr678stu901vwx234yz",
-  "newPassword": "MyNewStr0ngP@ssw0rd!"
+  "title": "CS Guild Tech Talk: Advanced React Patterns",
+  "imageUrl": "https://example.com/event-image.jpg",
+  "description": "Join us for an insightful tech talk on advanced React patterns and best practices. This session will cover custom hooks, compound components, and performance optimization techniques.",
+  "startDate": "2024-08-15T14:00:00.000Z",
+  "endDate": "2024-08-15T16:00:00.000Z",
+  "tags": ["tech-talk", "react", "frontend", "programming"],
+  "minimumAttendanceMinutes": 120
 }
 ```
 
@@ -317,8 +352,318 @@
 
 ```json
 {
-  "message": "Password reset successful. Please log in with your new password.",
-  "statusCode": 200
+  "message": "Event created successfully",
+  "statusCode": 201,
+  "event": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "slug": "cs-guild-tech-talk-advanced-react-patterns",
+    "title": "CS Guild Tech Talk: Advanced React Patterns",
+    "imageUrl": "https://example.com/event-image.jpg",
+    "description": "Join us for an insightful tech talk on advanced React patterns...",
+    "startDate": "2024-08-15T14:00:00.000Z",
+    "endDate": "2024-08-15T16:00:00.000Z",
+    "tags": ["tech-talk", "react", "frontend", "programming"],
+    "isPinned": false,
+    "organizedBy": "johndoe",
+    "createdAt": "2024-08-01T10:00:00.000Z",
+    "updatedAt": "2024-08-01T10:00:00.000Z"
+  }
+}
+```
+
+#### Get Events with Filtering (`GET /events`)
+
+**Authentication Required:** None (Public endpoint)
+
+**Query Parameters:**
+
+- `search` - Search in event title and description
+- `tags` - Comma-separated list of tags to filter by
+- `organizerSlug` - Filter by event organizer username
+- `pinned` - Filter to show only pinned events (boolean)
+- `page` - Page number for pagination (minimum: 1)
+- `limit` - Number of items per page (minimum: 1, maximum: 100)
+- `sortBy` - Field to sort by (createdAt, updatedAt, startDate, endDate, title)
+- `sortOrder` - Sort direction (asc, desc)
+
+**Example Request:**
+`GET /events?search=react&tags=tech-talk,frontend&page=1&limit=10&sortBy=startDate&sortOrder=asc`
+
+**Response:**
+
+```json
+{
+  "message": "Events retrieved successfully",
+  "statusCode": 200,
+  "events": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "slug": "cs-guild-tech-talk-advanced-react-patterns",
+      "title": "CS Guild Tech Talk: Advanced React Patterns",
+      "imageUrl": "https://example.com/event-image.jpg",
+      "description": "Join us for an insightful tech talk...",
+      "startDate": "2024-08-15T14:00:00.000Z",
+      "endDate": "2024-08-15T16:00:00.000Z",
+      "tags": ["tech-talk", "react", "frontend"],
+      "isPinned": false,
+      "organizedBy": "johndoe",
+      "createdAt": "2024-08-01T10:00:00.000Z",
+      "updatedAt": "2024-08-01T10:00:00.000Z",
+      "organizer": {
+        "username": "johndoe",
+        "firstName": "John",
+        "lastName": "Doe",
+        "imageUrl": "https://example.com/avatar.jpg",
+        "email": "johndoe@example.com"
+      }
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}
+```
+
+#### Get Event by Slug (`GET /events/:slug`)
+
+**Authentication Required:** None (Public endpoint)
+
+**Response:**
+
+```json
+{
+  "id": "clm7x8k9e0000v8og4n2h5k7s",
+  "slug": "cs-guild-tech-talk-advanced-react-patterns",
+  "title": "CS Guild Tech Talk: Advanced React Patterns",
+  "imageUrl": "https://example.com/event-image.jpg",
+  "description": "Join us for an insightful tech talk on advanced React patterns...",
+  "startDate": "2024-08-15T14:00:00.000Z",
+  "endDate": "2024-08-15T16:00:00.000Z",
+  "tags": ["tech-talk", "react", "frontend", "programming"],
+  "isPinned": false,
+  "organizedBy": "johndoe",
+  "createdAt": "2024-08-01T10:00:00.000Z",
+  "updatedAt": "2024-08-01T10:00:00.000Z",
+  "organizer": {
+    "username": "johndoe",
+    "firstName": "John",
+    "lastName": "Doe",
+    "imageUrl": "https://example.com/avatar.jpg",
+    "email": "johndoe@example.com"
+  }
+}
+```
+
+#### Event Session Toggle (`POST /events/sessions/toggle`)
+
+**Authentication Required:** None (RFID-based)
+
+**Request:**
+
+```json
+{
+  "rfidId": "RF001234567",
+  "eventId": "clm7x8k9e0000v8og4n2h5k7s"
+}
+```
+
+**Response (Check-in):**
+
+```json
+{
+  "message": "Successfully checked in",
+  "statusCode": 201,
+  "data": {
+    "action": "checked in",
+    "user": {
+      "username": "johndoe",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "johndoe@example.com"
+    },
+    "event": {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "title": "CS Guild Tech Talk: Advanced React Patterns"
+    },
+    "session": {
+      "id": "session123",
+      "timeIn": "2024-08-15T14:05:00.000Z",
+      "timeOut": null,
+      "isActive": true
+    }
+  }
+}
+```
+
+#### Get Event Attendees (`GET /events/:eventId/attendees`)
+
+**Authentication Required:** JWT Cookie
+
+**Query Parameters:**
+
+- `page` - Page number for pagination (minimum: 1)
+- `limit` - Number of items per page (minimum: 1, maximum: 100)
+
+**Response:**
+
+```json
+{
+  "message": "Event attendees retrieved successfully",
+  "statusCode": 200,
+  "attendees": [
+    {
+      "username": "johndoe",
+      "firstName": "John",
+      "lastName": "Doe",
+      "imageUrl": "https://example.com/avatar.jpg",
+      "email": "johndoe@example.com",
+      "totalDuration": 125,
+      "isEligible": true,
+      "registeredAt": "2024-08-15T14:05:00.000Z",
+      "sessionCount": 1
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 50,
+    "total": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}
+```
+
+#### Create Feedback Form (`POST /feedback/forms`)
+
+**Authentication Required:** JWT Cookie + ADMIN/STAFF role
+
+**Request:**
+
+```json
+{
+  "eventId": "clm7x8k9e0000v8og4n2h5k7s",
+  "title": "Event Feedback Form",
+  "fields": [
+    {
+      "type": "rating",
+      "label": "Overall Event Rating",
+      "required": true,
+      "options": {
+        "min": 1,
+        "max": 5
+      }
+    },
+    {
+      "type": "textarea",
+      "label": "What did you learn from this event?",
+      "required": true
+    },
+    {
+      "type": "select",
+      "label": "How did you hear about this event?",
+      "required": false,
+      "options": ["Social Media", "Email", "Friend", "Website", "Other"]
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "feedback123",
+  "eventId": "clm7x8k9e0000v8og4n2h5k7s",
+  "title": "Event Feedback Form",
+  "fields": [
+    {
+      "id": "field1",
+      "type": "rating",
+      "label": "Overall Event Rating",
+      "required": true,
+      "options": {
+        "min": 1,
+        "max": 5
+      }
+    }
+  ],
+  "createdAt": "2024-08-01T10:00:00.000Z"
+}
+```
+
+#### Submit Feedback Response (`POST /feedback/responses`)
+
+**Authentication Required:** JWT Cookie
+
+**Request:**
+
+```json
+{
+  "formId": "feedback123",
+  "responses": [
+    {
+      "fieldId": "field1",
+      "value": "5"
+    },
+    {
+      "fieldId": "field2",
+      "value": "I learned about advanced React patterns and performance optimization techniques."
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "response123",
+  "formId": "feedback123",
+  "userId": "johndoe",
+  "responses": [
+    {
+      "fieldId": "field1",
+      "value": "5"
+    },
+    {
+      "fieldId": "field2",
+      "value": "I learned about advanced React patterns and performance optimization techniques."
+    }
+  ],
+  "submittedAt": "2024-08-15T16:30:00.000Z"
+}
+```
+
+#### Pin Event (`POST /admin/events/:slug/pin`)
+
+**Authentication Required:** JWT Cookie + ADMIN/STAFF role
+
+**Response:**
+
+```json
+{
+  "message": "Event pinned successfully",
+  "statusCode": 200,
+  "event": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "slug": "cs-guild-tech-talk-advanced-react-patterns",
+    "title": "CS Guild Tech Talk: Advanced React Patterns",
+    "imageUrl": "https://example.com/event-image.jpg",
+    "description": "Join us for an insightful tech talk...",
+    "startDate": "2024-08-15T14:00:00.000Z",
+    "endDate": "2024-08-15T16:00:00.000Z",
+    "tags": ["tech-talk", "react", "frontend"],
+    "isPinned": true,
+    "organizedBy": "johndoe",
+    "createdAt": "2024-08-01T10:00:00.000Z",
+    "updatedAt": "2024-08-01T10:15:00.000Z"
+  }
 }
 ```
 
