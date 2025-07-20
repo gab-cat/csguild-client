@@ -3,6 +3,7 @@
 import { motion } from 'framer-motion'
 import { LogIn, UserPlus, Lock } from 'lucide-react'
 import Link from 'next/link'
+import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
 import { useAuthStore } from '@/features/auth/stores/auth-store'
@@ -23,6 +24,7 @@ export function AuthGuard({
   description = "Please sign in or create an account to continue."
 }: AuthGuardProps) {
   const { user, isAuthenticated, isLoading } = useAuthStore()
+  const pathname = usePathname()
 
   // Show loading state while checking authentication
   if (isLoading) {
@@ -76,7 +78,7 @@ export function AuthGuard({
           {/* Authentication Options */}
           <div className="space-y-4">
             {/* Sign In Button */}
-            <Link href="/login" className="block">
+            <Link href={`/login?next=${encodeURIComponent(pathname)}`} className="block">
               <Button 
                 className="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 rounded-xl transition-all transform hover:scale-[1.02] active:scale-[0.98]"
               >
@@ -88,7 +90,7 @@ export function AuthGuard({
             </Link>
 
             {/* Register Button */}
-            <Link href="/register" className="block">
+            <Link href={`/register?next=${encodeURIComponent(pathname)}`} className="block">
               <Button 
                 variant="outline"
                 className="w-full border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-purple-500/50 font-semibold py-3 rounded-xl transition-all"

@@ -222,6 +222,17 @@ const NavBar = () => {
                   </Link>
                 </DropdownMenuItem>
 
+                {/* My Events */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/events/my-events" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>My Events</span>
+                  </Link>
+                </DropdownMenuItem>
+
                 {/* Profile */}
                 <DropdownMenuItem asChild>
                   <Link 
