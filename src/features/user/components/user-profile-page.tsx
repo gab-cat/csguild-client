@@ -2,6 +2,7 @@
 
 import { zodResolver } from '@hookform/resolvers/zod'
 import { Avatar, AvatarFallback, AvatarImage } from '@radix-ui/react-avatar'
+import { format } from 'date-fns'
 import { motion } from 'framer-motion'
 import { 
   Calendar as CalendarIcon, 
@@ -16,15 +17,22 @@ import {
   X,
   Edit3,
   Loader2,
+  ChevronDown,
 } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { Calendar } from '@/components/ui/calendar'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
 import { showErrorToast, showInfoToast } from '@/lib/toast'
 
@@ -39,6 +47,8 @@ export function UserProfilePage() {
   const updateProfileMutation = useUpdateProfile()
   const resendVerificationMutation = useResendEmailVerification()
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({})
+  const [birthdateOpen, setBirthdateOpen] = useState(false)
+  const [selectedBirthdate, setSelectedBirthdate] = useState<Date | undefined>()
 
   const form = useForm<UpdateProfileFormData>({
     resolver: zodResolver(updateProfileSchema),
@@ -55,14 +65,29 @@ export function UserProfilePage() {
   // Update form values when user data changes
   useEffect(() => {
     if (user) {
+      const birthdateValue = formatDateForInput(user.birthdate)
       form.reset({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
         username: user.username || '',
         email: user.email || '',
         course: user.course || '',
-        birthdate: formatDateForInput(user.birthdate),
+        birthdate: birthdateValue,
       })
+      
+      // Set birthdate for calendar component
+      if (user.birthdate) {
+        // Parse date string safely without timezone issues
+        const dateString = formatDateForInput(user.birthdate)
+        if (dateString) {
+          const [year, month, day] = dateString.split('-').map(Number)
+          setSelectedBirthdate(new Date(year, month - 1, day))
+        } else {
+          setSelectedBirthdate(undefined)
+        }
+      } else {
+        setSelectedBirthdate(undefined)
+      }
     }
   }, [user, form])
 
@@ -89,27 +114,71 @@ export function UserProfilePage() {
   const startEditing = (section: string) => {
     setEditingSections(prev => ({ ...prev, [section]: true }))
     // Reset form values to current user data
+    const birthdateValue = formatDateForInput(user.birthdate)
     form.reset({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       username: user.username || '',
       email: user.email || '',
       course: user.course || '',
-      birthdate: formatDateForInput(user.birthdate),
+      birthdate: birthdateValue,
     })
+    
+    // Reset birthdate calendar state
+    if (user.birthdate) {
+      const dateString = formatDateForInput(user.birthdate)
+      if (dateString) {
+        const [year, month, day] = dateString.split('-').map(Number)
+        setSelectedBirthdate(new Date(year, month - 1, day))
+      } else {
+        setSelectedBirthdate(undefined)
+      }
+    } else {
+      setSelectedBirthdate(undefined)
+    }
   }
 
   const cancelEditing = (section: string) => {
     setEditingSections(prev => ({ ...prev, [section]: false }))
     // Reset form to current user values
+    const birthdateValue = formatDateForInput(user.birthdate)
     form.reset({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
       username: user.username || '',
       email: user.email || '',
       course: user.course || '',
-      birthdate: formatDateForInput(user.birthdate),
+      birthdate: birthdateValue,
     })
+    
+    // Reset birthdate calendar state
+    if (user.birthdate) {
+      const dateString = formatDateForInput(user.birthdate)
+      if (dateString) {
+        const [year, month, day] = dateString.split('-').map(Number)
+        setSelectedBirthdate(new Date(year, month - 1, day))
+      } else {
+        setSelectedBirthdate(undefined)
+      }
+    } else {
+      setSelectedBirthdate(undefined)
+    }
+  }
+
+  // Handle birthdate selection from calendar
+  const handleBirthdateSelect = (date: Date | undefined) => {
+    setSelectedBirthdate(date)
+    setBirthdateOpen(false)
+    if (date) {
+      // Use local date formatting to avoid timezone issues
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day}`
+      form.setValue('birthdate', formattedDate)
+    } else {
+      form.setValue('birthdate', '')
+    }
   }
 
   const saveSection = async (section: string) => {
@@ -391,16 +460,55 @@ export function UserProfilePage() {
                 <div className="space-y-2">
                   <Label htmlFor="birthdate" className="text-gray-300">Birthdate</Label>
                   {editingSections.personal ? (
-                    <Input
-                      id="birthdate"
-                      type="date"
-                      {...form.register('birthdate')}
-                      className="bg-gray-800/50 border-gray-600"
-                    />
+                    <Popover open={birthdateOpen} onOpenChange={setBirthdateOpen}>
+                      <PopoverTrigger asChild>
+                        <Button
+                          variant="outline"
+                          role="combobox"
+                          aria-expanded={birthdateOpen}
+                          className="w-full justify-between bg-gray-800/50 border-gray-600 text-white hover:bg-gray-700/50 hover:border-gray-500 h-auto py-2"
+                        >
+                          <div className="flex items-center gap-3 flex-1">
+                            <CalendarIcon className="h-4 w-4 text-gray-400 shrink-0" />
+                            <span className="truncate text-left">
+                              {selectedBirthdate 
+                                ? format(selectedBirthdate, 'PPP')
+                                : "Select your birthdate..."
+                              }
+                            </span>
+                          </div>
+                          <ChevronDown className="h-4 w-4 shrink-0 opacity-50" />
+                        </Button>
+                      </PopoverTrigger>
+                      <PopoverContent className="w-auto p-0 bg-gray-900/95 border-gray-600/50" align="start">
+                        <Calendar
+                          mode="single"
+                          selected={selectedBirthdate}
+                          onSelect={handleBirthdateSelect}
+                          disabled={(date) =>
+                            date > new Date() || date < new Date('1900-01-01')
+                          }
+                          initialFocus
+                          className="rounded-md border-0"
+                          captionLayout="dropdown"
+                          fromYear={1900}
+                          toYear={new Date().getFullYear()}
+                          defaultMonth={selectedBirthdate || new Date(2000, 0)}
+                        />
+                      </PopoverContent>
+                    </Popover>
                   ) : (
                     <p className="px-3 py-2 bg-gray-800/30 rounded-md text-white">
                       {user.birthdate ? formatDate(user.birthdate) : 'Not provided'}
                     </p>
+                  )}
+                  {/* Hidden input for form validation */}
+                  {editingSections.personal && (
+                    <input
+                      {...form.register('birthdate')}
+                      type="hidden"
+                      value={selectedBirthdate ? selectedBirthdate.toISOString().split('T')[0] : ''}
+                    />
                   )}
                 </div>
               </div>

@@ -246,11 +246,11 @@ export function MyEventsClient() {
                 >
                   <Trophy className="h-4 w-4" />
                   Attended Events
-                  {attendedEventsResponse?.meta?.total && (
+                  {attendedEventsResponse?.meta?.total ? (
                     <span className="ml-1 px-2 py-0.5 bg-gray-800/50 rounded-full text-xs">
                       {attendedEventsResponse.meta.total}
                     </span>
-                  )}
+                  ) : null}
                 </TabsTrigger>
                 <TabsTrigger 
                   value="created"
@@ -258,11 +258,11 @@ export function MyEventsClient() {
                 >
                   <Calendar className="h-4 w-4" />
                   Created Events
-                  {createdEventsResponse?.meta?.total && (
+                  {createdEventsResponse?.meta?.total ? (
                     <span className="ml-1 px-2 py-0.5 bg-gray-800/50 rounded-full text-xs">
                       {createdEventsResponse.meta.total}
                     </span>
-                  )}
+                  ) : null}
                 </TabsTrigger>
               </TabsList>
             </div>            {/* Attended Events Tab */}

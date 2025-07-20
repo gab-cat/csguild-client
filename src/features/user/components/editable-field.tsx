@@ -33,8 +33,12 @@ export function EditableField({
     if (!value) return ''
     if (type === 'date') {
       try {
-        // Convert ISO string to YYYY-MM-DD format for date input
-        return new Date(value).toISOString().split('T')[0]
+        // Handle timezone-safe date conversion
+        const date = new Date(value)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
       } catch {
         return ''
       }
@@ -53,8 +57,12 @@ export function EditableField({
     }
     if (type === 'date') {
       try {
-        // Convert ISO string to YYYY-MM-DD format for date input
-        setTempValue(new Date(value).toISOString().split('T')[0])
+        // Handle timezone-safe date conversion
+        const date = new Date(value)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        setTempValue(`${year}-${month}-${day}`)
       } catch {
         setTempValue('')
       }
@@ -69,16 +77,30 @@ export function EditableField({
   }
 
   const handleCancel = () => {
-    const resetValue = type === 'date' && value ? 
-      new Date(value).toISOString().split('T')[0] : 
-      (value || '')
+    const resetValue = type === 'date' && value ? (() => {
+      try {
+        // Handle timezone-safe date conversion for reset
+        const date = new Date(value)
+        const year = date.getFullYear()
+        const month = String(date.getMonth() + 1).padStart(2, '0')
+        const day = String(date.getDate()).padStart(2, '0')
+        return `${year}-${month}-${day}`
+      } catch {
+        return ''
+      }
+    })() : (value || '')
     setTempValue(resetValue)
     onCancel?.()
   }
 
   const handleDateSelect = (date: Date | undefined) => {
     if (date) {
-      const formattedDate = date.toISOString().split('T')[0]
+      // Use local date formatting to avoid timezone issues
+      const year = date.getFullYear()
+      const month = String(date.getMonth() + 1).padStart(2, '0')
+      const day = String(date.getDate()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day}`
+      
       setTempValue(formattedDate)
       onChange?.(formattedDate)
       setShowCalendar(false)
@@ -146,11 +168,22 @@ export function EditableField({
             <PopoverContent className="w-auto p-0 bg-gray-900/95 border-pink-500/20 backdrop-blur-md">
               <CalendarComponent
                 mode="single"
-                selected={tempValue ? new Date(tempValue) : undefined}
+                selected={tempValue ? (() => {
+                  // Parse date string safely without timezone issues
+                  const [year, month, day] = tempValue.split('-').map(Number)
+                  return new Date(year, month - 1, day)
+                })() : undefined}
                 onSelect={handleDateSelect}
                 disabled={(date) => date > new Date() || date < new Date('1900-01-01')}
                 initialFocus
                 className="text-white"
+                captionLayout="dropdown"
+                fromYear={1900}
+                toYear={new Date().getFullYear()}
+                defaultMonth={tempValue ? (() => {
+                  const [year, month] = tempValue.split('-').map(Number)
+                  return new Date(year, month - 1)
+                })() : new Date(2000, 0)}
               />
             </PopoverContent>
           </Popover>
