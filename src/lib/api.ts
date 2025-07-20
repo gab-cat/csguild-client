@@ -1,6 +1,6 @@
 import axios, { AxiosInstance } from 'axios'
 
-import { Configuration, AuthenticationApi, UsersApi, FacilitiesApi, AppApi, ProjectsApi, RolesApi } from "@generated/api-client"
+import { Configuration, AuthenticationApi, UsersApi, FacilitiesApi, AppApi, ProjectsApi, RolesApi, EventsApi, EventFeedbackApi, EventsAdminApi } from "@generated/api-client"
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001'
 
@@ -97,6 +97,9 @@ export const facilitiesApi = new FacilitiesApi(configuration, undefined, axiosWi
 export const appApi = new AppApi(configuration, undefined, axiosWithInterceptors)
 export const rolesApi = new RolesApi(configuration, undefined, axiosWithInterceptors)
 export const projectsApi = new ProjectsApi(configuration, undefined, axiosWithInterceptors)
+export const eventsApi = new EventsApi(configuration, undefined, axiosWithInterceptors)
+export const eventFeedbackApi = new EventFeedbackApi(configuration, undefined, axiosWithInterceptors)
+export const eventsAdminApi = new EventsAdminApi(configuration, undefined, axiosWithInterceptors)
 
 // API Error class for manual API calls
 export class ApiError extends Error {
