@@ -46,7 +46,7 @@ function Calendar({
           "flex gap-4 flex-col md:flex-row relative",
           defaultClassNames.months
         ),
-        month: cn("flex flex-col w-full gap-4", defaultClassNames.month),
+        month: cn("flex text-pink-400  flex-col w-full gap-4", defaultClassNames.month),
         nav: cn(
           "flex items-center gap-1 w-full absolute top-0 inset-x-0 justify-between",
           defaultClassNames.nav
@@ -110,7 +110,7 @@ function Calendar({
         range_middle: cn("rounded-none", defaultClassNames.range_middle),
         range_end: cn("rounded-r-md bg-pink-500", defaultClassNames.range_end),
         today: cn(
-          "bg-pink-500 text-white rounded-md data-[selected=true]:rounded-none",
+          "bg-gray-900 !text-black rounded-md data-[selected=true]:rounded-none",
           defaultClassNames.today
         ),
         outside: cn(

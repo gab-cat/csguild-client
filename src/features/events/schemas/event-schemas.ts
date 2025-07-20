@@ -32,10 +32,22 @@ const baseCreateEventSchema = z.object({
   
   startDate: z.string()
     .min(1, 'Start date is required')
-    .max(50, 'Start date must be less than 50 characters'),
+    .refine((val) => {
+      // Accept datetime-local format (YYYY-MM-DDTHH:MM) or ISO string
+      const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
+      const isoStringRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+      return datetimeLocalRegex.test(val) || isoStringRegex.test(val) || !isNaN(Date.parse(val))
+    }, 'Please enter a valid date and time'),
   
   endDate: z.string()
     .optional()
+    .refine((val) => {
+      if (!val || val === '') return true
+      // Accept datetime-local format (YYYY-MM-DDTHH:MM) or ISO string
+      const datetimeLocalRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/
+      const isoStringRegex = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{3})?Z?$/
+      return datetimeLocalRegex.test(val) || isoStringRegex.test(val) || !isNaN(Date.parse(val))
+    }, 'Please enter a valid end date and time')
     .or(z.literal('')),
   
   tags: z.array(z.string())

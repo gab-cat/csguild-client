@@ -1,18 +1,13 @@
 import { EventDetailResponseDtoTypeEnum } from '@generated/api-client'
 
+import { formatDateForDisplay } from './date-utils'
+
 // Utility functions for data transformation and validation
 export const eventUtils = {
-  // Format event date for display
+  // Format event date for display (using standardized date utils)
   formatEventDate(dateString: string): string {
-    const date = new Date(dateString)
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    })
+    const formatted = formatDateForDisplay(dateString)
+    return formatted.full
   },
 
   // Check if event is ongoing

@@ -169,7 +169,7 @@ export function EventCard({ event, showActions = false, className, index = 0 }: 
             <div className="flex items-center text-sm text-gray-400">
               <Clock className="w-4 h-4 mr-2 flex-shrink-0 text-purple-400" />
               <span>
-                {eventUtils.getEventDuration(event.startDate, event.endDate)} hours
+                {eventUtils.getEventDuration(event.startDate, event.endDate)}
               </span>
             </div>
           )}
@@ -186,6 +186,26 @@ export function EventCard({ event, showActions = false, className, index = 0 }: 
             <span className="truncate">
               {event.organizer.firstName} {event.organizer.lastName}
             </span>
+          </div>
+
+          {/* Created Date */}
+          <div className="flex items-center text-sm text-gray-400">
+            <span className="w-4 h-4 mr-2 flex-shrink-0 text-purple-400 text-xs font-medium">✦</span>
+            <span className="text-xs">
+              Created {eventUtils.formatEventDate(event.createdAt)}
+            </span>
+          </div>
+
+          {/* Additional Event Info Row */}
+          <div className="flex items-center justify-between text-xs text-gray-500 pt-1">
+            <span>
+              {eventTypeInfo.description}
+            </span>
+            {event.updatedAt !== event.createdAt && (
+              <span className="text-yellow-400/70">
+                Recently updated
+              </span>
+            )}
           </div>
 
           {/* Tags */}
@@ -214,79 +234,48 @@ export function EventCard({ event, showActions = false, className, index = 0 }: 
 
         {showActions && (
           <CardFooter className="pt-0 pb-4">
-            <div className="flex gap-2 w-full">
+            <div className="w-full">
               {isUpcoming && (
-                <>
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700"
-                  >
-                    <Link href={`/events/${event.slug}`}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Details
-                    </Link>
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="flex-1 bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                  >
-                    <MapPin className="h-4 w-4 mr-1" />
-                    Register
-                  </Button>
-                </>
+                <Button 
+                  size="sm" 
+                  asChild
+                  className="w-full bg-purple-600 hover:bg-purple-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  <Link href={`/events/${event.slug}`}>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-4 w-4 mr-1" />
+                      Register for Event
+                    </div>
+                  </Link>
+                </Button>
               )}
               
               {isOngoing && (
-                <>
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700"
-                  >
-                    <Link href={`/events/${event.slug}`}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      Details
-                    </Link>
-                  </Button>
-                  <Button 
-                    size="sm" 
-                    className="flex-1 bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
-                  >
+                <Button 
+                  size="sm" 
+                  asChild
+                  className="w-full bg-green-600 hover:bg-green-700 text-white shadow-md hover:shadow-lg transition-all duration-300"
+                >
+                  <Link href={`/events/${event.slug}`}>
                     <div className="flex items-center gap-1">
                       <div className="w-2 h-2 bg-white rounded-full animate-pulse" />
-                      Join Live
+                    Join Live Event
                     </div>
-                  </Button>
-                </>
+                  </Link>
+                </Button>
               )}
               
               {isCompleted && (
-                <>
-                  <Button 
-                    asChild 
-                    variant="outline" 
-                    size="sm" 
-                    className="flex-1 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700"
-                  >
-                    <Link href={`/events/${event.slug}`}>
-                      <Eye className="h-4 w-4 mr-1" />
-                      View Event
-                    </Link>
-                  </Button>
-                  <Button 
-                    asChild 
-                    size="sm" 
-                    variant="outline"
-                    className="flex-1 bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700"
-                  >
-                    <Link href={`/events/${event.slug}/feedback`}>
-                      Feedback
-                    </Link>
-                  </Button>
-                </>
+                <Button 
+                  asChild 
+                  size="sm" 
+                  variant="outline"
+                  className="w-full bg-gray-800/50 border-gray-700 text-gray-300 hover:bg-gray-700"
+                >
+                  <Link href={`/events/${event.slug}/feedback`}>
+                    Share Your Feedback
+                  </Link>
+                </Button>
               )}
             </div>
           </CardFooter>
@@ -347,6 +336,18 @@ export function EventCardSkeleton() {
           <div className="w-4 h-4 bg-purple-500/30 rounded animate-pulse" />
           <div className="h-4 w-28 bg-gray-700/70 rounded animate-pulse" />
         </div>
+
+        {/* Created date skeleton */}
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 bg-purple-500/30 rounded animate-pulse" />
+          <div className="h-3 w-24 bg-gray-700/70 rounded animate-pulse" />
+        </div>
+
+        {/* Additional info skeleton */}
+        <div className="flex items-center justify-between pt-1">
+          <div className="h-3 w-20 bg-gray-700/50 rounded animate-pulse" />
+          <div className="h-3 w-16 bg-yellow-400/30 rounded animate-pulse" />
+        </div>
         
         {/* Tags skeleton */}
         <div className="flex flex-wrap gap-1.5 pt-1">
@@ -357,9 +358,8 @@ export function EventCardSkeleton() {
       </CardContent>
 
       <CardFooter className="pt-0 pb-4">
-        <div className="flex gap-2 w-full">
-          <div className="h-8 flex-1 bg-gray-700/50 border border-gray-600 rounded animate-pulse" />
-          <div className="h-8 flex-1 bg-purple-600/50 rounded animate-pulse" />
+        <div className="w-full">
+          <div className="h-8 w-full bg-purple-600/50 rounded animate-pulse" />
         </div>
       </CardFooter>
     </Card>

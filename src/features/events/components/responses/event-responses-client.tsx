@@ -16,7 +16,7 @@ import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
 import { useEventFeedbackResponsesQuery, useEventQuery } from '../../hooks'
 import type { FeedbackResponsesFilters } from '../../utils'
-import { exportResponsesToExcel } from '../../utils/export-responses-to-excel'
+import { exportResponsesToExcel, formatDateForDisplay } from '../../utils'
 import { EventNavigationDropdown } from '../shared/event-navigation-dropdown'
 
 import { FeedbackResponsesList } from './feedback-responses-list'
@@ -355,18 +355,10 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                     <div className="min-w-0">
                       <p className="text-xs text-gray-500 uppercase tracking-wide">Start Date</p>
                       <p className="text-sm text-white font-medium">
-                        {new Date(event.startDate).toLocaleDateString('en-US', {
-                          weekday: 'short',
-                          year: 'numeric',
-                          month: 'short',
-                          day: 'numeric',
-                        })}
+                        {formatDateForDisplay(event.startDate).date}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {new Date(event.startDate).toLocaleTimeString('en-US', {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}
+                        {formatDateForDisplay(event.startDate).time}
                       </p>
                     </div>
                   </div>
@@ -378,18 +370,10 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                       <div className="min-w-0">
                         <p className="text-xs text-gray-500 uppercase tracking-wide">End Date</p>
                         <p className="text-sm text-white font-medium">
-                          {new Date(String(event.endDate)).toLocaleDateString('en-US', {
-                            weekday: 'short',
-                            year: 'numeric',
-                            month: 'short',
-                            day: 'numeric',
-                          })}
+                          {formatDateForDisplay(String(event.endDate)).date}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {new Date(String(event.endDate)).toLocaleTimeString('en-US', {
-                            hour: '2-digit',
-                            minute: '2-digit',
-                          })}
+                          {formatDateForDisplay(String(event.endDate)).time}
                         </p>
                       </div>
                     </div>

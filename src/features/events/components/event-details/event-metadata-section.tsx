@@ -7,12 +7,19 @@ import React from 'react'
 import { Badge } from '@/components/ui/badge'
 
 import { EventDetailResponseDto } from '../../types'
+import { formatDateForDisplay } from '../../utils'
 
 interface EventMetadataSectionProps {
   event: EventDetailResponseDto
 }
 
 export function EventMetadataSection({ event }: EventMetadataSectionProps) {
+  // Format dates consistently
+  const startDateFormatted = formatDateForDisplay(event.startDate)
+  const endDateFormatted = event.endDate && typeof event.endDate === 'string' 
+    ? formatDateForDisplay(event.endDate) 
+    : null
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 20 }}
@@ -39,41 +46,25 @@ export function EventMetadataSection({ event }: EventMetadataSectionProps) {
             <div className="min-w-0">
               <p className="text-xs text-gray-500 uppercase tracking-wide">Start Date</p>
               <p className="text-sm text-white font-medium">
-                {new Date(event.startDate).toLocaleDateString('en-US', {
-                  weekday: 'short',
-                  year: 'numeric',
-                  month: 'short',
-                  day: 'numeric',
-                })}
+                {startDateFormatted.date}
               </p>
               <p className="text-xs text-gray-400">
-                {new Date(event.startDate).toLocaleTimeString('en-US', {
-                  hour: '2-digit',
-                  minute: '2-digit',
-                })}
+                {startDateFormatted.time}
               </p>
             </div>
           </div>
 
           {/* End Date */}
-          {event.endDate && (
+          {endDateFormatted && (
             <div className="flex items-center space-x-2">
               <Clock className="h-4 w-4 text-gray-400 flex-shrink-0" />
               <div className="min-w-0">
                 <p className="text-xs text-gray-500 uppercase tracking-wide">End Date</p>
                 <p className="text-sm text-white font-medium">
-                  {new Date(String(event.endDate)).toLocaleDateString('en-US', {
-                    weekday: 'short',
-                    year: 'numeric',
-                    month: 'short',
-                    day: 'numeric',
-                  })}
+                  {endDateFormatted.date}
                 </p>
                 <p className="text-xs text-gray-400">
-                  {new Date(String(event.endDate)).toLocaleTimeString('en-US', {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })}
+                  {endDateFormatted.time}
                 </p>
               </div>
             </div>

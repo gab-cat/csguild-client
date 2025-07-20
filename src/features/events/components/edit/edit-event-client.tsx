@@ -12,6 +12,7 @@ import { useForm } from 'react-hook-form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { 
   Dialog, 
   DialogContent, 
@@ -38,6 +39,7 @@ import {
 import { updateEventSchema, type UpdateEventSchemaType } from '../../schemas'
 import type { FormField as FeedbackFormField } from '../../types'
 import { toEventCard } from '../../types'
+import { formatDateForInput, formatDateForApi } from '../../utils'
 import { FormBuilder } from '../create/form-builder/form-builder'
 import { EventNavigationDropdown } from '../shared/event-navigation-dropdown'
 
@@ -99,8 +101,8 @@ export function EditEventClient({ slug }: EditEventClientProps) {
         type: eventCard.type,
         description: eventCard.description || '',
         details: eventCard.details || '',
-        startDate: new Date(eventCard.startDate).toISOString().slice(0, 16),
-        endDate: eventCard.endDate ? new Date(eventCard.endDate).toISOString().slice(0, 16) : '',
+        startDate: formatDateForInput(eventCard.startDate),
+        endDate: eventCard.endDate ? formatDateForInput(eventCard.endDate) : '',
         imageUrl: eventCard.imageUrl || '',
         tags: eventCard.tags || [],
         minimumAttendanceMinutes: 0, // Default value since not available in API
@@ -183,16 +185,16 @@ export function EditEventClient({ slug }: EditEventClientProps) {
         updateEventPayload.details = data.details || undefined
       }
       if (data.startDate) {
-        const newStartDate = new Date(data.startDate).toISOString()
-        const originalStartDate = new Date(eventData?.startDate || '').toISOString()
+        const newStartDate = formatDateForApi(data.startDate)
+        const originalStartDate = eventData?.startDate || ''
         if (newStartDate !== originalStartDate) {
           updateEventPayload.startDate = newStartDate
         }
       }
       if (data.endDate) {
-        const newEndDate = new Date(data.endDate).toISOString()
+        const newEndDate = formatDateForApi(data.endDate)
         const originalEndDate = eventData?.endDate && typeof eventData.endDate === 'string' 
-          ? new Date(eventData.endDate).toISOString() 
+          ? eventData.endDate 
           : undefined
         if (newEndDate !== originalEndDate) {
           updateEventPayload.endDate = newEndDate
@@ -579,12 +581,16 @@ export function EditEventClient({ slug }: EditEventClientProps) {
                                 Start Date & Time *
                               </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="datetime-local"
-                                  {...field}
+                                <DateTimePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Select start date and time"
                                   className="h-12 bg-gray-800/50 border-gray-700/50 text-white focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-200"
                                 />
                               </FormControl>
+                              <FormDescription className="text-xs text-gray-500">
+                                Select when your event will begin. Time zone will be automatically detected.
+                              </FormDescription>
                               <FormMessage className='text-red-500'/>
                             </FormItem>
                           )}
@@ -598,12 +604,16 @@ export function EditEventClient({ slug }: EditEventClientProps) {
                                 End Date & Time (Optional)
                               </FormLabel>
                               <FormControl>
-                                <Input
-                                  type="datetime-local"
-                                  {...field}
+                                <DateTimePicker
+                                  value={field.value}
+                                  onChange={field.onChange}
+                                  placeholder="Select end date and time"
                                   className="h-12 bg-gray-800/50 border-gray-700/50 text-white focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-200"
                                 />
                               </FormControl>
+                              <FormDescription className="text-xs text-gray-500">
+                                Optional: Select when your event will end. Leave empty for single-day events.
+                              </FormDescription>
                               <FormMessage />
                             </FormItem>
                           )}

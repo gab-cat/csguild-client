@@ -11,6 +11,7 @@ import { useForm } from 'react-hook-form'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { DateTimePicker } from '@/components/ui/date-time-picker'
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
@@ -21,6 +22,7 @@ import { CreateEventDtoTypeEnum } from '@generated/api-client'
 import { useCreateEventMutation, useCreateFeedbackFormMutation } from '../../hooks'
 import { createEventSchema, type CreateEventSchemaType } from '../../schemas'
 import type { FormField as FeedbackFormField } from '../../types'
+import { formatDateForApi } from '../../utils'
 
 import { FormBuilder } from './form-builder/form-builder'
 
@@ -80,8 +82,8 @@ export function CreateEventClient() {
         type: data.type,
         description: data.description,
         details: data.details,
-        startDate: data.startDate,
-        endDate: data.endDate || undefined,
+        startDate: formatDateForApi(data.startDate),
+        endDate: data.endDate ? formatDateForApi(data.endDate) : undefined,
         imageUrl: data.imageUrl || undefined,
         tags: data.tags,
         minimumAttendanceMinutes: data.minimumAttendanceMinutes && data.minimumAttendanceMinutes > 0 
@@ -299,12 +301,16 @@ export function CreateEventClient() {
                               Start Date & Time *
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="datetime-local"
-                                {...field}
+                              <DateTimePicker
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Select start date and time"
                                 className="h-12 bg-gray-800/50 border-gray-700/50 text-white focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-200"
                               />
                             </FormControl>
+                            <FormDescription className="text-xs text-gray-500">
+                              Select when your event will begin. Time zone will be automatically detected.
+                            </FormDescription>
                             <FormMessage className='text-red-500'/>
                           </FormItem>
                         )}
@@ -318,12 +324,16 @@ export function CreateEventClient() {
                               End Date & Time (Optional)
                             </FormLabel>
                             <FormControl>
-                              <Input
-                                type="datetime-local"
-                                {...field}
+                              <DateTimePicker
+                                value={field.value}
+                                onChange={field.onChange}
+                                placeholder="Select end date and time"
                                 className="h-12 bg-gray-800/50 border-gray-700/50 text-white focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-200"
                               />
                             </FormControl>
+                            <FormDescription className="text-xs text-gray-500">
+                              Optional: Select when your event will end. Leave empty for single-day events.
+                            </FormDescription>
                             <FormMessage />
                           </FormItem>
                         )}
