@@ -52,6 +52,7 @@ const publicRoutePatterns: string[] = [
   '/notion*',
   '/aws-cloud-club*',
   '/pixels*',
+  '/events/*/feedback*',
 ]
 
 // Convert simplified patterns to regex patterns
