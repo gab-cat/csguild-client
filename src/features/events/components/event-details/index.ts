@@ -1,0 +1,7 @@
+export { EventHeroSection } from './event-hero-section'
+export { EventInformationCard } from './event-information-card'
+export { EventDetails } from './event-details'
+export { EventMetadataSection } from './event-metadata-section'
+export { AttendeesSection } from './attendees-section'
+export { OrganizerCard } from './organizer-card'
+export { RegistrationSection } from './registration-section'
