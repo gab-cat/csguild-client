@@ -25,12 +25,14 @@ export function useLoginMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (credentials: LoginFormData) => {
+    mutationFn: async (data: LoginFormData & { redirectTo?: string | null }) => {
       setLoading(true)
       setError(null)
-      return authApi.login(credentials)
+      const { redirectTo, ...credentials } = data
+      const response = await authApi.login(credentials)
+      return { response, redirectTo }
     },
-    onSuccess: async () => {
+    onSuccess: async ({ redirectTo }) => {
       try {
         // After successful login, fetch user data
         const user = await authApi.getCurrentUser()
@@ -39,6 +41,23 @@ export function useLoginMutation() {
         
         // Invalidate and refetch user data
         queryClient.invalidateQueries({ queryKey: ['user'] })
+        
+        // Handle redirect after successful login
+        if (redirectTo) {
+          // Validate that redirectTo is a safe internal URL
+          try {
+            const url = new URL(redirectTo, window.location.origin)
+            // Ensure it's same origin and not an auth route
+            if (url.origin === window.location.origin && !url.pathname.startsWith('/login') && !url.pathname.startsWith('/register')) {
+              window.location.href = url.toString()
+              return
+            }
+          } catch (error) {
+            console.error('Invalid redirect URL:', redirectTo, error)
+          }
+        }
+        
+        // Default behavior - reload page
         window.location.reload()
       } catch {
         setError('Failed to fetch user data')
@@ -130,7 +149,28 @@ export function useEmailVerificationMutation() {
           'Your CS Guild account is now fully activated. Welcome to the community!'
         )
         
-        // Redirect to dashboard
+        // Check for stored redirect URL
+        const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
+        if (storedRedirect) {
+          // Clear the stored redirect
+          sessionStorage.removeItem('auth_redirect_after_login')
+          
+          // Validate that it's a safe internal URL
+          try {
+            const redirectUrl = new URL(storedRedirect, window.location.origin)
+            // Ensure it's same origin and not an auth route
+            if (redirectUrl.origin === window.location.origin && 
+                !redirectUrl.pathname.startsWith('/login') && 
+                !redirectUrl.pathname.startsWith('/register')) {
+              router.push(redirectUrl.pathname + redirectUrl.search)
+              return
+            }
+          } catch (error) {
+            console.error('Invalid stored redirect URL:', storedRedirect, error)
+          }
+        }
+        
+        // Default redirect to dashboard
         router.push('/dashboard')
       } catch {
         setLoading(false)
@@ -206,7 +246,28 @@ export function useRfidLoginMutation() {
         `Quick access granted. Welcome back, ${user?.firstName}!`
       )
       
-      // Redirect to dashboard
+      // Check for stored redirect URL
+      const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
+      if (storedRedirect) {
+        // Clear the stored redirect
+        sessionStorage.removeItem('auth_redirect_after_login')
+        
+        // Validate that it's a safe internal URL
+        try {
+          const redirectUrl = new URL(storedRedirect, window.location.origin)
+          // Ensure it's same origin and not an auth route
+          if (redirectUrl.origin === window.location.origin && 
+              !redirectUrl.pathname.startsWith('/login') && 
+              !redirectUrl.pathname.startsWith('/register')) {
+            router.push(redirectUrl.pathname + redirectUrl.search)
+            return
+          }
+        } catch (error) {
+          console.error('Invalid stored redirect URL:', storedRedirect, error)
+        }
+      }
+      
+      // Default redirect to dashboard
       router.push('/')
     },
     onError: (error: Error) => {

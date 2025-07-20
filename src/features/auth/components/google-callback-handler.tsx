@@ -49,6 +49,31 @@ export function GoogleCallbackHandler() {
 
         setUser(user)
         
+        // Check for stored redirect URL from Google OAuth flow
+        const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
+        if (storedRedirect) {
+          // Clear the stored redirect
+          sessionStorage.removeItem('auth_redirect_after_login')
+          
+          // Validate that it's a safe internal URL
+          try {
+            const redirectUrl = new URL(storedRedirect, window.location.origin)
+            // Ensure it's same origin and not an auth route
+            if (redirectUrl.origin === window.location.origin && 
+                !redirectUrl.pathname.startsWith('/login') && 
+                !redirectUrl.pathname.startsWith('/register')) {
+              router.push(redirectUrl.pathname + redirectUrl.search)
+              showSuccessToast(
+                'Welcome back to CS Guild!',
+                'Successfully logged in with Google. Redirecting you back to where you were!'
+              )
+              return
+            }
+          } catch (error) {
+            console.error('Invalid stored redirect URL:', storedRedirect, error)
+          }
+        }
+        
         // Let middleware handle redirects based on profile completion
         // Just redirect to dashboard and middleware will handle the rest
         router.push('/dashboard')

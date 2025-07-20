@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -14,13 +14,16 @@ import { Input } from '@/components/ui/input'
 import { useLoginMutation } from '../hooks'
 import { loginSchema, type LoginFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
-import { authApi } from '../utils/auth-api'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const { isLoading, error, setError } = useAuthStore()
   const loginMutation = useLoginMutation()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get the next parameter from URL
+  const nextParam = searchParams.get('next')
 
   const {
     register,
@@ -33,11 +36,19 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await loginMutation.mutateAsync(data)
+      await loginMutation.mutateAsync({ 
+        email: data.email, 
+        password: data.password, 
+        redirectTo: nextParam 
+      })
     } catch (error) {
       // Check if the error is related to unverified email
       // @ts-expect-error - not typed properly
       if ((error as Error).statusCode === 409) {
+        // Store the next parameter before redirecting to verify email
+        if (nextParam) {
+          sessionStorage.setItem('auth_redirect_after_login', nextParam)
+        }
         router.push(`/verify-email?email=${data.email}`)
         setError('Please verify your email before logging in.')
       }
@@ -45,7 +56,14 @@ export function LoginForm() {
   }
 
   const handleGoogleLogin = () => {
-    authApi.googleLogin()
+    // Store the next parameter in sessionStorage for Google OAuth flow
+    if (nextParam) {
+      sessionStorage.setItem('auth_redirect_after_login', nextParam)
+    }
+    
+    // Use the existing Google login from auth API
+    const googleOAuthUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
+    window.location.href = googleOAuthUrl
   }
 
   return (
