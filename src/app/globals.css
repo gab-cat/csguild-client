@@ -134,6 +134,19 @@ body {
     transform: translateY(12px);
   }
 }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fadeIn 0.3s ease-out both;
+}
+
 .animate-fade-in-up-delay-200 {
   animation: fadeInUp 0.8s ease-out 0.2s both;
 }
