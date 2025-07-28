@@ -132,7 +132,7 @@ export function AuthLayout({ children, title, subtitle, showBackButton = true }:
           </div>
           
           <div className="mt-4 font-space-mono text-xs text-gray-500">
-            © 2024 CS Guild. All rights reserved.
+            © 2023 CS Guild. All rights reserved.
           </div>
         </motion.div>
       </div>

@@ -1,5 +1,5 @@
 import { Separator } from '@radix-ui/react-separator'
-import { Github, Twitter, Linkedin, Code2, Heart } from 'lucide-react'
+import { Github, Twitter, Linkedin, Facebook, Code2, Heart } from 'lucide-react'
 import React from 'react'
 
 const Footer = () => {
@@ -23,9 +23,11 @@ const Footer = () => {
             </p>
             <div className="font-space-mono text-sm text-pink-400 flex items-center gap-2">
               <Code2 className="h-4 w-4" />
-              <span>{"// Built with"}</span>
+              <span>{"Find us at"}</span>
+            </div>
+            <div className="font-space-mono text-sm text-pink-400 flex items-center gap-2">
               <Heart className="h-4 w-4 text-pink-400 fill-current" />
-              <span>{"by the CS Guild community"}</span>
+              <span>{"P319, 3rd Floor, Phelan Building, Ateneo de Naga University"}</span>
             </div>
           </div>
 
@@ -33,23 +35,23 @@ const Footer = () => {
             <h4 className="font-semibold text-white mb-4">Community</h4>
             <ul className="space-y-2 text-gray-300">
               <li>
-                <a href="#" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
+                <a href="https://discord.gg/rdDYEXeGh7" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
                   Discord
                 </a>
               </li>
               <li>
-                <a href="#" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
+                <a href="https://facebook.com/csguild.tech/" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
+                  Facebook
+                </a>
+              </li>
+              <li>
+                <a href="https://m.me/j/AbZ51bsfB4SMFkgY/" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
+                  Messenger
+                </a>
+              </li>
+              <li>
+                <a href="https://github.com/gab-cat" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
                   GitHub
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
-                  Events
-                </a>
-              </li>
-              <li>
-                <a href="#" className="hover:text-pink-400 transition-colors duration-200 flex items-center gap-2">
-                  Blog
                 </a>
               </li>
             </ul>
@@ -85,28 +87,35 @@ const Footer = () => {
         <Separator className="my-8 bg-pink-500/20" />
 
         <div className="flex flex-col-reverse md:flex-row md:justify-between md:items-center">
-          <div className="font-space-mono text-sm mt-5 md:mt-0 text-gray-400">© 2024 CS Guild. All rights reserved.</div>
+          <div className="font-space-mono text-sm mt-5 md:mt-0 text-gray-400">© 2023 CS Guild. All rights reserved.</div>
           <div className="flex flex-col md:flex-row justify-start gap-6 mt-4 md:mt-0">
             {/* Social Links */}
             <div className="flex gap-3">
               <a
-                href="#"
+                href="https://github.com/gab-cat"
                 className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-violet-500/20 hover:from-pink-500/30 hover:to-violet-500/30 flex items-center justify-center transition-all duration-300 hover:scale-110 border border-pink-500/30"
                 aria-label="GitHub"
               >
                 <Github className="h-4 w-4 text-pink-400" />
               </a>
               <a
-                href="#"
+                href="https://m.me/j/AbZ51bsfB4SMFkgY/"
                 className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-violet-500/20 hover:from-pink-500/30 hover:to-violet-500/30 flex items-center justify-center transition-all duration-300 hover:scale-110 border border-pink-500/30"
-                aria-label="Twitter"
+                aria-label="Messenger"
               >
                 <Twitter className="h-4 w-4 text-pink-400" />
               </a>
               <a
-                href="#"
+                href="https://facebook.com/csguild.tech/"
                 className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-violet-500/20 hover:from-pink-500/30 hover:to-violet-500/30 flex items-center justify-center transition-all duration-300 hover:scale-110 border border-pink-500/30"
-                aria-label="LinkedIn"
+                aria-label="Facebook"
+              >
+                <Facebook className="h-4 w-4 text-pink-400" />
+              </a>
+              <a
+                href="https://discord.gg/rdDYEXeGh7"
+                className="w-8 h-8 rounded-lg bg-gradient-to-br from-pink-500/20 to-violet-500/20 hover:from-pink-500/30 hover:to-violet-500/30 flex items-center justify-center transition-all duration-300 hover:scale-110 border border-pink-500/30"
+                aria-label="Discord"
               >
                 <Linkedin className="h-4 w-4 text-pink-400" />
               </a>
