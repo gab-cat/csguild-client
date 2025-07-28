@@ -1,460 +1,31 @@
-# CSGUILD Backend - Computer Science Guild Management System
-
-A comprehensive NestJS backend system for the Computer Science Guild featuring:
-
-- **PostgreSQL** database with **Prisma** ORM
-- JWT Authentication (Access & Refresh tokens)
-- **Student Registration** with enhanced fields
-- **Email Verification** system with SMTP
-- **RFID Authentication** for student access
-- Google OAuth2 integration
-- **Email Service** with HTML templates
-- Cookie-based token storage
-- TypeScript support
-- Docker setup for development
-- **Complete Swagger/OpenAPI documentation**
-
-## Features
-
-- 🎓 **Student Registration** with comprehensive fields (username, firstName, lastName, birthdate, course)
-- 📧 **Email Verification** system with 6-digit codes
-- 🔐 **RFID Authentication** for student access cards
-- 🔑 JWT Authentication with refresh tokens
-- 🚀 Google OAuth2 integration with auto-registration
-- 📬 **Email Service** with HTML templates (verification, welcome, password reset)
-- 🐘 PostgreSQL with Prisma ORM
-- 🍪 HTTP-only cookie authentication
-- 🛡️ Guards for route protection
-- 🔄 Automatic token refresh
-- 🐳 Docker development environment
-- 📝 TypeScript throughout
-- 📚 **Complete API documentation with Swagger**
-- 🧪 Comprehensive guard and strategy documentation
-
-## Prerequisites
-
-- Node.js (v18+ recommended)
-- Bun (package manager)
-- Docker (for database)
-- PostgreSQL (if not using Docker)
-- SMTP server for email functionality
-
-## Installation
-
-1. **Install dependencies:**
-
-```bash
-bun install
-```
-
-2. **Start the PostgreSQL database:**
-
-```bash
-docker-compose up -d
-```
-
-3. **Set up environment variables:**
-   Create a `.env` file in the root directory:
-
-```env
-# Database
-DATABASE_URL="postgresql://username:password@localhost:5432/csguild?schema=public"
-
-# JWT Configuration
-JWT_ACCESS_TOKEN_SECRET="your-super-secret-access-token-key"
-JWT_REFRESH_TOKEN_SECRET="your-super-secret-refresh-token-key"
-JWT_ACCESS_TOKEN_EXPIRATION_MS="3600000"
-JWT_REFRESH_TOKEN_EXPIRATION_MS="86400000"
-
-# Google OAuth (optional)
-GOOGLE_CLIENT_ID="your-google-client-id"
-GOOGLE_CLIENT_SECRET="your-google-client-secret"
-
-# Auth UI Redirect
-AUTH_UI_REDIRECT="http://localhost:3000/dashboard"
-
-# Email Configuration (SMTP)
-SMTP_HOST="smtp.gmail.com"
-SMTP_PORT="587"
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-app-password"
-FROM_EMAIL="noreply@csguild.com"
-FROM_NAME="CSGUILD"
-
-# Environment
-NODE_ENV="development"
-```
-
-4. **Generate Prisma client and run migrations:**
-
-```bash
-bun run db:generate
-bun run db:migrate
-```
-
-## Running the Application
-
-```bash
-# Development mode
-bun run start:dev
-
-# Production mode
-bun run start:prod
-
-# Debug mode
-bun run start:debug
-```
-
-The application will be available at `http://localhost:3000`
-
-## 📚 API Documentation
-
-### Swagger UI
-
-Once the application is running, access the interactive API documentation at:
-
-**🔗 [http://localhost:3000/api-docs](http://localhost:3000/api-docs)**
-
-The Swagger UI provides:
-
-- Interactive API testing
-- Complete endpoint documentation
-- Request/response schemas
-- Authentication examples
-- Guard and strategy explanations
-
-### Documentation Features
-
-- **Complete API Coverage**: All endpoints documented with examples
-- **Authentication Guide**: Step-by-step auth flow documentation
-- **Student Registration**: Complete student onboarding flow
-- **Email Verification**: Email verification workflow
-- **RFID Integration**: RFID card registration and authentication
-- **Error Responses**: Detailed error codes and messages
-- **Cookie Authentication**: HTTP-only cookie setup explained
-- **OAuth Flow**: Google OAuth integration walkthrough
-- **Guard Documentation**: When and how to use each guard
-- **Strategy Details**: Authentication strategy implementations
-
-### Quick API Reference
-
-#### Authentication Endpoints
-
-- `POST /auth/login` - Login with email/password (requires email verification)
-- `POST /auth/rfid-login` - Login with RFID card
-- `POST /auth/refresh` - Refresh access token
-- `POST /auth/logout` - Logout and clear tokens
-- `GET /auth/google` - Initiate Google OAuth
-- `GET /auth/google/callback` - Google OAuth callback
-
-#### Student Endpoints
-
-- `POST /users` - Register new student
-- `GET /users` - Get all students (protected)
-- `GET /users/:id` - Get individual student (protected)
-- `POST /users/verify-email` - Verify email with 6-digit code
-- `POST /users/resend-verification` - Resend email verification code
-- `POST /users/register-rfid` - Register RFID card (authenticated)
-- `POST /users/rfid-login` - Login using RFID card
-
-## 🎓 Student Registration System
-
-### Registration Flow
-
-1. **Student Registration**: `POST /users` with complete student information
-2. **Email Verification**: System sends 6-digit verification code
-3. **Verify Email**: `POST /users/verify-email` with verification code
-4. **Login**: `POST /auth/login` with verified account
-5. **RFID Registration**: `POST /users/register-rfid` to link RFID card
-
-### Student Fields
-
-- `email` - Student's email address (unique)
-- `username` - Unique username (auto-generated if not provided)
-- `password` - Secure password (hashed)
-- `firstName` - Student's first name
-- `lastName` - Student's last name
-- `birthdate` - Date of birth
-- `course` - Academic course/program
-- `roles` - User roles (defaults to STUDENT)
-
-### Email Verification
-
-- 6-digit verification codes
-- Automatic email sending with HTML templates
-- Resend functionality
-- Required for login authentication
-
-### RFID Integration
-
-- Link RFID cards to student accounts
-- Quick authentication using RFID
-- Secure card registration process
-- RFID-based login system
-
-## 📧 Email Service
-
-The system includes a comprehensive email service with:
-
-- **HTML Templates**: Professional email templates using Handlebars
-- **SMTP Configuration**: Support for various email providers
-- **Email Types**:
-  - Email verification with 6-digit codes
-  - Welcome emails for new students
-  - Password reset notifications
-  - RFID registration confirmations
-
-### Email Templates
-
-- `email-verification.hbs` - Email verification codes
-- `welcome.hbs` - Welcome new students
-- `password-reset.hbs` - Password reset instructions
-- `rfid-registration.hbs` - RFID card registration confirmation
-
-## Database Management
-
-The template includes helpful Prisma scripts:
-
-```bash
-# Generate Prisma client
-bun run db:generate
-
-# Run migrations
-bun run db:migrate
-
-# Push schema changes (for prototyping)
-bun run db:push
-
-# Open Prisma Studio (database GUI)
-bun run db:studio
-
-# Reset database
-bun run db:reset
-```
-
-## 🛡️ Authentication System
-
-### Guards Documentation
-
-Detailed documentation for all authentication guards:
-
-- **[Guards README](src/auth/guards/README.md)** - Complete guard documentation
-- `LocalAuthGuard` - Email/password authentication
-- `JwtAuthGuard` - JWT token validation
-- `JwtRefreshAuthGuard` - Refresh token validation
-- `GoogleAuthGuard` - Google OAuth flow
-
-### Strategies Documentation
-
-Comprehensive strategy implementation details:
-
-- **[Strategies README](src/auth/strategies/README.md)** - Complete strategy documentation
-- `LocalStrategy` - Credential validation
-- `JwtStrategy` - Access token processing
-- `JwtRefreshStrategy` - Refresh token handling
-- `GoogleStrategy` - OAuth 2.0 flow with student auto-registration
-
-### Authentication Flow
-
-1. **Student Registration**: `POST /users` with complete student information
-2. **Email Verification**: Verify email with 6-digit code
-3. **Login**: `POST /auth/login` with verified credentials
-4. **Access Protected Routes**: Automatic cookie-based auth
-5. **Token Refresh**: `POST /auth/refresh` when token expires
-6. **Google OAuth**: `GET /auth/google` for social login with auto-registration
-7. **RFID Authentication**: `POST /auth/rfid-login` for card-based access
-
-## Project Structure
-
-```
-src/
-├── auth/
-│   ├── dto/                # Request/response DTOs
-│   ├── guards/             # Authentication guards
-│   │   └── README.md       # 📚 Guards documentation
-│   ├── strategies/         # Passport strategies
-│   │   └── README.md       # 📚 Strategies documentation
-│   ├── auth.controller.ts  # Auth endpoints
-│   ├── auth.service.ts     # Auth business logic
-│   └── auth.module.ts      # Auth module
-├── users/
-│   ├── dto/               # User DTOs
-│   │   ├── create-user.request.ts
-│   │   ├── user-response.dto.ts
-│   │   ├── email-verification.dto.ts
-│   │   └── rfid-registration.dto.ts
-│   ├── models/            # User interfaces
-│   ├── users.controller.ts # Student endpoints
-│   ├── users.service.ts   # Student business logic
-│   └── users.module.ts    # Users module
-├── common/
-│   └── email/             # Email service
-│       ├── email.service.ts
-│       ├── email.module.ts
-│       └── templates/     # HTML email templates
-├── prisma/
-│   ├── prisma.service.ts
-│   └── prisma.module.ts
-└── main.ts               # Swagger configuration
-```
-
-## Environment Variables
-
-| Variable                          | Description                  | Default        |
-| --------------------------------- | ---------------------------- | -------------- |
-| `DATABASE_URL`                    | PostgreSQL connection string | Required       |
-| `JWT_ACCESS_TOKEN_SECRET`         | JWT access token secret      | Required       |
-| `JWT_REFRESH_TOKEN_SECRET`        | JWT refresh token secret     | Required       |
-| `JWT_ACCESS_TOKEN_EXPIRATION_MS`  | Access token expiration      | 3600000 (1h)   |
-| `JWT_REFRESH_TOKEN_EXPIRATION_MS` | Refresh token expiration     | 86400000 (24h) |
-| `GOOGLE_CLIENT_ID`                | Google OAuth client ID       | Optional       |
-| `GOOGLE_CLIENT_SECRET`            | Google OAuth client secret   | Optional       |
-| `AUTH_UI_REDIRECT`                | Redirect URL after auth      | Required       |
-| `SMTP_HOST`                       | SMTP server host             | Required       |
-| `SMTP_PORT`                       | SMTP server port             | Required       |
-| `SMTP_USER`                       | SMTP username                | Required       |
-| `SMTP_PASS`                       | SMTP password                | Required       |
-| `FROM_EMAIL`                      | From email address           | Required       |
-| `FROM_NAME`                       | From name                    | Required       |
-| `NODE_ENV`                        | Environment                  | development    |
-
-## Testing
-
-```bash
-# Unit tests
-bun run test
-
-# E2E tests
-bun run test:e2e
-
-# Test coverage
-bun run test:cov
-```
-
-## 🚀 Development Workflow
-
-### 1. API Development
-
-1. View API docs at `http://localhost:3000/api-docs`
-2. Test endpoints interactively in Swagger UI
-3. Check authentication flows and responses
-4. Validate request/response schemas
-
-### 2. Student Registration Testing
-
-1. Create student via `POST /users`
-2. Check email for verification code
-3. Verify email via `POST /users/verify-email`
-4. Login via `POST /auth/login`
-5. Test protected routes with cookies
-6. Register RFID card via `POST /users/register-rfid`
-7. Test RFID login via `POST /auth/rfid-login`
-
-### 3. Email Service Testing
-
-1. Configure SMTP settings in `.env`
-2. Test email verification flow
-3. Check HTML email templates
-4. Verify email delivery
-
-### 4. Database Changes
-
-1. Update `prisma/schema.prisma`
-2. Run `bun run db:migrate`
-3. Update DTOs and services
-4. Test in Swagger UI
-
-## 🔧 Customization
-
-### Adding New Endpoints
-
-1. Create DTOs with `@ApiProperty()` decorators
-2. Add Swagger decorators to controllers
-3. Update documentation in method descriptions
-4. Test in Swagger UI
-
-### Adding New Guards
-
-1. Create guard extending `AuthGuard`
-2. Document in `src/auth/guards/README.md`
-3. Add usage examples
-4. Update Swagger descriptions
-
-### OAuth Providers
-
-1. Add new strategy (e.g., Facebook, GitHub)
-2. Create corresponding guard
-3. Document in strategies README
-4. Add Swagger documentation
-
-### Email Templates
-
-1. Create new Handlebars templates in `src/common/email/templates/`
-2. Add corresponding service methods
-3. Test email rendering
-4. Update email service documentation
-
-## 🎓 CSGUILD Features
-
-### Student Management
-
-- Complete student registration with academic information
-- Email verification system for account security
-- RFID card integration for physical access
-- Role-based access control (STUDENT role)
-- Google OAuth for easy registration
-
-### Email Communication
-
-- Automated email verification
-- Welcome emails for new students
-- Password reset functionality
-- RFID registration confirmations
-- Professional HTML email templates
-
-### Security Features
-
-- Email verification required for login
-- RFID-based authentication
-- JWT token management
-- Secure password hashing
-- HTTP-only cookie authentication
-
-## Migration from Template
-
-This system has been customized from a generic NestJS authentication template to serve the Computer Science Guild:
-
-- Added comprehensive student fields
-- Implemented email verification system
-- Added RFID authentication
-- Created email service with templates
-- Enhanced Google OAuth with auto-registration
-- Updated all branding to CSGUILD
-
 ## 📋 API Endpoints Documentation
 
 ### Authentication Endpoints
 
-| Method | Endpoint                | Description               | Authentication | Request Body                          | Response Body                                                                                                                            | Notes                                                                                      |
-| ------ | ----------------------- | ------------------------- | -------------- | ------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------ |
-| `POST` | `/auth/login`           | Login with email/password | None           | `{ email: string, password: string }` | `201` - `{ message: "Login successful", statusCode: 201 }`                                                                               | Requires email verification. Sets HTTP-only cookies. Rate limited (5 attempts per 15 min). |
-| `POST` | `/auth/rfid-login`      | Login with RFID card      | None           | `{ rfidId: string }`                  | `200` - `{ message: "RFID login successful", statusCode: 200, student: { id, email, username, firstName, lastName, course, imageUrl } }` | Quick authentication for terminals. Returns student info.                                  |
-| `POST` | `/auth/refresh`         | Refresh access token      | Refresh Cookie | None                                  | `201` - `{ message: "Tokens refreshed successfully", statusCode: 201 }`                                                                  | Uses refresh token from cookie. Updates both tokens.                                       |
-| `POST` | `/auth/logout`          | Logout user               | JWT Cookie     | None                                  | `200` - `{ message: "Logout successful", statusCode: 200 }`                                                                              | Clears tokens and cookies. Invalidates refresh token.                                      |
-| `GET`  | `/auth/google`          | Initiate Google OAuth     | None           | None                                  | `302` - HTTP redirect to Google OAuth consent screen                                                                                     | Redirects to Google consent screen.                                                        |
-| `GET`  | `/auth/google/callback` | Google OAuth callback     | None           | None                                  | `302` - HTTP redirect to frontend with authentication cookies set                                                                        | Handles OAuth callback. Auto-registers users.                                              |
+| Method | Endpoint                | Description               | Authentication | Request Body                             | Response Body                                                                                                                            | Notes                                                                                        |
+| ------ | ----------------------- | ------------------------- | -------------- | ---------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------- |
+| `POST` | `/auth/login`           | Login with email/password | None           | `{ email: string, password: string }`    | `201` - `{ message: "Login successful", statusCode: 201 }`                                                                               | Requires email verification. Sets HTTP-only cookies. Rate limited (5 attempts per 15 min).   |
+| `POST` | `/auth/rfid-login`      | Login with RFID card      | None           | `{ rfidId: string }`                     | `200` - `{ message: "RFID login successful", statusCode: 200, student: { id, email, username, firstName, lastName, course, imageUrl } }` | Quick authentication for terminals. Returns student info.                                    |
+| `POST` | `/auth/refresh`         | Refresh access token      | Refresh Cookie | None                                     | `201` - `{ message: "Tokens refreshed successfully", statusCode: 201 }`                                                                  | Uses refresh token from cookie. Updates both tokens.                                         |
+| `POST` | `/auth/logout`          | Logout user               | JWT Cookie     | None                                     | `200` - `{ message: "Logout successful", statusCode: 200 }`                                                                              | Clears tokens and cookies. Invalidates refresh token.                                        |
+| `POST` | `/auth/forgot-password` | Request password reset    | None           | `{ email: string }`                      | `200` - `{ message: "Password reset email sent if the email exists in our system", statusCode: 200 }`                                    | Sends reset link via email. No information leakage about email existence. 1-hour expiration. |
+| `POST` | `/auth/reset-password`  | Reset password with token | None           | `{ token: string, newPassword: string }` | `200` - `{ message: "Password reset successful. Please log in with your new password.", statusCode: 200 }`                               | One-time use token. Invalidates all sessions. Minimum 8 characters for new password.         |
+| `GET`  | `/auth/google`          | Initiate Google OAuth     | None           | None                                     | `302` - HTTP redirect to Google OAuth consent screen                                                                                     | Redirects to Google consent screen.                                                          |
+| `GET`  | `/auth/google/callback` | Google OAuth callback     | None           | None                                     | `302` - HTTP redirect to frontend with authentication cookies set                                                                        | Handles OAuth callback. Auto-registers users.                                                |
+| `GET`  | `/auth/me`              | Get current user          | JWT Cookie     | None                                     | `200` - `UserResponseDto` with current user details                                                                                      | Returns current authenticated user information.                                              |
 
 ### Student Management Endpoints
 
-| Method | Endpoint                     | Description                 | Authentication           | Request Body                                  | Response Body                                                                                                                                                                                           | Notes                                                              |
-| ------ | ---------------------------- | --------------------------- | ------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `POST` | `/users`                     | Register new student        | None                     | `CreateUserRequest`                           | `201` - `{ message: "Student registration successful. Please check your email for verification instructions.", statusCode: 201, details: "A verification email has been sent to your email address." }` | Sends verification email. Auto-generates username if not provided. |
-| `POST` | `/users/verify-email`        | Verify email address        | None                     | `{ email: string, verificationCode: string }` | `200` - `{ message: "Email verified successfully", statusCode: 200, details: "Welcome to CSGUILD! You can now access all features." }`                                                                  | 6-digit verification code. Sends welcome email.                    |
-| `POST` | `/users/resend-verification` | Resend verification code    | None                     | `{ email: string }`                           | `200` - `{ message: "Email verification code sent successfully", statusCode: 200, details: "Please check your email for the new verification code." }`                                                  | Generates new 6-digit code.                                        |
-| `POST` | `/users/register-rfid`       | Register RFID card          | JWT Cookie               | `{ rfidId: string }`                          | `201` - `{ message: "RFID card registered successfully", statusCode: 201, details: "You can now use your RFID card to access CSGUILD services." }`                                                      | Links RFID to student account. Sends confirmation email.           |
-| `POST` | `/users/rfid-login`          | Login with RFID (duplicate) | None                     | `{ rfidId: string }`                          | `200` - `{ message: "RFID login successful", statusCode: 200, student: { id, email, username, firstName, lastName } }`                                                                                  | Returns student info without creating session.                     |
-| `GET`  | `/users`                     | Get all students            | JWT Cookie + STAFF/ADMIN | None                                          | `200` - Array of `UserResponseDto` objects with full student data                                                                                                                                       | Protected endpoint. Returns comprehensive student data.            |
-| `GET`  | `/users/:id`                 | Get student by ID           | JWT Cookie               | None                                          | `200` - Single `UserResponseDto` object with full student data                                                                                                                                          | Students can only access own data. Staff/Admin can access any.     |
+| Method  | Endpoint                     | Description                 | Authentication           | Request Body                                  | Response Body                                                                                                                                                                                           | Notes                                                              |
+| ------- | ---------------------------- | --------------------------- | ------------------------ | --------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------ |
+| `POST`  | `/users`                     | Register new student        | None                     | `CreateUserRequest`                           | `201` - `{ message: "Student registration successful. Please check your email for verification instructions.", statusCode: 201, details: "A verification email has been sent to your email address." }` | Sends verification email. Auto-generates username if not provided. |
+| `POST`  | `/users/verify-email`        | Verify email address        | None                     | `{ email: string, verificationCode: string }` | `200` - `{ message: "Email verified successfully", statusCode: 200, details: "Welcome to CSGUILD! You can now access all features." }`                                                                  | 6-digit verification code. Sends welcome email.                    |
+| `POST`  | `/users/resend-verification` | Resend verification code    | None                     | `{ email: string }`                           | `200` - `{ message: "Email verification code sent successfully", statusCode: 200, details: "Please check your email for the new verification code." }`                                                  | Generates new 6-digit code.                                        |
+| `POST`  | `/users/register-rfid`       | Register RFID card          | JWT Cookie               | `{ rfidId: string }`                          | `201` - `{ message: "RFID card registered successfully", statusCode: 201, details: "You can now use your RFID card to access CSGUILD services." }`                                                      | Links RFID to student account. Sends confirmation email.           |
+| `POST`  | `/users/rfid-login`          | Login with RFID (duplicate) | None                     | `{ rfidId: string }`                          | `200` - `{ message: "RFID login successful", statusCode: 200, student: { id, email, username, firstName, lastName } }`                                                                                  | Returns student info without creating session.                     |
+| `GET`   | `/users`                     | Get all students            | JWT Cookie + STAFF/ADMIN | None                                          | `200` - Array of `UserResponseDto` objects with full student data                                                                                                                                       | Protected endpoint. Returns comprehensive student data.            |
+| `GET`   | `/users/:id`                 | Get student by ID           | JWT Cookie               | None                                          | `200` - Single `UserResponseDto` object with full student data                                                                                                                                          | Students can only access own data. Staff/Admin can access any.     |
+| `PATCH` | `/users/profile`             | Update user profile         | JWT Cookie               | `UpdateUserRequest`                           | `200` - Updated `UserResponseDto` object with updated user data                                                                                                                                         | Users can update their own profile information.                    |
 
 ### Facility Management Endpoints
 
@@ -474,6 +45,69 @@ This system has been customized from a generic NestJS authentication template to
 | `POST` | `/facilities/status`              | Check facility usage status | None                     | `{ rfidId: string, facilityId: string }` | `200` - `{ message: "Usage status retrieved successfully", statusCode: 200, isCurrentlyInFacility: boolean, currentSession: FacilityUsageResponseDto \| null }`                                                                                                 | Check if student is in facility.               |
 | `GET`  | `/facilities/:id/active-sessions` | Get active sessions         | JWT Cookie + STAFF/ADMIN | None                                     | `200` - Array of `FacilityUsageResponseDto` objects with `{ id, student: { id, firstName, lastName, username, email }, facility: { id, name, location }, timeIn, timeOut, isActive, durationMinutes }`                                                          | Real-time facility occupancy.                  |
 | `GET`  | `/facilities/:id/usage-history`   | Get facility usage history  | JWT Cookie + STAFF/ADMIN | Query: `page`, `limit`                   | `200` - `{ data: FacilityUsageResponseDto[], total: number, page: number, limit: number }` where each usage record contains student info, facility info, session times, and duration                                                                            | Historical usage data with pagination.         |
+
+### Project Management Endpoints
+
+| Method   | Endpoint                                             | Description                       | Authentication             | Request Body             | Response Body                                                                                          | Notes                                                                                                                                                                                                       |
+| -------- | ---------------------------------------------------- | --------------------------------- | -------------------------- | ------------------------ | ------------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST`   | `/projects`                                          | Create new project                | JWT Cookie                 | `CreateProjectDto`       | `201` - `ProjectCreateResponseDto` with project details including roles, owner info, and member counts | Requires title, description, tags, dueDate, and at least 1 role. Auto-generates slug.                                                                                                                       |
+| `GET`    | `/projects`                                          | Get all projects with filters     | None/JWT Cookie (optional) | Query parameters         | `200` - `ProjectListResponse` with pagination and filtering options                                    | Supports filtering by status, tags, search, ownerSlug, pinned. Public endpoint. Max 100 items per page. **Default behavior excludes pinned projects**. Use ?pinned=true with auth for pinned projects only. |
+| `GET`    | `/projects/my-projects`                              | Get current user's projects       | JWT Cookie                 | None                     | `200` - `MyProjectsResponseDto` with owned and member projects separated                               | Shows projects user owns or is a member of.                                                                                                                                                                 |
+| `GET`    | `/projects/my-applications`                          | Get current user's applications   | JWT Cookie                 | None                     | `200` - `MyApplicationsResponseDto` with application status and project details                        | Shows all applications user has submitted.                                                                                                                                                                  |
+| `GET`    | `/projects/saved`                                    | Get saved projects                | JWT Cookie                 | Query: pagination params | `200` - `ProjectListResponse` with saved projects and pagination                                       | Shows projects saved by current user with pagination.                                                                                                                                                       |
+| `GET`    | `/projects/:slug`                                    | Get project by slug               | None                       | None                     | `200` - `ProjectDetailResponse` with complete project details, members, applications, and roles        | Full project details including team composition. Public endpoint.                                                                                                                                           |
+| `GET`    | `/projects/:slug/basic`                              | Get basic project info            | None                       | None                     | `200` - Basic `Project` object without members or applications                                         | Lightweight endpoint for basic project info.                                                                                                                                                                |
+| `GET`    | `/projects/:slug/applications`                       | Get project applications          | None                       | Query: `roleSlug`        | `200` - Array of `ProjectApplication` objects                                                          | Public endpoint. Can filter by role slug.                                                                                                                                                                   |
+| `GET`    | `/projects/:slug/members`                            | Get project members               | None                       | Query: `roleSlug`        | `200` - Array of `ProjectMember` objects                                                               | Public endpoint. Can filter by role slug.                                                                                                                                                                   |
+| `PATCH`  | `/projects/:slug`                                    | Update project                    | JWT Cookie                 | `UpdateProjectDto`       | `200` - `ProjectUpdateResponseDto` with updated project details                                        | Only project owner can update. Can modify roles.                                                                                                                                                            |
+| `PATCH`  | `/projects/:slug/status`                             | Update project status             | JWT Cookie                 | `UpdateProjectStatusDto` | `200` - `ProjectStatusUpdateResponseDto` with updated project                                          | Only project owner can change status.                                                                                                                                                                       |
+| `DELETE` | `/projects/:slug`                                    | Delete project                    | JWT Cookie                 | None                     | `200` - `ProjectDeleteResponseDto` with success message                                                | Only project owner can delete. Cascade deletes.                                                                                                                                                             |
+| `POST`   | `/projects/join`                                     | Apply to join project             | JWT Cookie                 | `JoinProjectDto`         | `201` - `JoinProjectResponseDto` with application details                                              | Uses projectSlug and roleSlug. Prevents duplicate applications.                                                                                                                                             |
+| `POST`   | `/projects/applications/review`                      | Review project application        | JWT Cookie                 | `ReviewApplicationDto`   | `200` - `ReviewApplicationResponseDto` with review details                                             | Only project owner can review. Approves/rejects apps.                                                                                                                                                       |
+| `DELETE` | `/projects/:slug/members/:memberUserSlug`            | Remove project member             | JWT Cookie                 | None                     | `200` - `RemoveProjectMemberResponseDto` with success message                                          | Only project owner can remove members. Cannot remove self.                                                                                                                                                  |
+| `PATCH`  | `/projects/:slug/members/:memberUserSlug/reactivate` | Reactivate removed project member | JWT Cookie                 | None                     | `200` - `ReactivateProjectMemberResponseDto` with success message                                      | Only project owner can reactivate. Role must have capacity.                                                                                                                                                 |
+| `POST`   | `/projects/:slug/pin`                                | Pin project (Admin only)          | JWT Cookie + ADMIN         | None                     | `201` - `PinProjectResponseDto` with success message                                                   | Global pinning for visibility. Max 6 pinned projects. Pinned projects are excluded from regular listings.                                                                                                   |
+| `DELETE` | `/projects/:slug/unpin`                              | Unpin project (Admin only)        | JWT Cookie + ADMIN         | None                     | `200` - `UnpinProjectResponseDto` with success message                                                 | Remove from global pinned list. Project will appear in regular listings again.                                                                                                                              |
+| `POST`   | `/projects/:slug/save`                               | Save project                      | JWT Cookie                 | None                     | `201` - `SaveProjectResponseDto` with saved project details                                            | Personal save for later access.                                                                                                                                                                             |
+| `DELETE` | `/projects/:slug/unsave`                             | Unsave project                    | JWT Cookie                 | None                     | `200` - `UnsaveProjectResponseDto` with success message                                                | Remove from personal saved list.                                                                                                                                                                            |
+
+### Role Management Endpoints
+
+| Method   | Endpoint       | Description                | Authentication           | Request Body     | Response Body                                                       | Notes                                                     |
+| -------- | -------------- | -------------------------- | ------------------------ | ---------------- | ------------------------------------------------------------------- | --------------------------------------------------------- |
+| `GET`    | `/roles`       | Get all roles with filters | None                     | Query parameters | `200` - `RoleListResponseDto` with pagination and filtering options | Public endpoint. Supports search, pagination, sorting.    |
+| `GET`    | `/roles/:slug` | Get role by slug           | None                     | None             | `200` - `RoleResponseDto` with role details                         | Public endpoint. Uses slug as identifier.                 |
+| `POST`   | `/roles`       | Create new role            | JWT Cookie + STAFF/ADMIN | `CreateRoleDto`  | `201` - `CreateRoleResponseDto` with created role details           | Only staff/admin can create. Auto-generates slug.         |
+| `PATCH`  | `/roles/:slug` | Update role                | JWT Cookie + STAFF/ADMIN | `UpdateRoleDto`  | `200` - `UpdateRoleResponseDto` with updated role details           | Only staff/admin can update. Validates uniqueness.        |
+| `DELETE` | `/roles/:slug` | Delete role                | JWT Cookie + STAFF/ADMIN | None             | `200` - `{ message: "Role deleted successfully" }`                  | Only staff/admin can delete. Prevents deletion if in use. |
+
+### Event Management Endpoints
+
+| Method   | Endpoint                     | Description                        | Authentication           | Request Body           | Response Body                                                                            | Notes                                                                |
+| -------- | ---------------------------- | ---------------------------------- | ------------------------ | ---------------------- | ---------------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `GET`    | `/events`                    | Get all events with filtering      | None                     | Query parameters       | `200` - `EventListResponseDto` with events array, pagination meta, and filtering options | Public endpoint. Supports search, tags, organizer, pinned filtering. |
+| `GET`    | `/events/:slug`              | Get event by slug                  | None                     | None                   | `200` - `EventDetailResponseDto` with complete event details and organizer info          | Public endpoint. Returns detailed event information.                 |
+| `GET`    | `/events/pinned`             | Get all pinned events              | None                     | None                   | `200` - Array of `EventDetailResponseDto` objects                                        | Public endpoint. No pagination for pinned events.                    |
+| `GET`    | `/events/my-attended`        | Get current user's attended events | JWT Cookie               | Query parameters       | `200` - `EventListResponseDto` with attended events and pagination                       | Shows events user has attended with filtering options.               |
+| `GET`    | `/events/my-created`         | Get current user's created events  | JWT Cookie               | Query parameters       | `200` - `EventListResponseDto` with created events and pagination                        | Shows events user has organized with filtering options.              |
+| `GET`    | `/events/sessions/:slug`     | Get event sessions by slug         | JWT Cookie               | None                   | `200` - Event sessions data with attendee information                                    | Returns all attendees and their sessions for an event.               |
+| `GET`    | `/events/:eventId/attendees` | Get event attendees                | JWT Cookie               | Query: `page`, `limit` | `200` - `{ attendees: AttendeeInfo[], meta: PaginationMeta }` with attendance stats      | Paginated attendee list with attendance eligibility and duration.    |
+| `POST`   | `/events`                    | Create new event                   | JWT Cookie               | `CreateEventDto`       | `201` - `EventCreateResponseDto` with created event details                              | Auto-generates slug from title. Validates date constraints.          |
+| `PUT`    | `/events/:slug`              | Update event                       | JWT Cookie               | `UpdateEventDto`       | `200` - `EventUpdateResponseDto` with updated event details                              | Only event organizer can update. Cannot change organizer.            |
+| `DELETE` | `/events/:slug`              | Delete event                       | JWT Cookie               | None                   | `200` - `EventDeleteResponseDto` with success message                                    | Only event organizer can delete. Cascade deletes sessions.           |
+| `POST`   | `/events/sessions/toggle`    | Toggle event session (RFID)        | None                     | `{ rfidId, eventId }`  | `201` - `{ message, statusCode, data: { action, user, event, session } }`                | Smart check-in/check-out via RFID. Auto-detects action type.         |
+| `POST`   | `/admin/events/:slug/pin`    | Pin event (Admin only)             | JWT Cookie + ADMIN/STAFF | None                   | `200` - `EventPinResponseDto` with pinned event details                                  | Global pinning for visibility. Admin/Staff only.                     |
+| `DELETE` | `/admin/events/:slug/pin`    | Unpin event (Admin only)           | JWT Cookie + ADMIN/STAFF | None                   | `200` - `EventUnpinResponseDto` with unpinned event details                              | Remove from global pinned list. Admin/Staff only.                    |
+
+### Event Feedback Endpoints
+
+| Method | Endpoint                                | Description                       | Authentication           | Request Body                | Response Body                                                        | Notes                                                                     |
+| ------ | --------------------------------------- | --------------------------------- | ------------------------ | --------------------------- | -------------------------------------------------------------------- | ------------------------------------------------------------------------- |
+| `POST` | `/feedback/forms`                       | Create feedback form              | JWT Cookie + ADMIN/STAFF | `CreateFeedbackFormDto`     | `201` - `FeedbackFormResponseDto` with form details and fields       | Create feedback forms for events. Admin/Staff only.                       |
+| `GET`  | `/feedback/forms/event/:eventId`        | Get feedback form (authenticated) | JWT Cookie               | None                        | `200` - `FeedbackFormResponseDto` with form structure and fields     | Get feedback form for event. Requires authentication.                     |
+| `GET`  | `/feedback/forms/event/:eventId/public` | Get feedback form (public token)  | None                     | Query: `token`, `userId`    | `200` - `FeedbackFormResponseDto` with form structure and fields     | Public access with secure token. No authentication required.              |
+| `POST` | `/feedback/responses`                   | Submit feedback (authenticated)   | JWT Cookie               | `SubmitFeedbackResponseDto` | `201` - `FeedbackSubmissionResponseDto` with submission confirmation | Submit feedback responses. Uses authenticated user ID.                    |
+| `POST` | `/feedback/responses/public`            | Submit feedback (public token)    | None                     | `SubmitFeedbackResponseDto` | `201` - `FeedbackSubmissionResponseDto` with submission confirmation | Public feedback submission with secure token. No authentication required. |
 
 ### System Endpoints
 
@@ -649,17 +283,887 @@ This system has been customized from a generic NestJS authentication template to
 }
 ```
 
+#### Forgot Password (`POST /auth/forgot-password`)
+
+**Request:**
+
+```json
+{
+  "email": "john.doe@example.com"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Password reset email sent if the email exists in our system",
+  "statusCode": 200
+}
+```
+
+#### Get Current User (`GET /auth/me`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Response:**
+
+```json
+{
+  "id": "clm7x8k9e0000v8og4n2h5k7s",
+  "email": "john.doe@example.com",
+  "username": "johndoe123",
+  "firstName": "John",
+  "lastName": "Doe",
+  "birthdate": "2000-01-15T00:00:00.000Z",
+  "course": "Bachelor of Science in Computer Science",
+  "imageUrl": "https://lh3.googleusercontent.com/a/default-user=s96-c",
+  "emailVerified": true,
+  "hasRefreshToken": true,
+  "hasRfidCard": true,
+  "rfidId": "RF001234567",
+  "roles": ["STUDENT"],
+  "signupMethod": "EMAIL",
+  "currentFacilityId": null,
+  "createdAt": "2024-07-05T05:36:19.000Z",
+  "updatedAt": "2024-07-05T05:36:19.000Z"
+}
+```
+
+#### Create Event (`POST /events`)
+
+**Authentication Required:** JWT Cookie in `Authorization` header
+
+**Request:**
+
+```json
+{
+  "title": "CS Guild Tech Talk: Advanced React Patterns",
+  "imageUrl": "https://example.com/event-image.jpg",
+  "description": "Join us for an insightful tech talk on advanced React patterns and best practices. This session will cover custom hooks, compound components, and performance optimization techniques.",
+  "startDate": "2024-08-15T14:00:00.000Z",
+  "endDate": "2024-08-15T16:00:00.000Z",
+  "tags": ["tech-talk", "react", "frontend", "programming"],
+  "minimumAttendanceMinutes": 120
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Event created successfully",
+  "statusCode": 201,
+  "event": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "slug": "cs-guild-tech-talk-advanced-react-patterns",
+    "title": "CS Guild Tech Talk: Advanced React Patterns",
+    "imageUrl": "https://example.com/event-image.jpg",
+    "description": "Join us for an insightful tech talk on advanced React patterns...",
+    "startDate": "2024-08-15T14:00:00.000Z",
+    "endDate": "2024-08-15T16:00:00.000Z",
+    "tags": ["tech-talk", "react", "frontend", "programming"],
+    "isPinned": false,
+    "organizedBy": "johndoe",
+    "createdAt": "2024-08-01T10:00:00.000Z",
+    "updatedAt": "2024-08-01T10:00:00.000Z"
+  }
+}
+```
+
+#### Get Events with Filtering (`GET /events`)
+
+**Authentication Required:** None (Public endpoint)
+
+**Query Parameters:**
+
+- `search` - Search in event title and description
+- `tags` - Comma-separated list of tags to filter by
+- `organizerSlug` - Filter by event organizer username
+- `pinned` - Filter to show only pinned events (boolean)
+- `page` - Page number for pagination (minimum: 1)
+- `limit` - Number of items per page (minimum: 1, maximum: 100)
+- `sortBy` - Field to sort by (createdAt, updatedAt, startDate, endDate, title)
+- `sortOrder` - Sort direction (asc, desc)
+
+**Example Request:**
+`GET /events?search=react&tags=tech-talk,frontend&page=1&limit=10&sortBy=startDate&sortOrder=asc`
+
+**Response:**
+
+```json
+{
+  "message": "Events retrieved successfully",
+  "statusCode": 200,
+  "events": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "slug": "cs-guild-tech-talk-advanced-react-patterns",
+      "title": "CS Guild Tech Talk: Advanced React Patterns",
+      "imageUrl": "https://example.com/event-image.jpg",
+      "description": "Join us for an insightful tech talk...",
+      "startDate": "2024-08-15T14:00:00.000Z",
+      "endDate": "2024-08-15T16:00:00.000Z",
+      "tags": ["tech-talk", "react", "frontend"],
+      "isPinned": false,
+      "organizedBy": "johndoe",
+      "createdAt": "2024-08-01T10:00:00.000Z",
+      "updatedAt": "2024-08-01T10:00:00.000Z",
+      "organizer": {
+        "username": "johndoe",
+        "firstName": "John",
+        "lastName": "Doe",
+        "imageUrl": "https://example.com/avatar.jpg",
+        "email": "johndoe@example.com"
+      }
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 10,
+    "total": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}
+```
+
+#### Get Event by Slug (`GET /events/:slug`)
+
+**Authentication Required:** None (Public endpoint)
+
+**Response:**
+
+```json
+{
+  "id": "clm7x8k9e0000v8og4n2h5k7s",
+  "slug": "cs-guild-tech-talk-advanced-react-patterns",
+  "title": "CS Guild Tech Talk: Advanced React Patterns",
+  "imageUrl": "https://example.com/event-image.jpg",
+  "description": "Join us for an insightful tech talk on advanced React patterns...",
+  "startDate": "2024-08-15T14:00:00.000Z",
+  "endDate": "2024-08-15T16:00:00.000Z",
+  "tags": ["tech-talk", "react", "frontend", "programming"],
+  "isPinned": false,
+  "organizedBy": "johndoe",
+  "createdAt": "2024-08-01T10:00:00.000Z",
+  "updatedAt": "2024-08-01T10:00:00.000Z",
+  "organizer": {
+    "username": "johndoe",
+    "firstName": "John",
+    "lastName": "Doe",
+    "imageUrl": "https://example.com/avatar.jpg",
+    "email": "johndoe@example.com"
+  }
+}
+```
+
+#### Event Session Toggle (`POST /events/sessions/toggle`)
+
+**Authentication Required:** None (RFID-based)
+
+**Request:**
+
+```json
+{
+  "rfidId": "RF001234567",
+  "eventId": "clm7x8k9e0000v8og4n2h5k7s"
+}
+```
+
+**Response (Check-in):**
+
+```json
+{
+  "message": "Successfully checked in",
+  "statusCode": 201,
+  "data": {
+    "action": "checked in",
+    "user": {
+      "username": "johndoe",
+      "firstName": "John",
+      "lastName": "Doe",
+      "email": "johndoe@example.com"
+    },
+    "event": {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "title": "CS Guild Tech Talk: Advanced React Patterns"
+    },
+    "session": {
+      "id": "session123",
+      "timeIn": "2024-08-15T14:05:00.000Z",
+      "timeOut": null,
+      "isActive": true
+    }
+  }
+}
+```
+
+#### Get Event Attendees (`GET /events/:eventId/attendees`)
+
+**Authentication Required:** JWT Cookie
+
+**Query Parameters:**
+
+- `page` - Page number for pagination (minimum: 1)
+- `limit` - Number of items per page (minimum: 1, maximum: 100)
+
+**Response:**
+
+```json
+{
+  "message": "Event attendees retrieved successfully",
+  "statusCode": 200,
+  "attendees": [
+    {
+      "username": "johndoe",
+      "firstName": "John",
+      "lastName": "Doe",
+      "imageUrl": "https://example.com/avatar.jpg",
+      "email": "johndoe@example.com",
+      "totalDuration": 125,
+      "isEligible": true,
+      "registeredAt": "2024-08-15T14:05:00.000Z",
+      "sessionCount": 1
+    }
+  ],
+  "meta": {
+    "page": 1,
+    "limit": 50,
+    "total": 1,
+    "totalPages": 1,
+    "hasNextPage": false,
+    "hasPrevPage": false
+  }
+}
+```
+
+#### Create Feedback Form (`POST /feedback/forms`)
+
+**Authentication Required:** JWT Cookie + ADMIN/STAFF role
+
+**Request:**
+
+```json
+{
+  "eventId": "clm7x8k9e0000v8og4n2h5k7s",
+  "title": "Event Feedback Form",
+  "fields": [
+    {
+      "type": "rating",
+      "label": "Overall Event Rating",
+      "required": true,
+      "options": {
+        "min": 1,
+        "max": 5
+      }
+    },
+    {
+      "type": "textarea",
+      "label": "What did you learn from this event?",
+      "required": true
+    },
+    {
+      "type": "select",
+      "label": "How did you hear about this event?",
+      "required": false,
+      "options": ["Social Media", "Email", "Friend", "Website", "Other"]
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "feedback123",
+  "eventId": "clm7x8k9e0000v8og4n2h5k7s",
+  "title": "Event Feedback Form",
+  "fields": [
+    {
+      "id": "field1",
+      "type": "rating",
+      "label": "Overall Event Rating",
+      "required": true,
+      "options": {
+        "min": 1,
+        "max": 5
+      }
+    }
+  ],
+  "createdAt": "2024-08-01T10:00:00.000Z"
+}
+```
+
+#### Submit Feedback Response (`POST /feedback/responses`)
+
+**Authentication Required:** JWT Cookie
+
+**Request:**
+
+```json
+{
+  "formId": "feedback123",
+  "responses": [
+    {
+      "fieldId": "field1",
+      "value": "5"
+    },
+    {
+      "fieldId": "field2",
+      "value": "I learned about advanced React patterns and performance optimization techniques."
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "response123",
+  "formId": "feedback123",
+  "userId": "johndoe",
+  "responses": [
+    {
+      "fieldId": "field1",
+      "value": "5"
+    },
+    {
+      "fieldId": "field2",
+      "value": "I learned about advanced React patterns and performance optimization techniques."
+    }
+  ],
+  "submittedAt": "2024-08-15T16:30:00.000Z"
+}
+```
+
+#### Pin Event (`POST /admin/events/:slug/pin`)
+
+**Authentication Required:** JWT Cookie + ADMIN/STAFF role
+
+**Response:**
+
+```json
+{
+  "message": "Event pinned successfully",
+  "statusCode": 200,
+  "event": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "slug": "cs-guild-tech-talk-advanced-react-patterns",
+    "title": "CS Guild Tech Talk: Advanced React Patterns",
+    "imageUrl": "https://example.com/event-image.jpg",
+    "description": "Join us for an insightful tech talk...",
+    "startDate": "2024-08-15T14:00:00.000Z",
+    "endDate": "2024-08-15T16:00:00.000Z",
+    "tags": ["tech-talk", "react", "frontend"],
+    "isPinned": true,
+    "organizedBy": "johndoe",
+    "createdAt": "2024-08-01T10:00:00.000Z",
+    "updatedAt": "2024-08-01T10:15:00.000Z"
+  }
+}
+```
+
+#### Create Project (`POST /projects`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+
+```json
+{
+  "title": "CS Guild Mobile App Development",
+  "description": "We are looking for developers to help build a mobile application for the CS Guild community. The app will include features for project collaboration, event management, and member networking.",
+  "tags": ["mobile", "react-native", "typescript", "collaboration"],
+  "dueDate": "2024-12-31T23:59:59.000Z",
+  "roles": [
+    {
+      "roleSlug": "frontend-developer",
+      "maxMembers": 2,
+      "requirements": "Experience with React Native and TypeScript required"
+    },
+    {
+      "roleSlug": "ui-ux-designer",
+      "maxMembers": 1,
+      "requirements": "UI/UX design experience with mobile applications"
+    }
+  ]
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Project created successfully",
+  "statusCode": 201,
+  "project": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "title": "CS Guild Mobile App Development",
+    "slug": "cs-guild-mobile-app-development",
+    "description": "We are looking for developers to help build a mobile application for the CS Guild community.",
+    "tags": ["mobile", "react-native", "typescript", "collaboration"],
+    "dueDate": "2024-12-31T23:59:59.000Z",
+    "status": "OPEN",
+    "createdAt": "2024-01-01T00:00:00.000Z",
+    "updatedAt": "2024-01-01T00:00:00.000Z",
+    "owner": {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "username": "johndoe123",
+      "firstName": "John",
+      "lastName": "Doe",
+      "imageUrl": "https://example.com/avatar.jpg"
+    },
+    "roles": [
+      {
+        "id": "clm7x8k9e0000v8og4n2h5k7s",
+        "role": {
+          "id": "clm7x8k9e0000v8og4n2h5k7s",
+          "name": "Frontend Developer",
+          "slug": "frontend-developer"
+        },
+        "maxMembers": 2,
+        "currentMembers": 0,
+        "requirements": "Experience with React Native and TypeScript required"
+      }
+    ],
+    "memberCount": 0,
+    "applicationCount": 0
+  }
+}
+```
+
+#### Join Project (`POST /projects/join`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+
+```json
+{
+  "projectSlug": "cs-guild-mobile-app-development",
+  "roleSlug": "frontend-developer",
+  "message": "I have 3 years of experience with React Native and would love to contribute to this project. I have previously worked on similar mobile applications and am excited about the CS Guild community."
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Application submitted successfully",
+  "statusCode": 201,
+  "application": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "user": {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "username": "janedoe456",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "imageUrl": "https://example.com/jane-avatar.jpg"
+    },
+    "projectRole": {
+      "id": "clm7x8k9e0000v8og4n2h5k7t",
+      "role": {
+        "id": "clm7x8k9e0000v8og4n2h5k7s",
+        "name": "Frontend Developer",
+        "slug": "frontend-developer"
+      }
+    },
+    "message": "I have 3 years of experience with React Native and would love to contribute to this project.",
+    "status": "PENDING",
+    "appliedAt": "2024-01-02T00:00:00.000Z"
+  }
+}
+```
+
+#### Get Projects with Filtering (`GET /projects`)
+
+**Authentication Required:** None (Public endpoint), Optional JWT Cookie for pinned projects
+
+**Query Parameters:**
+
+- `status` - Filter by project status (OPEN, IN_PROGRESS, COMPLETED, CANCELLED)
+- `tags` - Comma-separated list of tags to filter by
+- `search` - Search in project title and description
+- `ownerSlug` - Filter by project owner username
+- `page` - Page number for pagination (default: 1)
+- `limit` - Number of items per page (default: 10, max: 100)
+- `sortBy` - Field to sort by (createdAt, updatedAt, dueDate, title, default: createdAt)
+- `sortOrder` - Sort direction (asc, desc, default: desc)
+- `pinned` - Filter to show only pinned projects (requires authentication)
+
+**Important Behavior:**
+
+- **Default behavior**: Returns all projects **excluding** pinned projects to avoid duplication
+- **With `pinned=true`**: Returns **only** globally pinned projects (requires authentication)
+- **With `pinned=false`**: Returns all projects excluding pinned projects (same as default)
+
+**Example Request (Regular Projects - Excludes Pinned):**
+`GET /projects?status=OPEN&tags=mobile,typescript&page=1&limit=5&sortBy=createdAt&sortOrder=desc`
+
+**Example Request (Pinned Projects Only):**
+`GET /projects?pinned=true` (requires authentication)
+
+**Response:**
+
+```json
+{
+  "message": "Projects retrieved successfully",
+  "statusCode": 200,
+  "data": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "title": "CS Guild Mobile App Development",
+      "slug": "cs-guild-mobile-app-development",
+      "description": "We are looking for developers to help build a mobile application for the CS Guild community.",
+      "tags": ["mobile", "react-native", "typescript", "collaboration"],
+      "dueDate": "2024-12-31T23:59:59.000Z",
+      "status": "OPEN",
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "owner": {
+        "id": "clm7x8k9e0000v8og4n2h5k7s",
+        "username": "johndoe123",
+        "firstName": "John",
+        "lastName": "Doe",
+        "imageUrl": "https://example.com/avatar.jpg"
+      },
+      "roles": [
+        {
+          "id": "clm7x8k9e0000v8og4n2h5k7s",
+          "role": {
+            "name": "Frontend Developer",
+            "slug": "frontend-developer"
+          },
+          "maxMembers": 2,
+          "currentMembers": 1
+        }
+      ],
+      "memberCount": 1,
+      "applicationCount": 3
+    }
+  ],
+  "total": 15,
+  "page": 1,
+  "limit": 5,
+  "totalPages": 3
+}
+```
+
+**Note:** This response shows regular projects only. Pinned projects are excluded from the default listing and must be requested separately using `?pinned=true`.
+
+#### Review Application (`POST /projects/applications/review`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+
+```json
+{
+  "applicationId": "clm7x8k9e0000v8og4n2h5k7s",
+  "decision": "APPROVED",
+  "reviewMessage": "Welcome to the team! Your experience looks great."
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Application reviewed successfully",
+  "statusCode": 200,
+  "application": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "user": {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "username": "janedoe456",
+      "firstName": "Jane",
+      "lastName": "Doe",
+      "imageUrl": "https://example.com/jane-avatar.jpg"
+    },
+    "projectRole": {
+      "id": "clm7x8k9e0000v8og4n2h5k7t",
+      "role": {
+        "id": "clm7x8k9e0000v8og4n2h5k7s",
+        "name": "Frontend Developer",
+        "slug": "frontend-developer"
+      }
+    },
+    "message": "I have 3 years of experience with React Native and would love to contribute to this project.",
+    "status": "APPROVED",
+    "appliedAt": "2024-01-02T00:00:00.000Z",
+    "reviewedAt": "2024-01-03T00:00:00.000Z",
+    "reviewMessage": "Welcome to the team! Your experience looks great.",
+    "reviewer": {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "username": "johndoe123",
+      "firstName": "John",
+      "lastName": "Doe"
+    }
+  }
+}
+```
+
+#### Get My Projects (`GET /projects/my-projects`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Response:**
+
+```json
+{
+  "statusCode": 200,
+  "message": "User projects retrieved successfully",
+  "ownedProjects": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "slug": "cs-guild-mobile-app-development",
+      "title": "CS Guild Mobile App Development",
+      "description": "Building a mobile app for the CS Guild community",
+      "tags": ["mobile", "react-native", "typescript"],
+      "dueDate": "2024-12-31T23:59:59.000Z",
+      "status": "OPEN",
+      "createdAt": "2024-07-10T10:00:00.000Z",
+      "owner": {
+        "username": "johndoe",
+        "firstName": "John",
+        "lastName": "Doe",
+        "imageUrl": "https://example.com/avatar.jpg"
+      },
+      "roles": [
+        {
+          "roleSlug": "frontend-developer",
+          "maxMembers": 2,
+          "requirements": "React Native experience required",
+          "role": {
+            "name": "Frontend Developer",
+            "slug": "frontend-developer"
+          }
+        }
+      ],
+      "memberCount": 1,
+      "applicationCount": 3
+    }
+  ],
+  "memberProjects": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k8t",
+      "slug": "community-website",
+      "title": "Community Website",
+      "description": "Building the CS Guild community website",
+      "tags": ["web", "nextjs", "typescript"],
+      "dueDate": "2024-11-30T23:59:59.000Z",
+      "status": "IN_PROGRESS",
+      "createdAt": "2024-07-05T14:30:00.000Z",
+      "owner": {
+        "username": "janedoe",
+        "firstName": "Jane",
+        "lastName": "Doe",
+        "imageUrl": "https://example.com/jane-avatar.jpg"
+      },
+      "roles": [],
+      "memberCount": 4,
+      "applicationCount": 0
+    }
+  ]
+}
+```
+
+#### Get Saved Projects (`GET /projects/saved`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Query Parameters:**
+
+- `page` - Page number for pagination (default: 1)
+- `limit` - Number of items per page (default: 10, max: 100)
+- `sortBy` - Field to sort by (createdAt, updatedAt, dueDate, title, default: createdAt)
+- `sortOrder` - Sort direction (asc, desc, default: desc)
+
+**Example Request:**
+`GET /projects/saved?page=1&limit=5&sortBy=createdAt&sortOrder=desc`
+
+**Response:**
+
+```json
+{
+  "data": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "slug": "cs-guild-mobile-app-development",
+      "title": "CS Guild Mobile App Development",
+      "description": "Building a mobile app for the CS Guild community",
+      "tags": ["mobile", "react-native", "typescript"],
+      "dueDate": "2024-12-31T23:59:59.000Z",
+      "status": "OPEN",
+      "createdAt": "2024-07-10T10:00:00.000Z",
+      "owner": {
+        "username": "projectowner",
+        "firstName": "Project",
+        "lastName": "Owner",
+        "imageUrl": "https://example.com/owner-avatar.jpg"
+      },
+      "roles": [],
+      "memberCount": 2,
+      "applicationCount": 5
+    }
+  ],
+  "pagination": {
+    "page": 1,
+    "limit": 5,
+    "total": 12,
+    "totalPages": 3,
+    "hasNext": true,
+    "hasPrev": false
+  }
+}
+```
+
+#### Remove Project Member (`DELETE /projects/:slug/members/:memberUserSlug`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+`DELETE /projects/cs-guild-mobile-app-development/members/johndoe`
+
+**Response:**
+
+```json
+{
+  "message": "Project member removed successfully",
+  "statusCode": 200
+}
+```
+
+#### Reactivate Project Member (`PATCH /projects/:slug/members/:memberUserSlug/reactivate`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+`PATCH /projects/cs-guild-mobile-app-development/members/johndoe/reactivate`
+
+**Response:**
+
+```json
+{
+  "message": "Project member reactivated successfully",
+  "statusCode": 200
+}
+```
+
+#### Save Project (`POST /projects/:slug/save`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+`POST /projects/cs-guild-mobile-app-development/save`
+
+**Response:**
+
+```json
+{
+  "message": "Project saved successfully",
+  "statusCode": 201,
+  "savedProject": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "userSlug": "johndoe",
+    "projectSlug": "cs-guild-mobile-app-development",
+    "savedAt": "2024-07-16T10:30:00.000Z"
+  }
+}
+```
+
+#### Unsave Project (`DELETE /projects/:slug/unsave`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+`DELETE /projects/cs-guild-mobile-app-development/unsave`
+
+**Response:**
+
+```json
+{
+  "message": "Project unsaved successfully",
+  "statusCode": 200
+}
+```
+
+#### Pin Project (`POST /projects/:slug/pin`)
+
+**Authentication Required:** JWT Cookie with ADMIN role
+
+**Request:**
+`POST /projects/cs-guild-mobile-app-development/pin`
+
+**Response:**
+
+```json
+{
+  "message": "Project pinned successfully",
+  "statusCode": 201
+}
+```
+
+#### Unpin Project (`DELETE /projects/:slug/unpin`)
+
+**Authentication Required:** JWT Cookie with ADMIN role
+
+**Request:**
+`DELETE /projects/cs-guild-mobile-app-development/unpin`
+
+**Response:**
+
+```json
+{
+  "message": "Project unpinned successfully",
+  "statusCode": 200
+}
+```
+
+### Project Visibility Model
+
+The CS Guild platform uses a dual-visibility system for projects to provide better user experience and avoid content duplication:
+
+#### Regular Project Listings
+
+- **Endpoint**: `GET /projects` (without `pinned=true`)
+- **Content**: All projects **except** pinned projects
+- **Purpose**: Main project discovery and browsing
+- **Authentication**: None required (public)
+
+#### Pinned Project Listings
+
+- **Endpoint**: `GET /projects?pinned=true`
+- **Content**: Only globally pinned projects (max 6)
+- **Purpose**: Showcase featured/important projects
+- **Authentication**: Required (JWT Cookie)
+- **Ordering**: Sorted by admin-defined order (1-6)
+
+#### Benefits of This Model
+
+1. **No Duplication**: Pinned projects don't appear in both regular and pinned results
+2. **Clear Intent**: Users get exactly what they request
+3. **Performance**: Reduced data overlap and cleaner pagination
+4. **Admin Control**: Pinned projects get dedicated visibility without cluttering regular browsing
+
 ### Authentication Methods
 
 1. **JWT Cookies**:
    - `Authentication`: Access token (1 hour)
    - `Refresh`: Refresh token (24 hours)
    - HTTP-only, secure cookies
+   - Used for most authenticated endpoints
 
 2. **RFID Authentication**:
    - No session required
    - Direct card-to-student mapping
    - Requires email verification
+   - Used for facility access
 
 3. **Google OAuth**:
    - Automatic account creation
@@ -668,9 +1172,9 @@ This system has been customized from a generic NestJS authentication template to
 
 ### Role-Based Access Control
 
-- **STUDENT**: Default role, basic access
-- **STAFF**: Facility management, student data access
-- **ADMIN**: Full system access
+- **STUDENT**: Default role, basic access, can create/manage own projects, apply to join projects
+- **STAFF**: Facility management, student data access, role management
+- **ADMIN**: Full system access, project pinning, role management, facility management
 
 ### Rate Limiting
 
@@ -697,11 +1201,156 @@ All endpoints return standardized error responses:
 - **RFID Validation**: Unique card registration
 - **Token Security**: HTTP-only cookies, refresh rotation
 - **Role Protection**: Endpoint-level authorization
+- **Project Ownership**: Only project owners can modify/delete their projects
+- **Application Privacy**: Users can only see their own applications
+- **Member Management**: Project owners control team membership
 
-## License
+#### Create Role (`POST /roles`)
 
-This project is [MIT licensed](LICENSE).
+**Authentication Required:** JWT Cookie with STAFF or ADMIN role
 
-## Support
+**Request:**
 
-For support with the CSGUILD backend system, please contact the development team or create an issue in the repository.
+```json
+{
+  "name": "Frontend Developer",
+  "description": "Responsible for building and maintaining user interfaces using modern web technologies"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Role created successfully",
+  "statusCode": 201,
+  "role": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "name": "Frontend Developer",
+    "slug": "frontend-developer",
+    "description": "Responsible for building and maintaining user interfaces using modern web technologies",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2024-01-15T10:30:00.000Z"
+  }
+}
+```
+
+#### Get Roles (`GET /roles`)
+
+**Request:**
+
+```
+GET /roles?search=frontend&page=1&limit=10&sortBy=name&sortOrder=asc
+```
+
+**Response:**
+
+```json
+{
+  "message": "Roles retrieved successfully",
+  "statusCode": 200,
+  "data": [
+    {
+      "id": "clm7x8k9e0000v8og4n2h5k7s",
+      "name": "Frontend Developer",
+      "slug": "frontend-developer",
+      "description": "Responsible for building and maintaining user interfaces using modern web technologies",
+      "createdAt": "2024-01-15T10:30:00.000Z",
+      "updatedAt": "2024-01-15T10:30:00.000Z"
+    }
+  ],
+  "total": 1,
+  "page": 1,
+  "limit": 10,
+  "totalPages": 1
+}
+```
+
+#### Update Role (`PATCH /roles/:slug`)
+
+**Authentication Required:** JWT Cookie with STAFF or ADMIN role
+
+**Request:**
+
+```json
+{
+  "name": "Senior Frontend Developer",
+  "description": "Lead frontend development initiatives and mentor junior developers"
+}
+```
+
+**Response:**
+
+```json
+{
+  "message": "Role updated successfully",
+  "statusCode": 200,
+  "role": {
+    "id": "clm7x8k9e0000v8og4n2h5k7s",
+    "name": "Senior Frontend Developer",
+    "slug": "senior-frontend-developer",
+    "description": "Lead frontend development initiatives and mentor junior developers",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2024-01-15T11:00:00.000Z"
+  }
+}
+```
+
+#### Get Role by Slug (`GET /roles/:slug`)
+
+**Request:**
+
+```
+GET /roles/frontend-developer
+```
+
+**Response:**
+
+```json
+{
+  "id": "clm7x8k9e0000v8og4n2h5k7s",
+  "name": "Frontend Developer",
+  "slug": "frontend-developer",
+  "description": "Responsible for building and maintaining user interfaces using modern web technologies",
+  "createdAt": "2024-01-15T10:30:00.000Z",
+  "updatedAt": "2024-01-15T10:30:00.000Z"
+}
+```
+
+#### Update User Profile (`PATCH /users/profile`)
+
+**Authentication Required:** JWT Cookie in `Authentication` header
+
+**Request:**
+
+```json
+{
+  "firstName": "John",
+  "lastName": "Smith",
+  "course": "Bachelor of Science in Information Technology",
+  "birthdate": "2000-01-15T00:00:00.000Z"
+}
+```
+
+**Response:**
+
+```json
+{
+  "id": "clm7x8k9e0000v8og4n2h5k7s",
+  "email": "john.doe@example.com",
+  "username": "johndoe123",
+  "firstName": "John",
+  "lastName": "Smith",
+  "birthdate": "2000-01-15T00:00:00.000Z",
+  "course": "Bachelor of Science in Information Technology",
+  "imageUrl": "https://lh3.googleusercontent.com/a/default-user=s96-c",
+  "emailVerified": true,
+  "hasRefreshToken": true,
+  "hasRfidCard": true,
+  "rfidId": "RF001234567",
+  "roles": ["STUDENT"],
+  "signupMethod": "EMAIL",
+  "createdAt": "2024-07-05T05:36:19.000Z",
+  "updatedAt": "2024-07-05T06:15:30.000Z"
+}
+```

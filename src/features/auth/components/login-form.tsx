@@ -4,7 +4,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -17,9 +17,14 @@ import { useAuthStore } from '../stores/auth-store'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
-  const { isLoading, error } = useAuthStore()
+  const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const { isLoading, error, setError } = useAuthStore()
   const loginMutation = useLoginMutation()
   const router = useRouter()
+  const searchParams = useSearchParams()
+
+  // Get the next parameter from URL
+  const nextParam = searchParams.get('next')
 
   const {
     register,
@@ -32,21 +37,35 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await loginMutation.mutateAsync(data)
+      await loginMutation.mutateAsync({ 
+        email: data.email, 
+        password: data.password, 
+        redirectTo: nextParam 
+      })
     } catch (error) {
-      // Error handling is done in the mutation
-      console.error('Login error:', error)
-      
       // Check if the error is related to unverified email
-      const errorMessage = error instanceof Error ? error.message : String(error)
-      if (errorMessage.includes('UNVERIFIED EMAIL') || errorMessage.includes('verify')) {
+      // @ts-expect-error - not typed properly
+      if ((error as Error).statusCode === 409) {
+        // Store the next parameter before redirecting to verify email
+        if (nextParam) {
+          sessionStorage.setItem('auth_redirect_after_login', nextParam)
+        }
         router.push(`/verify-email?email=${data.email}`)
+        setError('Please verify your email before logging in.')
       }
     }
   }
 
   const handleGoogleLogin = () => {
-    window.location.href = `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'}/auth/google`
+    setIsGoogleLoading(true)
+    // Store the next parameter in sessionStorage for Google OAuth flow
+    if (nextParam) {
+      sessionStorage.setItem('auth_redirect_after_login', nextParam)
+    }
+    
+    // Use the existing Google login from auth API
+    const googleOAuthUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
+    window.location.href = googleOAuthUrl
   }
 
   return (
@@ -172,28 +191,33 @@ export function LoginForm() {
         type="button"
         variant="outline"
         onClick={handleGoogleLogin}
-        className="w-full border-pink-500/50 text-pink-300 hover:bg-pink-500/10 py-3 rounded-xl bg-black/30 backdrop-blur-sm hover:border-pink-400 transition-all duration-300"
+        disabled={isGoogleLoading}
+        className="w-full border-pink-500/50 text-pink-300 hover:bg-pink-500/10 py-3 rounded-xl bg-black/30 backdrop-blur-sm hover:border-pink-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
         <div className="flex items-center gap-3">
-          <svg className="h-5 w-5" viewBox="0 0 24 24">
-            <path
-              fill="currentColor"
-              d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-            />
-            <path
-              fill="currentColor"
-              d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-            />
-            <path
-              fill="currentColor"
-              d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-            />
-            <path
-              fill="currentColor"
-              d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-            />
-          </svg>
-          <span>Continue with Google</span>
+          {isGoogleLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <svg className="h-5 w-5" viewBox="0 0 24 24">
+              <path
+                fill="currentColor"
+                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+              />
+              <path
+                fill="currentColor"
+                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+              />
+              <path
+                fill="currentColor"
+                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+              />
+              <path
+                fill="currentColor"
+                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+              />
+            </svg>
+          )}
+          <span>{isGoogleLoading ? 'Redirecting...' : 'Continue with Google'}</span>
         </div>
       </Button>
 

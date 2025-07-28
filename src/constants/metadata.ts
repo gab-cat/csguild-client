@@ -23,15 +23,9 @@ const BASE_METADATA = {
 // Default images for Open Graph and Twitter
 const DEFAULT_IMAGES = [
   {
-    url: `${SITE_URL}/android-chrome-192x192.png`,
-    width: 192,
-    height: 192,
-    alt: 'CS Guild',
-  },
-  {
-    url: `${SITE_URL}/android-chrome-512x512.png`,
-    width: 512,
-    height: 512,
+    url: `${SITE_URL}/og-image.png`,
+    width: 1200,
+    height: 630,
     alt: 'CS Guild',
   },
 ]

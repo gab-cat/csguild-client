@@ -1,3 +1,5 @@
+import { UserResponseDto } from "@generated/api-client"
+
 // User role types
 export type UserRole = 'STUDENT' | 'STAFF' | 'ADMIN'
 
@@ -25,22 +27,14 @@ export interface User {
 }
 
 // Simplified user data for responses
-export interface UserResponseDto {
-  id: string
-  email: string
-  username: string
-  firstName: string
-  lastName: string
-  course: string
-  imageUrl?: string
-}
 
 // Auth state interface
 export interface AuthState {
-  user: User | null
+  user: UserResponseDto | null
   isAuthenticated: boolean
   isLoading: boolean
   error: string | null
+  _isValidated: boolean
 }
 
 // API Response types
@@ -80,6 +74,16 @@ export interface RfidRegistrationResponse extends ApiResponse {
   details: string
 }
 
+// Forgot password response
+export interface ForgotPasswordResponse extends ApiResponse {
+  statusCode: 200
+}
+
+// Reset password response
+export interface ResetPasswordResponse extends ApiResponse {
+  statusCode: 200
+}
+
 // Error response
 export interface ApiError {
   statusCode: number
@@ -101,7 +105,7 @@ export interface RegisterRequestData {
 
 // Auth context type
 export interface AuthContextType {
-  user: User | null
+  user: UserResponseDto | null
   isAuthenticated: boolean
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>

@@ -189,6 +189,26 @@ export const googleCallbackSchema = z.object({
   error_description: z.string().optional(),
 })
 
+// Forgot password schema
+export const forgotPasswordSchema = z.object({
+  email: z
+    .string()
+    .min(1, 'Email is required')
+    .email('Please enter a valid email address'),
+})
+
+// Reset password schema
+export const resetPasswordSchema = z.object({
+  token: z
+    .string()
+    .min(1, 'Reset token is required'),
+  newPassword: passwordSchema,
+  confirmPassword: z.string().min(1, 'Please confirm your new password'),
+}).refine((data) => data.newPassword === data.confirmPassword, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
+})
+
 // Google OAuth user update schema (for completing profile)
 export const googleUserUpdateSchema = z.object({
   username: z
@@ -214,7 +234,6 @@ export const googleUserUpdateSchema = z.object({
     .optional(),
   rfidId: z
     .string()
-    .min(1, 'RFID Card ID is required')
     .optional(),
 })
 
@@ -225,6 +244,8 @@ export type EmailVerificationFormData = z.infer<typeof emailVerificationSchema>
 export type RfidLoginFormData = z.infer<typeof rfidLoginSchema>
 export type ResendVerificationFormData = z.infer<typeof resendVerificationSchema>
 export type RfidRegistrationFormData = z.infer<typeof rfidRegistrationSchema>
+export type ForgotPasswordFormData = z.infer<typeof forgotPasswordSchema>
+export type ResetPasswordFormData = z.infer<typeof resetPasswordSchema>
 export type GoogleCallbackData = z.infer<typeof googleCallbackSchema>
 export type GoogleUserUpdateData = z.infer<typeof googleUserUpdateSchema>
 

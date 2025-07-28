@@ -1,7 +1,7 @@
 'use client'
 
 import { Separator } from '@radix-ui/react-separator'
-import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, Settings, ChevronDown, Home, Calendar, BookOpen, Users as UsersIcon } from 'lucide-react'
+import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText } from 'lucide-react'
 import Link from 'next/link'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -34,8 +34,16 @@ const NavBar = () => {
   const navItems = [
     { href: '/', label: 'Home', icon: Home },
     { href: '/events', label: 'Events', icon: Calendar },
-    { href: '/courses', label: 'Courses', icon: BookOpen },
-    { href: '/community', label: 'Community', icon: UsersIcon },
+    { href: '/projects', label: 'Projects', icon: FolderOpen },
+  ]
+
+  // About dropdown items
+  const aboutItems = [
+    { href: '/cs-guild', label: 'CS Guild', description: 'Computer Science Guild' },
+    { href: '/aws-cloud-club', label: 'AWS Cloud Club', description: 'Amazon Web Services Cloud Club' },
+    // { href: '/tactics', label: 'TACTICS', description: 'Technology and Creative Thinking in Computer Science' },
+    // { href: '/notion', label: 'Notion', description: 'Our Digital Workspace' },
+    // { href: '/pixels', label: 'PIXELS', description: 'Photography and Visual Arts' },
   ]
 
   return (
@@ -59,27 +67,61 @@ const NavBar = () => {
             </div>
           </Link>
 
-          {/* Navigation Links - Only show when authenticated */}
-          {isAuthenticated && (
-            <>
-              <Separator orientation="vertical" className="h-4 bg-pink-500/20 hidden lg:block" />
+          {/* Navigation Links  */}
+          <>
+            <Separator orientation="vertical" className="h-4 bg-pink-500/20 hidden lg:block" />
             
-              <nav className="hidden lg:flex items-center gap-1">
-                {navItems.map((item) => (
-                  <Link key={item.href} href={item.href}>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span className="hidden xl:inline">{item.label}</span>
-                    </Button>
-                  </Link>
-                ))}
-              </nav>
-            </>
-          )}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navItems.map((item) => (
+                <Link key={item.href} href={item.href}>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    <span className="hidden xl:inline">{item.label}</span>
+                  </Button>
+                </Link>
+              ))}
+
+              {/* About Dropdown */}
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
+                  >
+                    <UsersIcon className="h-4 w-4" />
+                    <span className="hidden xl:inline">Community</span>
+                    <ChevronDown className="h-3 w-3 text-gray-400" />
+                  </Button>
+                </DropdownMenuTrigger>
+
+                <DropdownMenuContent align="center" className="w-64 bg-gray-900/95 border-pink-500/20 backdrop-blur-md">
+                  <DropdownMenuLabel className="font-space-mono text-pink-400">
+                    {"// About Us"}
+                  </DropdownMenuLabel>
+                  <DropdownMenuSeparator className="bg-pink-500/20" />
+                  
+                  {aboutItems.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link 
+                        href={item.href}
+                        className="flex flex-col items-start gap-1 cursor-pointer text-gray-300 hover:text-violet-400 hover:bg-violet-500/10 p-3"
+                      >
+                        <span className="font-medium">{item.label}</span>
+                        <span className="text-xs text-gray-400 font-space-mono">
+                          {"// " + item.description}
+                        </span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </nav>
+          </>
         </div>
 
         {/* Auth Section */}
@@ -158,16 +200,48 @@ const NavBar = () => {
                   </Link>
                 </DropdownMenuItem>
 
-                {/* Profile */}
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10">
-                  <User className="h-4 w-4" />
-                  <span>Profile</span>
+                {/* My Projects */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/my-projects" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-purple-400 hover:bg-purple-500/10"
+                  >
+                    <FolderOpen className="h-4 w-4" />
+                    <span>My Projects</span>
+                  </Link>
                 </DropdownMenuItem>
 
-                {/* Settings */}
-                <DropdownMenuItem className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-green-400 hover:bg-green-500/10">
-                  <Settings className="h-4 w-4" />
-                  <span>Settings</span>
+                {/* My Applications */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/my-applications" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-orange-400 hover:bg-orange-500/10"
+                  >
+                    <FileText className="h-4 w-4" />
+                    <span>My Applications</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* My Events */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/events/my-events" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
+                  >
+                    <Calendar className="h-4 w-4" />
+                    <span>My Events</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* Profile */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/profile" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
+                  >
+                    <User className="h-4 w-4" />
+                    <span>Profile</span>
+                  </Link>
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator className="bg-pink-500/20" />

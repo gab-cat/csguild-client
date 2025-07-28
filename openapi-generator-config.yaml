@@ -1,0 +1,8 @@
+# TypeScript-specific configuration
+npmName: my-api-client
+npmVersion: 1.0.0
+supportsES6: true
+withInterfaces: false
+modelPropertyNaming: camelCase
+enumPropertyNaming: UPPERCASE
+useSingleRequestParameter: false

@@ -4,6 +4,7 @@ import { useMutation, useQueryClient } from '@tanstack/react-query'
 import { useRouter } from 'next/navigation'
 
 import { showSuccessToast, showErrorToast, showCodeToast, showInfoToast } from '@/lib/toast'
+import { UpdateUserRequest, UserResponseDto } from '@generated/api-client'
 
 import type {
   LoginFormData,
@@ -11,11 +12,11 @@ import type {
   RfidLoginFormData,
   ResendVerificationFormData,
   RfidRegistrationFormData,
-  GoogleCallbackData,
-  GoogleUserUpdateData,
+  ForgotPasswordFormData,
+  ResetPasswordFormData,
 } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
-import type { RegisterRequestData, User } from '../types'
+import type { RegisterRequestData } from '../types'
 import { authApi } from '../utils/auth-api'
 
 // Login mutation
@@ -24,12 +25,14 @@ export function useLoginMutation() {
   const queryClient = useQueryClient()
 
   return useMutation({
-    mutationFn: async (credentials: LoginFormData) => {
+    mutationFn: async (data: LoginFormData & { redirectTo?: string | null }) => {
       setLoading(true)
       setError(null)
-      return authApi.login(credentials)
+      const { redirectTo, ...credentials } = data
+      const response = await authApi.login(credentials)
+      return { response, redirectTo }
     },
-    onSuccess: async () => {
+    onSuccess: async ({ redirectTo }) => {
       try {
         // After successful login, fetch user data
         const user = await authApi.getCurrentUser()
@@ -38,6 +41,23 @@ export function useLoginMutation() {
         
         // Invalidate and refetch user data
         queryClient.invalidateQueries({ queryKey: ['user'] })
+        
+        // Handle redirect after successful login
+        if (redirectTo) {
+          // Validate that redirectTo is a safe internal URL
+          try {
+            const url = new URL(redirectTo, window.location.origin)
+            // Ensure it's same origin and not an auth route
+            if (url.origin === window.location.origin && !url.pathname.startsWith('/login') && !url.pathname.startsWith('/register')) {
+              window.location.href = url.toString()
+              return
+            }
+          } catch (error) {
+            console.error('Invalid redirect URL:', redirectTo, error)
+          }
+        }
+        
+        // Default behavior - reload page
         window.location.reload()
       } catch {
         setError('Failed to fetch user data')
@@ -49,11 +69,16 @@ export function useLoginMutation() {
       }
     },
     onError: (error: Error) => {
-      setError(error.message || 'Login failed')
+      if (error.message.includes('locked')) {
+        setError(error.message)
+      } else {
+        setError('Invalid credentials. Double-check your email and password.')
+      }
+      
       setLoading(false)
       showErrorToast(
         'Login failed',
-        error.message || 'Invalid credentials. Double-check your email and password.'
+        'Invalid credentials. Double-check your email and password.'
       )
     },
   })
@@ -67,7 +92,16 @@ export function useRegisterMutation() {
     mutationFn: async (userData: RegisterRequestData) => {
       setLoading(true)
       setError(null)
-      return authApi.register(userData)
+      return authApi.register({
+        email: userData.email,
+        username: userData.username || '',
+        password: userData.password,
+        firstName: userData.firstName,
+        lastName: userData.lastName,
+        birthdate: userData.birthdate,
+        course: userData.course,
+        rfidId: userData.rfidId,
+      })
     },
     onSuccess: () => {
       setLoading(false)
@@ -115,7 +149,28 @@ export function useEmailVerificationMutation() {
           'Your CS Guild account is now fully activated. Welcome to the community!'
         )
         
-        // Redirect to dashboard
+        // Check for stored redirect URL
+        const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
+        if (storedRedirect) {
+          // Clear the stored redirect
+          sessionStorage.removeItem('auth_redirect_after_login')
+          
+          // Validate that it's a safe internal URL
+          try {
+            const redirectUrl = new URL(storedRedirect, window.location.origin)
+            // Ensure it's same origin and not an auth route
+            if (redirectUrl.origin === window.location.origin && 
+                !redirectUrl.pathname.startsWith('/login') && 
+                !redirectUrl.pathname.startsWith('/register')) {
+              router.push(redirectUrl.pathname + redirectUrl.search)
+              return
+            }
+          } catch (error) {
+            console.error('Invalid stored redirect URL:', storedRedirect, error)
+          }
+        }
+        
+        // Default redirect to dashboard
         router.push('/dashboard')
       } catch {
         setLoading(false)
@@ -169,7 +224,7 @@ export function useResendVerificationMutation() {
 // RFID login mutation
 export function useRfidLoginMutation() {
   const router = useRouter()
-  const { setUser, setLoading, setError } = useAuthStore()
+  const { setUser, setLoading, setError, user } = useAuthStore()
   const queryClient = useQueryClient()
 
   return useMutation({
@@ -180,7 +235,7 @@ export function useRfidLoginMutation() {
     },
     onSuccess: (response) => {
       // RFID login returns student data directly
-      setUser(response.student as User)
+      setUser(response.student as UserResponseDto)
       setLoading(false)
       
       // Invalidate queries
@@ -188,10 +243,31 @@ export function useRfidLoginMutation() {
       
       showCodeToast(
         'RFID login successful!',
-        `Quick access granted. Welcome back, ${response.student.firstName}!`
+        `Quick access granted. Welcome back, ${user?.firstName}!`
       )
       
-      // Redirect to dashboard
+      // Check for stored redirect URL
+      const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
+      if (storedRedirect) {
+        // Clear the stored redirect
+        sessionStorage.removeItem('auth_redirect_after_login')
+        
+        // Validate that it's a safe internal URL
+        try {
+          const redirectUrl = new URL(storedRedirect, window.location.origin)
+          // Ensure it's same origin and not an auth route
+          if (redirectUrl.origin === window.location.origin && 
+              !redirectUrl.pathname.startsWith('/login') && 
+              !redirectUrl.pathname.startsWith('/register')) {
+            router.push(redirectUrl.pathname + redirectUrl.search)
+            return
+          }
+        } catch (error) {
+          console.error('Invalid stored redirect URL:', storedRedirect, error)
+        }
+      }
+      
+      // Default redirect to dashboard
       router.push('/')
     },
     onError: (error: Error) => {
@@ -228,6 +304,35 @@ export function useRfidRegistrationMutation() {
       showErrorToast(
         'RFID registration failed',
         error.message || 'Unable to register your RFID card. Please try again or contact support.'
+      )
+    },
+  })
+}
+
+// Update user mutation
+export function useUpdateUserProfileMutation() {
+  const { setLoading, setError, setUser } = useAuthStore()
+
+  return useMutation({
+    mutationFn: async (data: UpdateUserRequest) => {
+      setLoading(true)
+      setError(null)
+      return authApi.updateUser(data)
+    },
+    onSuccess: (response) => {
+      setUser(response)
+      setLoading(false)
+      showSuccessToast(
+        'Profile updated successfully!',
+        'Your CS Guild profile has been updated successfully.'
+      )
+    },
+    onError: (error: Error) => {
+      setError(error.message || 'Failed to update user profile')
+      setLoading(false)
+      showErrorToast(
+        'Failed to update profile',
+        error.message || 'Unable to update your profile. Please check your information and try again.'
       )
     },
   })
@@ -275,86 +380,60 @@ export function useLogoutMutation() {
   })
 }
 
-// Google OAuth callback mutation
-export function useGoogleCallbackMutation() {
-  const router = useRouter()
-  const { setUser, setLoading, setError } = useAuthStore()
-  const queryClient = useQueryClient()
+// Forgot password mutation
+export function useForgotPasswordMutation() {
+  const { setLoading, setError } = useAuthStore()
 
   return useMutation({
-    mutationFn: async (data: GoogleCallbackData) => {
+    mutationFn: async (data: ForgotPasswordFormData) => {
       setLoading(true)
       setError(null)
-      return authApi.googleCallback(data)
+      return authApi.forgotPassword(data)
     },
-    onSuccess: async () => {
-      try {
-        // After successful Google OAuth, fetch user data
-        const user = await authApi.getCurrentUser()
-        setUser(user)
-        setLoading(false)
-        
-        // Invalidate and refetch user data
-        queryClient.invalidateQueries({ queryKey: ['user'] })
-        
-        // Let middleware handle redirects based on profile completion
-        router.push('/dashboard')
-        showSuccessToast(
-          'Welcome back to CS Guild!',
-          `Successfully logged in with Google. Ready to continue your coding journey!`
-        )
-      } catch {
-        setError('Failed to fetch user data')
-        setLoading(false)
-        showErrorToast(
-          'Login incomplete',
-          'Google authentication succeeded but failed to load user data. Please try again.'
-        )
-      }
+    onSuccess: () => {
+      setLoading(false)
+      showSuccessToast(
+        'Password reset email sent!',
+        'Check your inbox for instructions on how to reset your password. The link will expire in 1 hour.'
+      )
     },
     onError: (error: Error) => {
-      setError(error.message || 'Google authentication failed')
+      setError(error.message || 'Failed to send password reset email')
       setLoading(false)
       showErrorToast(
-        'Google authentication failed',
-        error.message || 'Unable to complete Google authentication. Please try again.'
+        'Failed to send reset email',
+        error.message || 'Unable to send password reset email. Please try again later.'
       )
     },
   })
 }
 
-// Update user profile mutation (for Google OAuth users)
-export function useUpdateUserProfileMutation() {
+// Reset password mutation
+export function useResetPasswordMutation() {
   const router = useRouter()
-  const { setUser, setLoading, setError } = useAuthStore()
-  const queryClient = useQueryClient()
+  const { setLoading, setError } = useAuthStore()
 
   return useMutation({
-    mutationFn: async (data: GoogleUserUpdateData) => {
+    mutationFn: async (data: Omit<ResetPasswordFormData, 'confirmPassword'>) => {
       setLoading(true)
       setError(null)
-      return authApi.updateUserProfile(data)
+      return authApi.resetPassword(data)
     },
-    onSuccess: (updatedUser) => {
-      setUser(updatedUser)
+    onSuccess: () => {
       setLoading(false)
-      // Redirect to dashboard
-      router.push('/dashboard')
-      
-      // Invalidate and refetch user data
-      queryClient.invalidateQueries({ queryKey: ['user'] })
-      
       showSuccessToast(
-        'Profile updated successfully!',
-        'Your CS Guild profile has been completed. Welcome to the community!'
+        'Password reset successful!',
+        'Your password has been changed successfully. You can now log in with your new password.'
       )
+      // Redirect to login page
+      router.push('/login')
     },
     onError: (error: Error) => {
-      setError(error.message || 'Profile update failed')
+      setError(error.message || 'Password reset failed')
       setLoading(false)
       showErrorToast(
-        'Profile update failed',
-        error.message || 'Unable to update your profile. Please check your information and try again.'
+        'Password reset failed',
+        error.message || 'Unable to reset your password. The token may be invalid or expired. Please request a new reset link.'
       )
     },
   })

@@ -38,20 +38,12 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
-import { cn } from '@/lib/utils'
+import { cn, generateRandomId } from '@/lib/utils'
 
+import { COURSE_OPTIONS } from '../constants/course-options'
 import { useUpdateUserProfileMutation } from '../hooks'
 import { googleUserUpdateSchema, type GoogleUserUpdateData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
-
-// Predefined course options
-const courseOptions = [
-  { value: 'bs-computer-science', label: 'BS Computer Science' },
-  { value: 'bs-information-technology', label: 'BS Information Technology' },
-  { value: 'bs-information-systems', label: 'BS Information Systems' },
-  { value: 'bs-digital-illustration-animation', label: 'BS Digital Illustration and Animation' },
-  { value: 'custom', label: 'Other (specify below)' },
-]
 
 export function GoogleProfileCompletionForm() {
   const router = useRouter()
@@ -97,22 +89,42 @@ export function GoogleProfileCompletionForm() {
         
         // Set course dropdown based on existing data
         if (user.course) {
-          const predefinedCourse = courseOptions.find(option => option.label === user.course)
+          const predefinedCourse = COURSE_OPTIONS.find(option => option.label === user.course)
           if (predefinedCourse) {
             setSelectedCourse(predefinedCourse.value)
           } else {
-            setSelectedCourse('custom')
+            setSelectedCourse('others')
             setCustomCourse(user.course)
           }
         }
         
         // Set birthdate for calendar
         if (user.birthdate) {
-          setSelectedDate(new Date(user.birthdate))
+          // Parse date string safely without timezone issues
+          const dateString = user.birthdate
+          if (dateString.includes('-')) {
+            const [year, month, day] = dateString.split('-').map(Number)
+            setSelectedDate(new Date(year, month - 1, day))
+          } else {
+            setSelectedDate(new Date(user.birthdate))
+          }
         }
       }
     }
   }, [user, searchParams, reset])
+
+  // Keep form birthdate in sync with selectedDate
+  useEffect(() => {
+    if (selectedDate) {
+      const year = selectedDate.getFullYear()
+      const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+      const day = String(selectedDate.getDate()).padStart(2, '0')
+      const formattedDate = `${year}-${month}-${day}`
+      setValue('birthdate', formattedDate)
+    } else {
+      setValue('birthdate', '')
+    }
+  }, [selectedDate, setValue])
 
   // Clean up timeout on unmount
   useEffect(() => {
@@ -189,10 +201,10 @@ export function GoogleProfileCompletionForm() {
     setSelectedCourse(value)
     setCourseDropdownOpen(false)
     
-    if (value === 'custom') {
+    if (value === 'others') {
       setValue('course', customCourse)
     } else {
-      const selectedOption = courseOptions.find(option => option.value === value)
+      const selectedOption = COURSE_OPTIONS.find(option => option.value === value)
       if (selectedOption) {
         setValue('course', selectedOption.label)
         setCustomCourse('')
@@ -209,26 +221,45 @@ export function GoogleProfileCompletionForm() {
 
   // Handle calendar date selection
   const handleDateSelect = (date: Date | undefined) => {
-    if (date) {
-      setSelectedDate(date)
-      // Format date as YYYY-MM-DD for the input
-      const formattedDate = date.toISOString().split('T')[0]
-      setValue('birthdate', formattedDate)
-      setBirthdateCalendarOpen(false)
-    }
+    setSelectedDate(date)
+    setBirthdateCalendarOpen(false)
   }
 
   const onSubmit = async (data: GoogleUserUpdateData) => {
     try {
+      // Ensure birthdate is included if selectedDate exists
+      const submitData = { ...data }
+      if (selectedDate && !submitData.birthdate) {
+        const year = selectedDate.getFullYear()
+        const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
+        const day = String(selectedDate.getDate()).padStart(2, '0')
+        submitData.birthdate = `${year}-${month}-${day}`
+      }
+
       // Remove empty fields
       const cleanData = Object.fromEntries(
-        Object.entries(data).filter(([, value]) => value !== '' && value !== undefined)
+        Object.entries(submitData).filter(([, value]) => value !== '' && value !== undefined)
       ) as GoogleUserUpdateData
+
+      console.log('Submitting data:', cleanData) // Debug log
 
       await updateProfileMutation.mutateAsync(cleanData)
       window.location.reload()
     } catch (error) {
       console.error('Profile update error:', error)
+    }
+  }
+
+  const handleSkipRfid = async () => {
+    try {
+      // Generate a random 8-character ID when skipping RFID setup
+      const randomId = generateRandomId()
+      const data: GoogleUserUpdateData = { rfidId: randomId }
+      
+      await updateProfileMutation.mutateAsync(data)
+      window.location.reload()
+    } catch (error) {
+      console.error('Skip RFID error:', error)
     }
   }
 
@@ -337,41 +368,50 @@ export function GoogleProfileCompletionForm() {
             <Label htmlFor="birthdate" className="text-gray-200">
               Birthdate
             </Label>
-            <div className="flex gap-2">
-              {/* Date Input */}
-              <div className="relative flex-1">
-                <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pink-400 h-5 w-5 z-10" />
-                <Input
-                  {...register('birthdate')}
-                  id="birthdate"
-                  type="date"
-                  className="w-full pl-10 pr-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white placeholder-gray-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
-                />
-              </div>
-              {/* Calendar Popup Button */}
-              <Popover open={birthdateCalendarOpen} onOpenChange={setBirthdateCalendarOpen}>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="px-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white hover:bg-black/40 hover:border-pink-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
-                  >
-                    <Calendar className="h-5 w-5" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0 bg-black/90 border-pink-500/50" align="start">
-                  <CalendarComponent
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={handleDateSelect}
-                    disabled={(date) =>
-                      date > new Date() || date < new Date("1900-01-01")
+            <Popover open={birthdateCalendarOpen} onOpenChange={setBirthdateCalendarOpen}>
+              <PopoverTrigger asChild>
+                <Button
+                  variant="outline"
+                  role="combobox"
+                  aria-expanded={birthdateCalendarOpen}
+                  className="w-full justify-between pl-10 pr-4 py-3 bg-black/30 border-pink-500/50 rounded-xl text-white hover:bg-black/40 hover:border-pink-400 focus:border-pink-400 focus:ring-2 focus:ring-pink-400/20 transition-all duration-300"
+                >
+                  <Calendar className=" text-pink-400 h-5 w-5" />
+                  <span className="flex-1 text-left ml-6">
+                    {selectedDate 
+                      ? selectedDate.toLocaleDateString('en-US', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric',
+                      })
+                      : "Select your birthdate..."
                     }
-                    initialFocus
-                    className="rounded-md border-none"
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
+                  </span>
+                  <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-auto p-0 bg-black/90 border-pink-500/50" align="start">
+                <CalendarComponent
+                  mode="single"
+                  selected={selectedDate}
+                  onSelect={handleDateSelect}
+                  disabled={(date) =>
+                    date > new Date() || date < new Date("1900-01-01")
+                  }
+                  initialFocus
+                  className="rounded-md border-none"
+                  captionLayout="dropdown"
+                  fromYear={1900}
+                  toYear={new Date().getFullYear()}
+                  defaultMonth={selectedDate || new Date(2000, 0)}
+                />
+              </PopoverContent>
+            </Popover>
+            {/* Hidden input for form validation - use useEffect to keep in sync */}
+            <input
+              {...register('birthdate')}
+              type="hidden"
+            />
             {/* Fixed height container for error messages to prevent layout shift */}
             <div className="h-4">
               {errors.birthdate && (
@@ -412,7 +452,7 @@ export function GoogleProfileCompletionForm() {
                       <GraduationCap className="absolute left-3 top-1/2 transform -translate-y-1/2 text-pink-400 h-5 w-5" />
                       <span className="flex-1 text-left ml-6">
                         {selectedCourse
-                          ? courseOptions.find((course) => course.value === selectedCourse)?.label
+                          ? COURSE_OPTIONS.find((course) => course.value === selectedCourse)?.label
                           : "Select your course..."}
                       </span>
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -427,7 +467,7 @@ export function GoogleProfileCompletionForm() {
                       <CommandList>
                         <CommandEmpty className="text-gray-400 p-4">No course found.</CommandEmpty>
                         <CommandGroup>
-                          {courseOptions.map((course) => (
+                          {COURSE_OPTIONS.map((course) => (
                             <CommandItem
                               key={course.value}
                               value={course.value}
@@ -451,7 +491,7 @@ export function GoogleProfileCompletionForm() {
               </div>
 
               {/* Custom Course Input (shown when "Other" is selected) */}
-              {selectedCourse === 'custom' && (
+              {selectedCourse === 'others' && (
                 <div className="relative">
                   <Input
                     value={customCourse}
@@ -539,8 +579,8 @@ export function GoogleProfileCompletionForm() {
               </div>
             </div>
 
-            {/* Scan Button */}
-            <div className="flex justify-center">
+            {/* Scan Buttons */}
+            <div className="flex justify-center gap-3">
               <Button
                 type="button"
                 onClick={handleStartScanning}
@@ -560,6 +600,17 @@ export function GoogleProfileCompletionForm() {
                     <span>Start Scanning</span>
                   </div>
                 )}
+              </Button>
+              
+              <Button
+                type="button"
+                onClick={handleSkipRfid}
+                disabled={isScanning || updateProfileMutation.isPending}
+                variant="outline"
+                size="sm"
+                className="border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10 transition-all duration-300"
+              >
+                <span>Skip & Generate ID</span>
               </Button>
             </div>
 
@@ -630,6 +681,9 @@ export function GoogleProfileCompletionForm() {
         <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
           <p className="text-sm text-blue-400 font-space-mono">
             {"// You can skip optional fields and complete them later in your profile settings"}
+          </p>
+          <p className="text-xs text-blue-300 mt-2">
+            For RFID setup, you can skip and we&apos;ll generate a temporary ID for you.
           </p>
         </div>
 
