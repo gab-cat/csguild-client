@@ -91,7 +91,7 @@ export function AboutSection() {
           >
             Why{" "}
             <span className="bg-gradient-to-r from-pink-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
-              10,000+
+              100+
             </span>{" "}
             Students Choose CS Guild
           </motion.h2>
