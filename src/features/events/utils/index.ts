@@ -7,7 +7,7 @@ export * from './feedback-responses-api-utils'
 export * from './event-utils'
 
 // Re-export date utilities
-export * from './date-utils'
+export * from '../../../lib/date-utils'
 
 // Re-export all form builder utilities
 export * from './form-builder-utils'

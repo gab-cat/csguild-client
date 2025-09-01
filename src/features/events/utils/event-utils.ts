@@ -1,6 +1,6 @@
 import { EventDetailResponseDtoTypeEnum } from '@generated/api-client'
 
-import { formatDateForDisplay } from './date-utils'
+import { formatDateForDisplay } from '../../../lib/date-utils'
 
 // Utility functions for data transformation and validation
 export const eventUtils = {

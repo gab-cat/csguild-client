@@ -1,7 +1,7 @@
 'use client'
 
 import { Separator } from '@radix-ui/react-separator'
-import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText } from 'lucide-react'
+import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText, BookOpen } from 'lucide-react'
 import Link from 'next/link'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
@@ -35,6 +35,7 @@ const NavBar = () => {
     { href: '/', label: 'Home', icon: Home },
     { href: '/events', label: 'Events', icon: Calendar },
     { href: '/projects', label: 'Projects', icon: FolderOpen },
+    { href: '/blogs', label: 'Blogs', icon: BookOpen },
   ]
 
   // About dropdown items
@@ -208,6 +209,17 @@ const NavBar = () => {
                   >
                     <FolderOpen className="h-4 w-4" />
                     <span>My Projects</span>
+                  </Link>
+                </DropdownMenuItem>
+
+                {/* My Blogs */}
+                <DropdownMenuItem asChild>
+                  <Link 
+                    href="/blogs?author=me" 
+                    className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-pink-400 hover:bg-pink-500/10"
+                  >
+                    <BookOpen className="h-4 w-4" />
+                    <span>My Blogs</span>
                   </Link>
                 </DropdownMenuItem>
 

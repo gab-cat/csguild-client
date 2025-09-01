@@ -53,6 +53,7 @@ const publicRoutePatterns: string[] = [
   '/aws-cloud-club*',
   '/pixels*',
   '/events/*/feedback*',
+  '/blogs',
 ]
 
 // Convert simplified patterns to regex patterns
