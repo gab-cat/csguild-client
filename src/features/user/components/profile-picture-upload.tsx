@@ -28,7 +28,7 @@ export function ProfilePictureUpload({
   const [previewUrl, setPreviewUrl] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // @ts-expect-error - type issue
+  // @ts-ignore
   const generateUploadUrl = useMutation(api.users.generateUploadUrl)
   const saveProfilePicture = useMutation(api.users.saveProfilePicture)
 
