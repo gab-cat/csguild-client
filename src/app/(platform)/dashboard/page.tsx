@@ -3,18 +3,18 @@
 import { motion } from 'framer-motion'
 import { Code2 } from 'lucide-react'
 
-import { 
-  QuickStats, 
-  RecentActivity, 
-  QuickActions, 
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
+import {
+  QuickStats,
+  RecentActivity,
+  QuickActions,
   Notifications,
-  UserProgress 
+  UserProgress
 } from '@/features/dashboard'
-import { 
-  useQuickStats, 
-  useRecentActivity 
+import {
+  useQuickStats,
+  useRecentActivity
 } from '@/features/dashboard/hooks/use-dashboard-stats'
-import { useCurrentUser } from '@/features/user/hooks/use-user-queries'
 
 export default function DashboardPage() {
   const { user } = useCurrentUser()

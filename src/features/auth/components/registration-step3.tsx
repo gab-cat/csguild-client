@@ -1,12 +1,13 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, Edit3, User, GraduationCap, CreditCard, Lock } from 'lucide-react'
 import { useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useRegisterMutation } from '../hooks'
 import type { CompleteRegistrationData } from '../schemas'
 
 import type { RegistrationStep } from './multi-step-register-form'
@@ -20,15 +21,39 @@ interface RegistrationStep3Props {
 
 export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: RegistrationStep3Props) {
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const registerMutation = useRegisterMutation()
+  const [error, setError] = useState<string | null>(null)
+  const { signIn } = useAuthActions()
 
   const handleConfirm = async () => {
     try {
       setIsSubmitting(true)
-      await registerMutation.mutateAsync(data)
+      setError(null)
+
+      // Use Convex Auth signIn for registration
+      await signIn('password', {
+        email: data.email,
+        password: data.password,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        username: data.username ?? '',
+        birthdate: data.birthdate,
+        course: data.course,
+        rfidId: data.rfidId ?? '',
+        flow: 'signUp'
+      })
+
+      showSuccessToast(
+        'Welcome to CS Guild!',
+        'Account created successfully. Check your email to verify and complete setup.'
+      )
       onConfirm()
     } catch (error) {
-      console.error('Registration failed:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Registration failed'
+      setError(errorMessage)
+      showErrorToast(
+        'Registration failed',
+        errorMessage || 'Unable to create account. Please check your information and try again.'
+      )
       setIsSubmitting(false)
     }
   }
@@ -190,14 +215,14 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
       </motion.div>
 
       {/* Error Display */}
-      {registerMutation.isError && (
+      {error && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
         >
           <div className="font-space-mono">{"// Registration Error:"}</div>
-          <div>{registerMutation.error?.message || 'An error occurred during registration'}</div>
+          <div>{error}</div>
         </motion.div>
       )}
 

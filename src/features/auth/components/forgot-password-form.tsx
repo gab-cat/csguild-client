@@ -9,15 +9,19 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useForgotPasswordMutation } from '../hooks'
 import { forgotPasswordSchema, type ForgotPasswordFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
 
 export function ForgotPasswordForm() {
   const [emailSent, setEmailSent] = useState(false)
-  const { isLoading, error } = useAuthStore()
-  const forgotPasswordMutation = useForgotPasswordMutation()
+  const [isSending, setIsSending] = useState(false)
+  const [error, setError] = useState<string | null>(null)
+  const { isLoading } = useAuthStore()
+  const forgotPasswordMutation = useMutation(api.auth.forgotPassword)
 
   const {
     register,
@@ -31,11 +35,23 @@ export function ForgotPasswordForm() {
 
   const onSubmit = async (data: ForgotPasswordFormData) => {
     try {
-      await forgotPasswordMutation.mutateAsync(data)
+      setIsSending(true)
+      setError(null)
+      await forgotPasswordMutation(data)
       setEmailSent(true)
+      showSuccessToast(
+        'Password reset email sent!',
+        'Check your inbox for instructions on how to reset your password. The link will expire in 1 hour.'
+      )
     } catch (error) {
-      // Error handling is done in the mutation
-      console.error('Forgot password error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to send password reset email'
+      setError(errorMessage)
+      showErrorToast(
+        'Failed to send reset email',
+        errorMessage || 'Unable to send password reset email. Please try again later.'
+      )
+    } finally {
+      setIsSending(false)
     }
   }
 
@@ -167,10 +183,10 @@ export function ForgotPasswordForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || isLoading}
+        disabled={isSubmitting || isLoading || isSending}
         className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
-        {isSubmitting || isLoading ? (
+        {isSubmitting || isLoading || isSending ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Sending reset link...</span>

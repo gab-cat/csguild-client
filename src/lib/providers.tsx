@@ -1,5 +1,6 @@
 'use client'
 
+import { ConvexAuthProvider } from "@convex-dev/auth/react";
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ConvexProvider, ConvexReactClient } from "convex/react";
@@ -49,14 +50,16 @@ export function Providers({ children }: ProvidersProps) {
 
   return (
     <ConvexProvider client={convex}>
-      <ConvexQueryCacheProvider>
-        <QueryClientProvider client={queryClient}>
-          <AuthSyncProvider>
-            {children}
-          </AuthSyncProvider>
-          <ReactQueryDevtools initialIsOpen={false} />
-        </QueryClientProvider>
-      </ConvexQueryCacheProvider>
+      <ConvexAuthProvider client={convex}>
+        <ConvexQueryCacheProvider>
+          <QueryClientProvider client={queryClient}>
+            <AuthSyncProvider>
+              {children}
+            </AuthSyncProvider>
+            <ReactQueryDevtools initialIsOpen={false} />
+          </QueryClientProvider>
+        </ConvexQueryCacheProvider>
+      </ConvexAuthProvider>
     </ConvexProvider>
   )
 } 

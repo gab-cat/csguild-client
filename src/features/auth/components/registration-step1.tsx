@@ -27,7 +27,6 @@ import { cn } from '@/lib/utils'
 
 import { COURSE_OPTIONS } from '../constants/course-options'
 import { registrationStep1Schema, type RegistrationStep1Data } from '../schemas'
-import { authApi } from '../utils/auth-api'
 
 interface RegistrationStep1Props {
   onNext: (data: RegistrationStep1Data) => void
@@ -134,7 +133,9 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
 
   const handleGoogleSignup = () => {
     setIsGoogleLoading(true)
-    authApi.googleLogin()
+    // Use the existing Google login from auth API
+    const googleOAuthUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
+    window.location.href = googleOAuthUrl
   }
 
   return (

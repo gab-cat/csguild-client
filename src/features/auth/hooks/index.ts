@@ -1,2 +1,1 @@
-export * from './use-auth-mutations'
-export * from './use-auth-sync' 
+export * from './use-current-user'

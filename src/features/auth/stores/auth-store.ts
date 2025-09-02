@@ -92,6 +92,16 @@ export const useAuthStore = create<AuthStore>()(
         // Clear cookies for middleware
         deleteCookie('user')
         deleteCookie('isAuthenticated')
+        
+        // Explicitly clear the persisted storage
+        if (typeof window !== 'undefined') {
+          try {
+            localStorage.removeItem('cs-guild-auth')
+            console.log('🧹 Cleared persistent auth storage')
+          } catch (error) {
+            console.warn('Failed to clear persistent auth storage:', error)
+          }
+        }
       },
 
       updateUser: (userData) => {

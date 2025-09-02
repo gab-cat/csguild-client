@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
 import { Button } from '@/components/ui/button'
-import { useAuthStore } from '@/features/auth/stores/auth-store'
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 
 interface AuthGuardProps {
   children: React.ReactNode
@@ -23,7 +23,7 @@ export function AuthGuard({
   title = "Authentication Required",
   description = "Please sign in or create an account to continue."
 }: AuthGuardProps) {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { user, isAuthenticated, isLoading } = useCurrentUser()
   const pathname = usePathname()
 
   // Show loading state while checking authentication

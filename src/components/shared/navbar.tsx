@@ -1,12 +1,14 @@
 'use client'
 
 import { Separator } from '@radix-ui/react-separator'
+import { useQueryClient } from '@tanstack/react-query'
 import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText, BookOpen } from 'lucide-react'
 import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
-import { 
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
@@ -14,15 +16,58 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useLogoutMutation } from '@/features/auth/hooks'
-import { useAuthStore } from '@/features/auth/stores/auth-store'
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
+import { useAuthStore as usePersistentAuthStore } from '@/features/auth/stores/auth-store'
+import { useAction, api } from '@/lib/convex'
+import { showInfoToast } from '@/lib/toast'
+import { useAuthStore } from '@/stores/auth-store'
 
 const NavBar = () => {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
-  const logoutMutation = useLogoutMutation()
+  const { user, isLoading } = useCurrentUser()
+  const router = useRouter()
+  const { clearAuth, isAuthenticated } = useAuthStore()
+  const { clearAuth: clearPersistentAuth } = usePersistentAuthStore()
+  const queryClient = useQueryClient()
 
-  const handleLogout = () => {
-    logoutMutation.mutate()
+  const signOut = useAction(api.auth.signOut)
+
+  const handleLogout = async () => {
+    try {
+      // Step 1: Await signOut first to complete the server-side logout
+      await signOut()
+
+      // Step 2: Clear all client-side state after successful signOut
+      clearAuth() // Clear simple auth store + localStorage/sessionStorage
+      clearPersistentAuth() // Clear persistent auth store + cookies
+      queryClient.clear() // Clear all TanStack Query caches
+
+      // Step 3: Navigate to home page
+      router.push('/')
+
+      // Step 4: Show success message
+      showInfoToast(
+        'Logged out successfully',
+        'See you later! Your coding journey continues when you return.'
+      )
+    } catch (error) {
+      console.error('Logout error:', error)
+
+      // Even if signOut fails due to connection issues, clear client-side state
+      // This ensures the UI is reset and user can't access protected routes
+      clearAuth() // Clear simple auth store + localStorage/sessionStorage
+      clearPersistentAuth() // Clear persistent auth store + cookies
+      queryClient.clear()
+
+      // Still navigate to home page to reset the app state
+      router.push('/')
+
+      showInfoToast(
+        'Logged out',
+        'You have been logged out locally. Please check your connection if you encounter issues.'
+      )
+
+      window.location.reload()
+    }
   }
 
   const getUserInitials = (firstName?: string, lastName?: string) => {
@@ -259,14 +304,14 @@ const NavBar = () => {
                 <DropdownMenuSeparator className="bg-pink-500/20" />
 
                 {/* Logout */}
-                <DropdownMenuItem 
+                <DropdownMenuItem
                   onClick={handleLogout}
-                  disabled={logoutMutation.isPending}
+                  disabled={isLoading}
                   className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-red-400 hover:bg-red-500/10 focus:text-red-400 focus:bg-red-500/10"
                 >
                   <LogOut className="h-4 w-4" />
                   <span>
-                    {logoutMutation.isPending ? 'Logging out...' : 'Logout'}
+                    {isLoading ? 'Logging out...' : 'Logout'}
                   </span>
                 </DropdownMenuItem>
               </DropdownMenuContent>

@@ -10,8 +10,10 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useResetPasswordMutation } from '../hooks'
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
 
@@ -19,8 +21,9 @@ export function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [tokenFromUrl, setTokenFromUrl] = useState<string | null>(null)
-  const { isLoading, error } = useAuthStore()
-  const resetPasswordMutation = useResetPasswordMutation()
+  const [isResetting, setIsResetting] = useState(false)
+  const { isLoading, error, setError } = useAuthStore()
+  const resetPasswordMutation = useMutation(api.auth.resetPassword)
   const searchParams = useSearchParams()
 
   const {
@@ -46,10 +49,22 @@ export function ResetPasswordForm() {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { confirmPassword, ...rest } = data
     try {
-      await resetPasswordMutation.mutateAsync(rest)
+      setIsResetting(true)
+      setError(null)
+      await resetPasswordMutation(rest)
+      showSuccessToast(
+        'Password reset successful!',
+        'Your password has been changed successfully. You can now log in with your new password.'
+      )
     } catch (error) {
-      // Error handling is done in the mutation
-      console.error('Reset password error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Password reset failed'
+      setError(errorMessage)
+      showErrorToast(
+        'Password reset failed',
+        errorMessage || 'Unable to reset your password. The token may be invalid or expired. Please request a new reset link.'
+      )
+    } finally {
+      setIsResetting(false)
     }
   }
 
@@ -197,10 +212,10 @@ export function ResetPasswordForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || isLoading}
+        disabled={isSubmitting || isLoading || isResetting}
         className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
-        {isSubmitting || isLoading ? (
+        {isSubmitting || isLoading || isResetting ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Updating password...</span>

@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
@@ -10,16 +11,15 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useLoginMutation } from '../hooks'
 import { loginSchema, type LoginFormData } from '../schemas'
-import { useAuthStore } from '../stores/auth-store'
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
-  const { isLoading, error, setError } = useAuthStore()
-  const loginMutation = useLoginMutation()
+  const [error, setError] = useState<string | null>(null)
+  const { signIn } = useAuthActions()
   const router = useRouter()
   const searchParams = useSearchParams()
 
@@ -37,12 +37,37 @@ export function LoginForm() {
 
   const onSubmit = async (data: LoginFormData) => {
     try {
-      await loginMutation.mutateAsync({ 
-        email: data.email, 
-        password: data.password, 
-        redirectTo: nextParam 
+      setError(null)
+
+      // Use Convex Auth signIn
+      await signIn('password', {
+        email: data.email,
+        password: data.password,
+        flow: 'signIn'
       })
+
+      showSuccessToast('Login successful', 'Welcome back to CS Guild!')
+
+      // Handle redirect after successful login
+      if (nextParam) {
+        try {
+          const url = new URL(nextParam, window.location.origin)
+          if (url.origin === window.location.origin &&
+              !url.pathname.startsWith('/login') &&
+              !url.pathname.startsWith('/register')) {
+            router.push(url.pathname + url.search)
+            return
+          }
+        } catch (error) {
+          console.error('Invalid redirect URL:', nextParam, error)
+        }
+      }
+
+      router.push('/dashboard')
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Login failed'
+      setError(errorMessage)
+
       // Check if the error is related to unverified email
       // @ts-expect-error - not typed properly
       if ((error as Error).statusCode === 409) {
@@ -52,20 +77,50 @@ export function LoginForm() {
         }
         router.push(`/verify-email?email=${data.email}`)
         setError('Please verify your email before logging in.')
+      } else if (errorMessage.includes('locked')) {
+        showErrorToast('Account locked', 'Your account has been locked. Please contact support.')
+      } else {
+        showErrorToast('Login failed', 'Invalid credentials. Double-check your email and password.')
       }
     }
   }
 
-  const handleGoogleLogin = () => {
-    setIsGoogleLoading(true)
-    // Store the next parameter in sessionStorage for Google OAuth flow
-    if (nextParam) {
-      sessionStorage.setItem('auth_redirect_after_login', nextParam)
+  const handleGoogleLogin = async () => {
+    try {
+      setIsGoogleLoading(true)
+      // Store the next parameter in sessionStorage for Google OAuth flow
+      if (nextParam) {
+        sessionStorage.setItem('auth_redirect_after_login', nextParam)
+      }
+
+      // Use Convex's built-in Google OAuth
+      await signIn('google')
+
+      showSuccessToast('Login successful', 'Welcome back to CS Guild!')
+
+      // Handle redirect after successful login
+      if (nextParam) {
+        try {
+          const url = new URL(nextParam, window.location.origin)
+          if (url.origin === window.location.origin &&
+              !url.pathname.startsWith('/login') &&
+              !url.pathname.startsWith('/register')) {
+            router.push(url.pathname + url.search)
+            return
+          }
+        } catch (error) {
+          console.error('Invalid redirect URL:', nextParam, error)
+        }
+      }
+
+      router.push('/dashboard')
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Google login failed'
+      setError(errorMessage)
+      showErrorToast('Login failed', 'Unable to sign in with Google. Please try again.')
+    } finally {
+      setIsGoogleLoading(false)
     }
-    
-    // Use the existing Google login from auth API
-    const googleOAuthUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
-    window.location.href = googleOAuthUrl
   }
 
   return (
@@ -160,10 +215,10 @@ export function LoginForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || isLoading}
+        disabled={isSubmitting}
         className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
-        {isSubmitting || isLoading ? (
+        {isSubmitting ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Logging in...</span>

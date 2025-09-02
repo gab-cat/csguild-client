@@ -9,8 +9,10 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
+import { showSuccessToast, showInfoToast, showErrorToast } from '@/lib/toast'
 
-import { useEmailVerificationMutation, useResendVerificationMutation } from '../hooks'
 import { emailVerificationSchema, type EmailVerificationFormData } from '../schemas'
 
 interface RegistrationStep4Props {
@@ -22,19 +24,21 @@ interface RegistrationStep4Props {
 export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
   const [resendCooldown, setResendCooldown] = useState(0)
   const [verificationSuccess, setVerificationSuccess] = useState(false)
+  const [isVerifying, setIsVerifying] = useState(false)
+  const [isResending, setIsResending] = useState(false)
+  const [error, setFormError] = useState<string | null>(null)
   const router = useRouter()
-  
-  const emailVerificationMutation = useEmailVerificationMutation()
-  const resendVerificationMutation = useResendVerificationMutation()
+
+  const verifyEmailMutation = useMutation(api.users.verifyEmail)
+  const resendVerificationMutation = useMutation(api.users.resendEmailVerification)
   
   const codeInputsRef = useRef<(HTMLInputElement | null)[]>([])
 
   const {
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors },
     setValue,
-    watch,
-    setError,
+    watch
   } = useForm<EmailVerificationFormData>({
     resolver: zodResolver(emailVerificationSchema),
     mode: 'onBlur',
@@ -95,27 +99,52 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
 
   const handleResendCode = async () => {
     try {
-      await resendVerificationMutation.mutateAsync({ email })
+      setIsResending(true)
+      setFormError(null)
+      await resendVerificationMutation({ email })
       setResendCooldown(60) // 60 second cooldown
+      showInfoToast(
+        'Verification email sent!',
+        'Check your inbox for a new verification code. It may take a few minutes to arrive.'
+      )
     } catch (error) {
-      console.error('Resend failed:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification email'
+      setFormError(errorMessage)
+      showErrorToast(
+        'Failed to send email',
+        errorMessage || 'Unable to resend verification email. Please try again later.'
+      )
+    } finally {
+      setIsResending(false)
     }
   }
 
   const onSubmit = async (data: EmailVerificationFormData) => {
     try {
-      await emailVerificationMutation.mutateAsync(data)
+      setIsVerifying(true)
+      setFormError(null)
+
+      await verifyEmailMutation({ code: data.verificationCode })
       setVerificationSuccess(true)
-      
+
+      showSuccessToast(
+        'Email verified successfully!',
+        'Your CS Guild account is now fully activated. Welcome to the community!'
+      )
+
       // Redirect after showing success message
       setTimeout(() => {
-        router.push('/')
+        router.push('/dashboard')
       }, 2000)
     } catch (error: unknown) {
-      setError('verificationCode', {
-        type: 'manual',
-        message: error instanceof Error ? error.message : 'Invalid verification code'
-      })
+      const errorMessage = error instanceof Error ? error.message : 'Invalid verification code'
+      setFormError(errorMessage)
+      showErrorToast(
+        'Verification failed',
+        errorMessage || 'Invalid or expired verification code. Request a new one if needed.'
+      )
+    } finally {
+      setIsVerifying(false)
     }
   }
 
@@ -210,10 +239,10 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           type="button"
           variant="outline"
           onClick={handleResendCode}
-          disabled={!email || resendCooldown > 0 || resendVerificationMutation.isPending}
+          disabled={!email || resendCooldown > 0 || isResending}
           className="border-violet-500/50 text-violet-300 hover:bg-violet-500/10 bg-black/30 backdrop-blur-sm hover:border-violet-400 transition-all duration-300"
         >
-          {resendVerificationMutation.isPending ? (
+          {isResending ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Sending...</span>
@@ -233,14 +262,14 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
       </div>
 
       {/* Error Display */}
-      {emailVerificationMutation.isError && (
+      {error && (
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
           className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm"
         >
           <div className="font-space-mono">{"// Verification Error:"}</div>
-          <div>{emailVerificationMutation.error?.message || 'Verification failed'}</div>
+          <div>{error}</div>
         </motion.div>
       )}
 
@@ -251,7 +280,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           onClick={onBack}
           variant="outline"
           className="flex-1 border-gray-500/50 text-gray-300 hover:bg-gray-500/10"
-          disabled={isSubmitting}
+          disabled={isVerifying}
         >
           <div className="flex items-center gap-2">
             <ArrowLeft className="h-4 w-4" />
@@ -261,10 +290,10 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
 
         <Button
           type="submit"
-          disabled={isSubmitting || !watchedCode || watchedCode.length !== 6}
+          disabled={isVerifying || !watchedCode || watchedCode.length !== 6}
           className="flex-1 bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
         >
-          {isSubmitting ? (
+          {isVerifying ? (
             <div className="flex items-center gap-2">
               <Loader2 className="h-4 w-4 animate-spin" />
               <span>Verifying...</span>

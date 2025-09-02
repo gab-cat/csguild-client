@@ -6,15 +6,16 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 
-import { useAuthStore } from '../stores/auth-store'
-import { authApi } from '../utils/auth-api'
+import { useCurrentUser } from '../hooks/use-current-user'
 
 export function GoogleCallbackHandler() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [error, setError] = useState<string | null>(null)
   const [isProcessing, setIsProcessing] = useState(true)
-  const { setUser, setLoading } = useAuthStore()
+
+  // Get current user from Convex Auth
+  const { user: currentUser, isLoading, isAuthenticated } = useCurrentUser()
 
   useEffect(() => {
     let isMounted = true
@@ -23,9 +24,7 @@ export function GoogleCallbackHandler() {
       try {
         if (!isMounted) return
 
-        setLoading(true)
-        
-        // Check for OAuth errors in URL params
+        // Check for OAuth errors in URL params first
         const urlError = searchParams.get('error')
         const errorDescription = searchParams.get('error_description')
 
@@ -41,13 +40,72 @@ export function GoogleCallbackHandler() {
           return
         }
 
-        // Server has already processed the OAuth code
-        // Just check if user is authenticated and get user data
-        const user = await authApi.getCurrentUser()
-        
-        if (!isMounted) return
+        // Wait for authentication to complete
+        if (isLoading) {
+          return // Still loading, wait for Convex Auth to process the OAuth callback
+        }
 
-        setUser(user)
+        // Check if user is authenticated
+        if (!isAuthenticated) {
+          if (isMounted) {
+            setError('Authentication failed')
+            setIsProcessing(false)
+            showErrorToast(
+              'Authentication failed',
+              'Google authentication was not successful. Please try again.'
+            )
+          }
+          return
+        }
+
+        // Check if we have user data
+        if (!currentUser) {
+          if (isMounted) {
+            setError('No user data found')
+            setIsProcessing(false)
+            showErrorToast(
+              'Authentication failed',
+              'Unable to retrieve user information. Please try again.'
+            )
+          }
+          return
+        }
+
+        // Check if this is a Google user and if they need profile completion
+        if (currentUser.signupMethod === 'GOOGLE') {
+          console.log('🔍 Google User Profile Check:', {
+            username: currentUser.username,
+            course: currentUser.course,
+            birthdate: currentUser.birthdate,
+            rfidId: currentUser.rfidId,
+            signupMethod: currentUser.signupMethod
+          })
+
+          const needsProfileCompletion = !currentUser.username || !currentUser.course || !currentUser.birthdate || !currentUser.rfidId
+          
+          console.log('🔍 Profile Completion Check:', {
+            needsProfileCompletion,
+            checks: {
+              noUsername: !currentUser.username,
+              noCourse: !currentUser.course,
+              noBirthdate: !currentUser.birthdate,
+              noRfidId: !currentUser.rfidId
+            }
+          })
+
+          if (needsProfileCompletion) {
+            console.log('🚀 Redirecting to profile completion form')
+            // Redirect to profile completion
+            router.push('/register?google=true')
+            showSuccessToast(
+              'Welcome to CS Guild!',
+              'Please complete your profile to get started.'
+            )
+            return
+          }
+          
+          console.log('✅ Profile is complete, continuing with normal flow')
+        }
         
         // Check for stored redirect URL from Google OAuth flow
         const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
@@ -61,7 +119,8 @@ export function GoogleCallbackHandler() {
             // Ensure it's same origin and not an auth route
             if (redirectUrl.origin === window.location.origin && 
                 !redirectUrl.pathname.startsWith('/login') && 
-                !redirectUrl.pathname.startsWith('/register')) {
+                !redirectUrl.pathname.startsWith('/register') &&
+                !redirectUrl.pathname.startsWith('/callback')) {
               router.push(redirectUrl.pathname + redirectUrl.search)
               showSuccessToast(
                 'Welcome back to CS Guild!',
@@ -74,8 +133,7 @@ export function GoogleCallbackHandler() {
           }
         }
         
-        // Let middleware handle redirects based on profile completion
-        // Just redirect to dashboard and middleware will handle the rest
+        // Default redirect to dashboard
         router.push('/dashboard')
         showSuccessToast(
           'Welcome back to CS Guild!',
@@ -92,19 +150,21 @@ export function GoogleCallbackHandler() {
             'Unable to verify your authentication. Please try again.'
           )
         }
-      } finally {
-        if (isMounted) {
-          setLoading(false)
-        }
       }
     }
 
-    checkUserStatus()
+    // Add a small delay to allow Convex Auth to complete processing
+    const timeoutId = setTimeout(() => {
+      if (!isLoading) {
+        checkUserStatus()
+      }
+    }, 1000)
 
     return () => {
+      clearTimeout(timeoutId)
       isMounted = false
     }
-  }, [searchParams, router, setLoading, setUser]) // Removed setUser and setLoading from dependencies as they're stable Zustand references
+  }, [searchParams, router, currentUser, isLoading, isAuthenticated])
 
   const handleRetry = () => {
     router.push('/login')
@@ -113,6 +173,8 @@ export function GoogleCallbackHandler() {
   const handleGoHome = () => {
     router.push('/')
   }
+
+
 
   if (isProcessing) {
     return (

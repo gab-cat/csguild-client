@@ -38,17 +38,19 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from '@/components/ui/popover'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import { cn, generateRandomId } from '@/lib/utils'
 
 import { COURSE_OPTIONS } from '../constants/course-options'
-import { useUpdateUserProfileMutation } from '../hooks'
+import { useCurrentUser } from '../hooks/use-current-user'
 import { googleUserUpdateSchema, type GoogleUserUpdateData } from '../schemas'
-import { useAuthStore } from '../stores/auth-store'
 
 export function GoogleProfileCompletionForm() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { user, isLoading } = useAuthStore()
+  const { user, isLoading } = useCurrentUser()
   const [isScanning, setIsScanning] = useState(false)
   const [scanSuccess, setScanSuccess] = useState(false)
   const [scanTimeout, setScanTimeout] = useState(false)
@@ -59,7 +61,8 @@ export function GoogleProfileCompletionForm() {
   const [selectedDate, setSelectedDate] = useState<Date>()
   const timeoutRef = useRef<NodeJS.Timeout>(null)
   const rfidInputRef = useRef<HTMLInputElement>(null)
-  const updateProfileMutation = useUpdateUserProfileMutation()
+  const updateProfileMutation = useMutation(api.users.updateCurrentUser)
+  const [isUpdating, setIsUpdating] = useState(false)
 
   const {
     register,
@@ -68,6 +71,7 @@ export function GoogleProfileCompletionForm() {
     setValue,
     watch,
     reset,
+    getValues,
   } = useForm<GoogleUserUpdateData>({
     resolver: zodResolver(googleUserUpdateSchema),
     mode: 'onBlur',
@@ -82,9 +86,9 @@ export function GoogleProfileCompletionForm() {
       if (user.signupMethod === 'GOOGLE') {
         reset({
           username: user.username || '',
-          birthdate: user.birthdate || '',
+          birthdate: user.birthdate ? (typeof user.birthdate === 'number' ? new Date(user.birthdate).toISOString().split('T')[0] : user.birthdate) : '',
           course: user.course || '',
-          rfidId: user.hasRfidCard ? undefined : '',
+          rfidId: user.rfidId || '',
         })
         
         // Set course dropdown based on existing data
@@ -100,13 +104,18 @@ export function GoogleProfileCompletionForm() {
         
         // Set birthdate for calendar
         if (user.birthdate) {
-          // Parse date string safely without timezone issues
-          const dateString = user.birthdate
-          if (dateString.includes('-')) {
-            const [year, month, day] = dateString.split('-').map(Number)
-            setSelectedDate(new Date(year, month - 1, day))
-          } else {
+          // Convert timestamp to date if it's a number, otherwise parse as string
+          if (typeof user.birthdate === 'number') {
             setSelectedDate(new Date(user.birthdate))
+          } else if (typeof user.birthdate === 'string') {
+            // Parse date string safely without timezone issues
+            const birthdateStr = user.birthdate as string
+            if (birthdateStr.includes('-')) {
+              const [year, month, day] = birthdateStr.split('-').map(Number)
+              setSelectedDate(new Date(year, month - 1, day))
+            } else {
+              setSelectedDate(new Date(birthdateStr))
+            }
           }
         }
       }
@@ -227,39 +236,76 @@ export function GoogleProfileCompletionForm() {
 
   const onSubmit = async (data: GoogleUserUpdateData) => {
     try {
+      setIsUpdating(true)
+
       // Ensure birthdate is included if selectedDate exists
       const submitData = { ...data }
       if (selectedDate && !submitData.birthdate) {
-        const year = selectedDate.getFullYear()
-        const month = String(selectedDate.getMonth() + 1).padStart(2, '0')
-        const day = String(selectedDate.getDate()).padStart(2, '0')
-        submitData.birthdate = `${year}-${month}-${day}`
+        submitData.birthdate = selectedDate.toISOString().split('T')[0] // YYYY-MM-DD format
+      }
+
+      // Convert birthdate string to timestamp number if present
+      const mutationData: Record<string, unknown> = { ...submitData }
+      if (mutationData.birthdate && typeof mutationData.birthdate === 'string') {
+        mutationData.birthdate = new Date(mutationData.birthdate).getTime()
       }
 
       // Remove empty fields
       const cleanData = Object.fromEntries(
-        Object.entries(submitData).filter(([, value]) => value !== '' && value !== undefined)
-      ) as GoogleUserUpdateData
+        Object.entries(mutationData).filter(([, value]) => value !== '' && value !== undefined)
+      )
 
       console.log('Submitting data:', cleanData) // Debug log
 
-      await updateProfileMutation.mutateAsync(cleanData)
-      window.location.reload()
+      await updateProfileMutation(cleanData)
+
+      showSuccessToast('Profile updated successfully!', 'Welcome to CS Guild!')
+      // Redirect to dashboard after successful profile completion
+      router.push('/dashboard')
     } catch (error) {
-      console.error('Profile update error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+      showErrorToast('Profile update failed', errorMessage)
+    } finally {
+      setIsUpdating(false)
     }
   }
 
   const handleSkipRfid = async () => {
     try {
+      setIsUpdating(true)
       // Generate a random 8-character ID when skipping RFID setup
       const randomId = generateRandomId()
-      const data: GoogleUserUpdateData = { rfidId: randomId }
       
-      await updateProfileMutation.mutateAsync(data)
-      window.location.reload()
+      // Get current form values and include them along with generated RFID
+      const formValues = getValues()
+      const submitData = { ...formValues, rfidId: randomId }
+      
+      // Set birthdate from selectedDate if not in form
+      if (selectedDate && !submitData.birthdate) {
+        submitData.birthdate = selectedDate.toISOString().split('T')[0]
+      }
+
+      // Convert birthdate string to timestamp number if present
+      const mutationData: Record<string, unknown> = { ...submitData }
+      if (mutationData.birthdate && typeof mutationData.birthdate === 'string') {
+        mutationData.birthdate = new Date(mutationData.birthdate).getTime()
+      }
+
+      // Remove empty values
+      const cleanData = Object.fromEntries(
+        Object.entries(mutationData).filter(([, value]) => value !== '' && value !== undefined)
+      )
+
+      await updateProfileMutation(cleanData)
+
+      showSuccessToast('RFID setup skipped', 'A temporary ID has been generated for you.')
+      // Redirect to dashboard after skipping RFID
+      router.push('/dashboard')
     } catch (error) {
-      console.error('Skip RFID error:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to skip RFID setup'
+      showErrorToast('Skip RFID failed', errorMessage)
+    } finally {
+      setIsUpdating(false)
     }
   }
 
@@ -275,7 +321,7 @@ export function GoogleProfileCompletionForm() {
     if (user.signupMethod === 'GOOGLE') {
       if (!user.birthdate) required.push('birthdate')
       if (!user.course) required.push('course')
-      if (!user.hasRfidCard) required.push('rfidId')
+      if (!user.rfidId) required.push('rfidId')
       if (!user.username) required.push('username')
     }
     
@@ -605,7 +651,7 @@ export function GoogleProfileCompletionForm() {
               <Button
                 type="button"
                 onClick={handleSkipRfid}
-                disabled={isScanning || updateProfileMutation.isPending}
+                disabled={isScanning || isUpdating}
                 variant="outline"
                 size="sm"
                 className="border-yellow-500/50 text-yellow-300 hover:bg-yellow-500/10 transition-all duration-300"
@@ -701,10 +747,10 @@ export function GoogleProfileCompletionForm() {
           
           <Button
             type="submit"
-            disabled={isSubmitting || updateProfileMutation.isPending}
+            disabled={isSubmitting || isUpdating}
             className="flex-1 bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25"
           >
-            {isSubmitting || updateProfileMutation.isPending ? (
+            {isSubmitting || isUpdating ? (
               <div className="flex items-center gap-2">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 <span>Updating...</span>

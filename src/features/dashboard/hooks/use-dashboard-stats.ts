@@ -2,7 +2,8 @@
 
 import { useQuery } from '@tanstack/react-query'
 
-import { useCurrentUser } from '@/features/user/hooks/use-user-queries'
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
+import { useAuthStore } from '@/features/auth/stores/auth-store'
 import { facilitiesApi, projectsApi, usersApi } from '@/lib/api'
 import type { 
   FacilityResponseDto, 
@@ -29,7 +30,7 @@ interface ActivityItem {
 
 // Dashboard statistics
 export function useDashboardStats() {
-  const { user, isAuthenticated } = useCurrentUser()
+  const { user, isAuthenticated } = useAuthStore()
 
   const facilitiesQuery = useQuery({
     queryKey: ['facilities', 'list'],

@@ -34,21 +34,25 @@ import {
   PopoverTrigger,
 } from '@/components/ui/popover'
 import { Separator } from '@/components/ui/separator'
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
 import { showErrorToast, showInfoToast } from '@/lib/toast'
 
-import { useCurrentUser, useUpdateProfile, useResendEmailVerification } from '../hooks'
 import { updateProfileSchema, type UpdateProfileFormData } from '../schemas'
-import { formatDate, formatRelativeTime, getUserInitials, formatDateForInput } from '../utils'
+import { formatDate, formatRelativeTime, getUserInitials, formatDateForInput } from '../utils/index'
 
 import { ProfileSkeleton } from './profile-skeleton'
 
 export function UserProfilePage() {
   const { user, isAuthenticated, isLoading } = useCurrentUser()
-  const updateProfileMutation = useUpdateProfile()
-  const resendVerificationMutation = useResendEmailVerification()
+  const updateProfileMutation = useMutation(api.users.updateCurrentUser)
+  const resendVerificationMutation = useMutation(api.users.resendEmailVerification)
   const [editingSections, setEditingSections] = useState<Record<string, boolean>>({})
   const [birthdateOpen, setBirthdateOpen] = useState(false)
   const [selectedBirthdate, setSelectedBirthdate] = useState<Date | undefined>()
+  const [isUpdating, setIsUpdating] = useState(false)
+  const [isResending, setIsResending] = useState(false)
 
   const form = useForm<UpdateProfileFormData>({
     resolver: zodResolver(updateProfileSchema),
@@ -58,14 +62,14 @@ export function UserProfilePage() {
       username: user?.username || '',
       email: user?.email || '',
       course: user?.course || '',
-      birthdate: formatDateForInput(user?.birthdate),
+      birthdate: user?.birthdate ? formatDateForInput(user.birthdate) : '',
     },
   })
 
   // Update form values when user data changes
   useEffect(() => {
     if (user) {
-      const birthdateValue = formatDateForInput(user.birthdate)
+      const birthdateValue = user.birthdate ? formatDateForInput(user.birthdate) : ''
       form.reset({
         firstName: user.firstName || '',
         lastName: user.lastName || '',
@@ -114,7 +118,7 @@ export function UserProfilePage() {
   const startEditing = (section: string) => {
     setEditingSections(prev => ({ ...prev, [section]: true }))
     // Reset form values to current user data
-    const birthdateValue = formatDateForInput(user.birthdate)
+    const birthdateValue = user.birthdate ? formatDateForInput(user.birthdate) : ''
     form.reset({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -141,7 +145,7 @@ export function UserProfilePage() {
   const cancelEditing = (section: string) => {
     setEditingSections(prev => ({ ...prev, [section]: false }))
     // Reset form to current user values
-    const birthdateValue = formatDateForInput(user.birthdate)
+    const birthdateValue = user.birthdate ? formatDateForInput(user.birthdate) : ''
     form.reset({
       firstName: user.firstName || '',
       lastName: user.lastName || '',
@@ -197,7 +201,7 @@ export function UserProfilePage() {
       if (formData.lastName !== user.lastName) updateData.lastName = formData.lastName || ''
       if (formData.course !== user.course) updateData.course = formData.course || ''
       // Compare formatted dates to avoid false positives
-      if (formData.birthdate !== formatDateForInput(user.birthdate)) {
+      if (formData.birthdate !== (user.birthdate ? formatDateForInput(user.birthdate) : '')) {
         updateData.birthdate = formData.birthdate || ''
       }
     } else if (section === 'account') {
@@ -208,10 +212,15 @@ export function UserProfilePage() {
     // Only make API call if there are changes
     if (Object.keys(updateData).length > 0) {
       try {
-        await updateProfileMutation.mutateAsync(updateData)
+        setIsUpdating(true)
+        await updateProfileMutation(updateData)
         setEditingSections(prev => ({ ...prev, [section]: false }))
+        showInfoToast('Profile updated successfully!')
       } catch (error) {
-        console.error('Failed to update profile:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Failed to update profile'
+        showErrorToast('Failed to update profile', errorMessage)
+      } finally {
+        setIsUpdating(false)
       }
     } else {
       setEditingSections(prev => ({ ...prev, [section]: false }))
@@ -226,9 +235,17 @@ export function UserProfilePage() {
     }
 
     try {
-      await resendVerificationMutation.mutateAsync({ email: user.email })
+      setIsResending(true)
+      await resendVerificationMutation({ email: user.email })
+      showInfoToast(
+        'Verification email sent!',
+        'Check your inbox for a new verification code. It may take a few minutes to arrive.'
+      )
     } catch (error) {
-      console.error('Failed to resend verification:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification email'
+      showErrorToast('Failed to send email', errorMessage)
+    } finally {
+      setIsResending(false)
     }
   }
 
@@ -329,9 +346,9 @@ export function UserProfilePage() {
                     size="sm"
                     className="border-yellow-500/50 hover:bg-yellow-500/20 text-yellow-400 text-xs px-3 py-1.5"
                     onClick={handleResendVerification}
-                    disabled={resendVerificationMutation.isPending}
+                    disabled={isResending}
                   >
-                    {resendVerificationMutation.isPending ? (
+                    {isResending ? (
                       <Loader2 className="w-3 h-3 mr-1.5 animate-spin" />
                     ) : (
                       <Mail className="w-3 h-3 mr-1.5" />
@@ -387,10 +404,10 @@ export function UserProfilePage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => saveSection('personal')}
-                    disabled={updateProfileMutation.isPending}
+                    disabled={isUpdating}
                     className="text-gray-400 hover:text-green-400"
                   >
-                    {updateProfileMutation.isPending ? (
+                    {isUpdating ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Save className="w-4 h-4" />
@@ -556,10 +573,10 @@ export function UserProfilePage() {
                     variant="ghost"
                     size="sm"
                     onClick={() => saveSection('account')}
-                    disabled={updateProfileMutation.isPending}
+                    disabled={isUpdating}
                     className="text-gray-400 hover:text-green-400"
                   >
-                    {updateProfileMutation.isPending ? (
+                    {isUpdating ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
                       <Save className="w-4 h-4" />
@@ -692,7 +709,7 @@ export function UserProfilePage() {
                   <p className="text-sm text-gray-400">Active Roles</p>
                   <p className="text-2xl font-bold text-white">{user.roles.length}</p>
                   <div className="flex flex-wrap gap-1 justify-center">
-                    {user.roles.slice(0, 2).map((role, index) => (
+                    {user.roles.slice(0, 2).map((role: string, index: number) => (
                       <Badge key={index} variant="secondary" className="text-xs">
                         {role}
                       </Badge>

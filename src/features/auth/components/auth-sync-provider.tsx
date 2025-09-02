@@ -2,19 +2,21 @@
 
 import { ReactNode } from 'react'
 
-import { useAuthSync } from '../hooks/use-auth-sync'
+import { ProfileCompletionGuard } from './profile-completion-guard'
 
 interface AuthSyncProviderProps {
   children: ReactNode
 }
 
 export function AuthSyncProvider({ children }: AuthSyncProviderProps) {
-  // Initialize auth sync - this sets up automatic validation
-  useAuthSync()
+  // Auth sync is now handled by Convex Auth directly
+  // ProfileCompletionGuard handles Google OAuth profile completion redirects
 
-  // No loading UI needed since validation happens in background
-  // and the app should remain functional even during validation
-  return <>{children}</>
+  return (
+    <ProfileCompletionGuard>
+      {children}
+    </ProfileCompletionGuard>
+  )
 }
 
 export default AuthSyncProvider 

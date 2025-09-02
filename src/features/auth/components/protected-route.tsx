@@ -3,7 +3,7 @@
 import { useRouter, usePathname } from 'next/navigation'
 import { ReactNode, useEffect } from 'react'
 
-import { useAuthStore } from '../stores/auth-store'
+import { useCurrentUser } from '../hooks/use-current-user'
 import type { UserRole } from '../types'
 
 interface ProtectedRouteProps {
@@ -17,7 +17,7 @@ export function ProtectedRoute({
   redirectTo = '/login',
   requiredRoles = []
 }: ProtectedRouteProps) {
-  const { user, isAuthenticated, isLoading } = useAuthStore()
+  const { user, isAuthenticated, isLoading } = useCurrentUser()
   const router = useRouter()
   const pathname = usePathname()
 
