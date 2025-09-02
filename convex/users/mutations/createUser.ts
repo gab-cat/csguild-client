@@ -39,7 +39,6 @@ export const createUserHandler = async (
 
   return await ctx.db.insert("users", {
     email: args.email,
-    password: args.password,
     firstName: args.firstName,
     lastName: args.lastName,
     username: args.username,

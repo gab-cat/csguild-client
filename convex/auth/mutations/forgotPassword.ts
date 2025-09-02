@@ -1,5 +1,6 @@
 import { v } from "convex/values";
 
+import { api } from "../../_generated/api";
 import { MutationCtx } from "../../_generated/server";
 
 export const forgotPasswordArgs = {
@@ -35,12 +36,19 @@ export const forgotPasswordHandler = async (
     updatedAt: Date.now(),
   });
 
-  // TODO: Send email with reset link
-  // This would typically integrate with an email service
-
+  // Send password reset email using scheduler (with proper error handling)
+  try {
+    ctx.scheduler.runAfter(0, api.emailDirect.sendPasswordResetDirect, {
+      email: args.email,
+      resetToken: resetToken,
+    });
+  } catch (error) {
+    console.error("Failed to schedule password reset email:", error);
+    // Don't fail the operation if email scheduling fails
+  }
+  
   return {
     message: "Password reset link sent to your email",
-    success: true,
-    resetToken: resetToken // Remove this in production
+    success: true
   };
 };

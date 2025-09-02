@@ -29,18 +29,20 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
       setIsSubmitting(true)
       setError(null)
 
-      // Use Convex Auth signIn for registration
-      await signIn('password', {
-        email: data.email,
-        password: data.password,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        username: data.username ?? '',
-        birthdate: data.birthdate,
-        course: data.course,
-        rfidId: data.rfidId ?? '',
-        flow: 'signUp'
-      })
+      // Create FormData for Convex Auth signIn - this is the proper way according to docs
+      const formData = new FormData()
+      formData.append('email', data.email)
+      formData.append('password', data.password)
+      formData.append('firstName', data.firstName || '')
+      formData.append('lastName', data.lastName || '')
+      formData.append('username', data.username || '')
+      formData.append('birthdate', data.birthdate || '')
+      formData.append('course', data.course || '')
+      formData.append('rfidId', data.rfidId || '')
+      formData.append('flow', 'signUp') // This is the key - flow must be a form field
+
+      // Use Convex Auth signIn for registration with FormData
+      await signIn('password', formData)
 
       showSuccessToast(
         'Welcome to CS Guild!',

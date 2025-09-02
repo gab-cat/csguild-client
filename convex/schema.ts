@@ -2,30 +2,36 @@ import { authTables } from "@convex-dev/auth/server";
 import { defineSchema, defineTable } from "convex/server";
 import { v } from "convex/values";
 
-const schema = defineSchema({
+// Create base schema with auth tables
+const baseSchema = defineSchema({
   ...authTables,
+});
 
-  // Override users table with additional fields
+// Extend the users table with custom fields
+const schema = defineSchema({
+  ...baseSchema.tables,
+  
+  // Extend the users table with additional fields
   users: defineTable({
-    // Base auth fields (these will be automatically included by Convex Auth)
+    // Core auth fields - these should match authTables expectations
     email: v.optional(v.string()),
     emailVerified: v.optional(v.boolean()),
     name: v.optional(v.string()),
     image: v.optional(v.string()),
-
+    
     // Additional custom fields for your app
     username: v.optional(v.string()),
     firstName: v.optional(v.string()),
     lastName: v.optional(v.string()),
     birthdate: v.optional(v.number()), // Convex uses numbers for dates (milliseconds since epoch)
     course: v.optional(v.string()),
-    password: v.optional(v.string()),
     emailVerificationCode: v.optional(v.string()),
     passwordResetToken: v.optional(v.string()),
     passwordResetExpiresAt: v.optional(v.number()),
     rfidId: v.optional(v.string()),
     refreshToken: v.optional(v.string()),
     imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     provider: v.optional(v.string()),
     providerAccountId: v.optional(v.string()),
     signupMethod: v.optional(v.union(v.literal("GOOGLE"), v.literal("EMAIL"), v.literal("FACEBOOK"), v.literal("APPLE"))),

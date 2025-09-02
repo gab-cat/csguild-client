@@ -29,6 +29,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
   const [error, setFormError] = useState<string | null>(null)
   const router = useRouter()
 
+  // @ts-expect-error TODO: Fix type instantiation issue with useMutation
   const verifyEmailMutation = useMutation(api.users.verifyEmail)
   const resendVerificationMutation = useMutation(api.users.resendEmailVerification)
   
@@ -124,7 +125,10 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
       setIsVerifying(true)
       setFormError(null)
 
-      await verifyEmailMutation({ code: data.verificationCode })
+      await verifyEmailMutation({ 
+        email: email,
+        code: data.verificationCode 
+      })
       setVerificationSuccess(true)
 
       showSuccessToast(

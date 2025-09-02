@@ -1,5 +1,4 @@
 import { getAuthUserId } from "@convex-dev/auth/server";
-import { v } from "convex/values";
 
 import { QueryCtx } from "../../_generated/server";
 
@@ -10,5 +9,19 @@ export const getCurrentUserHandler = async (ctx: QueryCtx) => {
   if (userId === null) {
     return null;
   }
-  return await ctx.db.get(userId);
+  
+  const user = await ctx.db.get(userId);
+  if (!user) {
+    return null;
+  }
+  
+  // For email/password users, require email verification
+  // Google OAuth users are automatically verified
+  if (user.signupMethod === "EMAIL" && !user.emailVerified) {
+    // Return null to force user to verify email
+    // Frontend will handle redirecting to verification page
+    return null;
+  }
+  
+  return user;
 };

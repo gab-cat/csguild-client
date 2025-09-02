@@ -1,3 +1,5 @@
+import { v } from "convex/values";
+
 import { query, mutation } from "./_generated/server";
 import {
   updateCurrentUserHandler,
@@ -12,6 +14,10 @@ import {
   registerRfidCardArgs,
   rfidLoginHandler,
   rfidLoginArgs,
+  generateUploadUrlArgs,
+  saveProfilePictureArgs,
+  saveProfilePictureHandler,
+  generateUploadUrlHandler,
 } from "./users/mutations";
 import {
   getCurrentUserHandler,
@@ -20,6 +26,8 @@ import {
   getUserByIdArgs,
   getUsersHandler,
   getUsersArgs,
+  getUserVerificationStatusHandler,
+  getUserVerificationStatusArgs,
 } from "./users/queries";
 
 
@@ -37,6 +45,11 @@ export const getUserById = query({
 export const getUsers = query({
   args: getUsersArgs,
   handler: getUsersHandler,
+});
+
+export const getUserVerificationStatus = query({
+  args: getUserVerificationStatusArgs,
+  handler: getUserVerificationStatusHandler,
 });
 
 // Mutations
@@ -69,3 +82,14 @@ export const rfidLogin = mutation({
   args: rfidLoginArgs,
   handler: rfidLoginHandler,
 });
+
+export const generateUploadUrl = mutation({
+  args: generateUploadUrlArgs,
+  handler: generateUploadUrlHandler,
+  returns: v.string(),
+})
+
+export const saveProfilePicture = mutation({
+  args: saveProfilePictureArgs,
+  handler: saveProfilePictureHandler
+})

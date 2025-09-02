@@ -106,7 +106,10 @@ export function VerifyEmailForm() {
     try {
       setIsVerifying(true)
       setFormError(null)
-      await verifyEmailMutation({ code: data.verificationCode })
+      await verifyEmailMutation({ 
+        email: data.email,
+        code: data.verificationCode 
+      })
       showSuccessToast(
         'Email verified successfully!',
         'Your CS Guild account is now fully activated. Welcome to the community!'

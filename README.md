@@ -21,8 +21,9 @@ A modern web application built with Next.js 15, TypeScript, and Tailwind CSS. Th
 Before you begin, ensure you have the following installed:
 
 - **Bun** (latest version) - [Installation Guide](https://bun.sh/docs/installation)
-- **Node.js** 18.17 or later
+- **Node.js** 18.17 or later (Node.js 18 is specifically required for Convex local deployment)
 - **Git**
+- **nvm** (recommended for Node.js version management) - [Installation Guide](https://github.com/nvm-sh/nvm#installing-and-updating)
 
 ### Installing Bun
 
@@ -36,6 +37,21 @@ powershell -c "irm bun.sh/install.ps1 | iex"
 # Verify installation
 bun --version
 ```
+
+### Setting up Node.js for Convex
+
+This project uses Convex with "use node" actions that require Node.js 18. We recommend using nvm to manage Node.js versions:
+
+```bash
+# Install and use Node.js 18 (required for Convex local deployment)
+nvm install 18
+nvm use 18
+
+# Or use the .nvmrc file in the project root
+nvm use
+```
+
+**Important**: Always ensure you're using Node.js 18 when running `bunx convex dev` for local development.
 
 ## 🛠️ Installation
 
@@ -57,12 +73,23 @@ bun --version
    
    Edit `.env.local` with your configuration values.
 
-4. **Start the development server**
+4. **Set up Node.js version for Convex**
+   ```bash
+   # Switch to Node.js 18 (required for Convex "use node" actions)
+   nvm use 18
+   ```
+
+5. **Start the Convex development server**
+   ```bash
+   bunx convex dev --once
+   ```
+
+6. **Start the development server**
    ```bash
    bun dev
    ```
 
-5. **Open your browser**
+7. **Open your browser**
    
    Navigate to [http://localhost:3000](http://localhost:3000) to see the application.
 
@@ -249,6 +276,15 @@ Please read our [Code of Conduct](./src/app/(main)/code-of-conduct/page.tsx) bef
    export NODE_OPTIONS="--max-old-space-size=4096"
    bun build
    ```
+
+4. **Convex deployment error: "Node.js v18 is not installed"**
+   ```bash
+   # Switch to Node.js 18 before running Convex
+   nvm use 18
+   bunx convex dev --once
+   ```
+   
+   This error occurs when trying to run Convex with "use node" actions while using a different Node.js version. Convex specifically requires Node.js 18 for local deployment.
 
 ## 📝 License
 

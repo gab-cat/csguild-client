@@ -1,5 +1,6 @@
 export * from './auth-layout'
 export * from './auth-sync-provider'
+export * from './email-verification-guard'
 export * from './forgot-password-form'
 export * from './google-callback-handler'
 export * from './google-profile-completion-form'
