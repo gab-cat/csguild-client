@@ -113,7 +113,7 @@ export function CodeOfConductContent() {
               If you experience or witness unacceptable behavior:
             </p>
             <ul className="list-disc list-inside space-y-2 text-gray-400 ml-4">
-              <li>Contact the CS Guild team immediately at conduct@csguild.com</li>
+              <li>Contact the CS Guild team immediately at conduct@csguild.tech</li>
               <li>Include as much detail as possible in your report</li>
               <li>All reports will be handled with discretion</li>
             </ul>

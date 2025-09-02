@@ -98,7 +98,7 @@ export function TermsContent() {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-gray-200">8. Contact Information</h2>
             <p className="text-gray-400">
-              If you have any questions about these Terms, please contact us at support@csguild.com
+              If you have any questions about these Terms, please contact us at support@csguild.tech
             </p>
           </section>
         </motion.div>

@@ -126,7 +126,7 @@ export function PrivacyContent() {
           <section className="space-y-4">
             <h2 className="text-2xl font-semibold text-gray-200">9. Contact Us</h2>
             <p className="text-gray-400">
-              If you have questions about this Privacy Policy, please contact our Data Protection Officer at privacy@csguild.com
+              If you have questions about this Privacy Policy, please contact our Data Protection Officer at privacy@csguild.tech
             </p>
           </section>
         </motion.div>
