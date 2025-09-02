@@ -4,7 +4,10 @@ import { Password } from "@convex-dev/auth/providers/Password";
 import { convexAuth } from "@convex-dev/auth/server";
 import { GenericMutationCtx, AnyDataModel } from "convex/server";
 
+import { ResendOTP } from "../ResendOTP";
+import { ResendOTPPasswordReset } from "../ResendOTPPasswordReset";
 import { Id, Doc } from "../_generated/dataModel";
+
 
 // Helper function to parse name into first and last name
 function parseGoogleName(fullName?: string): { firstName: string; lastName: string } {
@@ -70,17 +73,17 @@ function safelyMergeUserData(
   return updateData;
 }
 
-// Configure Password provider to handle additional profile fields
+// Configure Password provider to handle additional profile fields, email verification and password reset
 const CustomPassword = Password({
   profile(params) {
     // Check if this is a signup flow - only include additional fields for signup
     const isSignUp = params.flow === 'signUp';
-    
+
     const baseProfile = {
       email: params.email as string,
       password: params.password as string,
     };
-    
+
     if (isSignUp) {
       return {
         ...baseProfile,
@@ -96,6 +99,10 @@ const CustomPassword = Password({
       return baseProfile;
     }
   },
+  // Configure email verification using Resend
+  verify: ResendOTP,
+  // Configure password reset using Resend
+  reset: ResendOTPPasswordReset,
 });
 
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
@@ -260,9 +267,28 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           rfidId?: string;
         };
 
-        // For signin attempts, don't create new users - let the auth system handle it
+        // For signin attempts or password reset attempts, don't create new users
         if (!profile.firstName && !profile.lastName && !profile.course) {
-          // This looks like a signin attempt - just return null and let auth handle it
+          // Check if this is a password reset attempt by looking for existing user
+          if (profile.email) {
+            const existingUser = await ctx.db
+              .query("users")
+              // @ts-expect-error - by_email index is defined in the schema
+              .withIndex("by_email", (q) => q.eq("email", profile.email))
+              .first();
+
+            if (existingUser) {
+              // User exists, allow password reset/signin
+              return existingUser._id;
+            } else {
+              // User doesn't exist - for password reset, return a dummy user ID
+              // to prevent email enumeration attacks
+              // The password reset email will fail gracefully on the Resend side
+              return "dummy-user-id-for-password-reset";
+            }
+          }
+
+          // User doesn't exist for signin - throw error
           throw new Error("User not found. Please sign up first.");
         }
 
@@ -333,6 +359,44 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         // or when they request a resend verification email
         
         return userId;
+      }
+
+      if (args.type === "verification") {
+        // Handle password reset verification - find existing user by email
+        const profile = args.profile as {
+          email?: string;
+          code?: string;
+          newPassword?: string;
+          flow?: string;
+        };
+
+        // Debug logging to understand verification flow
+        console.log("🔍 Verification Debug - Type:", args.type);
+        console.log("🔍 Verification Debug - Profile:", profile);
+
+        if (profile.email) {
+          const existingUser = await ctx.db
+            .query("users")
+            // @ts-expect-error - by_email index is defined in the schema
+            .withIndex("by_email", (q) => q.eq("email", profile.email))
+            .first();
+
+          if (existingUser) {
+            console.log("🔍 Verification Debug - Found existing user:", existingUser._id);
+            // For password reset verification, return the existing user
+            // Convex Auth will handle password credential management automatically
+            // This allows both password users to reset and Google users to add password login
+            return existingUser._id;
+          } else {
+            console.log("🔍 Verification Debug - User not found for email:", profile.email);
+            // For security, don't reveal if email exists during password reset verification
+            // Return a dummy ID to prevent email enumeration
+            return "dummy-user-id-for-password-reset-verification";
+          }
+        }
+
+        console.log("🔍 Verification Debug - No email provided in profile");
+        throw new Error("Email is required for verification");
       }
 
       throw new Error("Unsupported authentication type");
