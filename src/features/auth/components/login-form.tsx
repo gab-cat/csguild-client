@@ -39,12 +39,13 @@ export function LoginForm() {
     try {
       setError(null)
 
-      // Use Convex Auth signIn
-      await signIn('password', {
-        email: data.email,
-        password: data.password,
-        flow: 'signIn'
-      })
+      // Use Convex Auth signIn with FormData
+      const formData = new FormData()
+      formData.append('email', data.email)
+      formData.append('password', data.password)
+      formData.append('flow', 'signIn')
+
+      await signIn('password', formData)
 
       showSuccessToast('Login successful', 'Welcome back to CS Guild!')
 
@@ -93,33 +94,18 @@ export function LoginForm() {
         sessionStorage.setItem('auth_redirect_after_login', nextParam)
       }
 
+      // Show redirecting toast
+      showSuccessToast('Redirecting...', 'Redirecting to Google for authentication')
+
       // Use Convex's built-in Google OAuth
       await signIn('google')
 
-      showSuccessToast('Login successful', 'Welcome back to CS Guild!')
-
-      // Handle redirect after successful login
-      if (nextParam) {
-        try {
-          const url = new URL(nextParam, window.location.origin)
-          if (url.origin === window.location.origin &&
-              !url.pathname.startsWith('/login') &&
-              !url.pathname.startsWith('/register')) {
-            router.push(url.pathname + url.search)
-            return
-          }
-        } catch (error) {
-          console.error('Invalid redirect URL:', nextParam, error)
-        }
-      }
-
-      router.push('/dashboard')
+      // Note: No manual redirect here - Google OAuth will handle the redirect flow
+      // The success toast and dashboard redirect will be handled by the OAuth callback
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Google login failed'
       setError(errorMessage)
       showErrorToast('Login failed', 'Unable to sign in with Google. Please try again.')
-    } finally {
-      setIsGoogleLoading(false)
     }
   }
 

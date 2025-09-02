@@ -195,13 +195,32 @@ export const forgotPasswordSchema = z.object({
     .string()
     .min(1, 'Email is required')
     .email('Please enter a valid email address'),
+  code: z
+    .string()
+    .min(1, 'OTP code is required')
+    .regex(/^\d{8}$/, 'OTP code must be 8 digits')
+    .optional(),
+  newPassword: passwordSchema.optional(),
+  confirmPassword: z
+    .string()
+    .min(1, 'Please confirm your new password')
+    .optional(),
+}).refine((data) => {
+  // Only validate password confirmation if newPassword is provided
+  if (data.newPassword && data.confirmPassword) {
+    return data.newPassword === data.confirmPassword
+  }
+  return true
+}, {
+  message: 'Passwords do not match',
+  path: ['confirmPassword'],
 })
 
 // Reset password schema
 export const resetPasswordSchema = z.object({
   token: z
     .string()
-    .min(1, 'Reset token is required'),
+    .min(1, 'Reset code is required'),
   newPassword: passwordSchema,
   confirmPassword: z.string().min(1, 'Please confirm your new password'),
 }).refine((data) => data.newPassword === data.confirmPassword, {

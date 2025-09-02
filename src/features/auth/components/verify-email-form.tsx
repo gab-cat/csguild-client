@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Mail, ArrowRight, Loader2, RotateCcw } from 'lucide-react'
@@ -10,8 +11,6 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useMutation } from '@/lib/convex'
-import { api } from '@/lib/convex'
 import { showSuccessToast, showInfoToast, showErrorToast } from '@/lib/toast'
 
 import { emailVerificationSchema, type EmailVerificationFormData } from '../schemas'
@@ -26,9 +25,7 @@ export function VerifyEmailForm() {
   const [error, setFormError] = useState<string | null>(null)
   const { isLoading, error: storeError } = useAuthStore()
   const codeInputsRef = useRef<(HTMLInputElement | null)[]>([])
-
-  const verifyEmailMutation = useMutation(api.users.verifyEmail)
-  const resendVerificationMutation = useMutation(api.users.resendEmailVerification)
+  const { signIn } = useAuthActions()
 
   const {
     register,
@@ -106,10 +103,15 @@ export function VerifyEmailForm() {
     try {
       setIsVerifying(true)
       setFormError(null)
-      await verifyEmailMutation({ 
-        email: data.email,
-        code: data.verificationCode 
-      })
+
+      // Use Convex Auth to verify email with OTP
+      const formData = new FormData()
+      formData.append('code', data.verificationCode)
+      formData.append('flow', 'email-verification')
+      formData.append('email', data.email)
+
+      await signIn('password', formData)
+
       showSuccessToast(
         'Email verified successfully!',
         'Your CS Guild account is now fully activated. Welcome to the community!'
@@ -132,13 +134,21 @@ export function VerifyEmailForm() {
     try {
       setIsResending(true)
       setFormError(null)
-      await resendVerificationMutation({ email: emailValue })
+
+      // Use Convex Auth to resend verification by triggering the verification flow again
+      const formData = new FormData()
+      formData.append('email', emailValue)
+      formData.append('flow', 'email-verification')
+
+      await signIn('password', formData)
       setResendCooldown(60) // 60 seconds cooldown
+
       showInfoToast(
         'Verification email sent!',
         'Check your inbox for a new verification code. It may take a few minutes to arrive.'
       )
     } catch (error) {
+      // Note: This might fail if the user is already verified, but that's expected behavior
       const errorMessage = error instanceof Error ? error.message : 'Failed to resend verification email'
       setFormError(errorMessage)
       showErrorToast(

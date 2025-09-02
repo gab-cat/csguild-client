@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { ArrowLeft, ArrowRight, Loader2, Mail, CheckCircle, RotateCcw } from 'lucide-react'
@@ -9,8 +10,6 @@ import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useMutation } from '@/lib/convex'
-import { api } from '@/lib/convex'
 import { showSuccessToast, showInfoToast, showErrorToast } from '@/lib/toast'
 
 import { emailVerificationSchema, type EmailVerificationFormData } from '../schemas'
@@ -28,10 +27,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
   const [isResending, setIsResending] = useState(false)
   const [error, setFormError] = useState<string | null>(null)
   const router = useRouter()
-
-  // @ts-expect-error TODO: Fix type instantiation issue with useMutation
-  const verifyEmailMutation = useMutation(api.users.verifyEmail)
-  const resendVerificationMutation = useMutation(api.users.resendEmailVerification)
+  const { signIn } = useAuthActions()
   
   const codeInputsRef = useRef<(HTMLInputElement | null)[]>([])
 
@@ -102,8 +98,15 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
     try {
       setIsResending(true)
       setFormError(null)
-      await resendVerificationMutation({ email })
+
+      // Use Convex Auth to resend verification by triggering the verification flow again
+      const formData = new FormData()
+      formData.append('email', email)
+      formData.append('flow', 'email-verification')
+
+      await signIn('password', formData)
       setResendCooldown(60) // 60 second cooldown
+
       showInfoToast(
         'Verification email sent!',
         'Check your inbox for a new verification code. It may take a few minutes to arrive.'
@@ -125,10 +128,13 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
       setIsVerifying(true)
       setFormError(null)
 
-      await verifyEmailMutation({ 
-        email: email,
-        code: data.verificationCode 
-      })
+      // Use Convex Auth to verify email with OTP
+      const formData = new FormData()
+      formData.append('code', data.verificationCode)
+      formData.append('flow', 'email-verification')
+      formData.append('email', email)
+
+      await signIn('password', formData)
       setVerificationSuccess(true)
 
       showSuccessToast(

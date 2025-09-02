@@ -4,26 +4,30 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, ArrowRight, Loader2, ArrowLeft, Shield } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useMutation } from '@/lib/convex'
-import { api } from '@/lib/convex'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
+import { useAuthActions } from '@convex-dev/auth/react'
 
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'
+
+// Note: The email should be passed via URL params or stored in local state
+// For now, we'll need to get it from the forgot-password flow
 
 export function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [tokenFromUrl, setTokenFromUrl] = useState<string | null>(null)
+  const [emailFromUrl, setEmailFromUrl] = useState<string | null>(null)
   const [isResetting, setIsResetting] = useState(false)
-  const { isLoading, error, setError } = useAuthStore()
-  const resetPasswordMutation = useMutation(api.auth.resetPassword)
+  const [error, setError] = useState<string | null>(null)
+  const { signIn } = useAuthActions()
+  const router = useRouter()
   const searchParams = useSearchParams()
 
   const {
@@ -37,25 +41,46 @@ export function ResetPasswordForm() {
   })
 
   useEffect(() => {
-    // Get token from URL params
+    // Get token and email from URL params
     const token = searchParams.get('token')
+    const email = searchParams.get('email')
+
     if (token) {
       setTokenFromUrl(token)
       setValue('token', token)
     }
+
+    if (email) {
+      setEmailFromUrl(email)
+    }
   }, [searchParams, setValue])
 
   const onSubmit = async (data: ResetPasswordFormData) => {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { confirmPassword, ...rest } = data
     try {
       setIsResetting(true)
       setError(null)
-      await resetPasswordMutation(rest)
+
+      // Check if we have the email (required for password reset verification)
+      if (!emailFromUrl) {
+        throw new Error('Email is required for password reset. Please go back to the forgot password page.')
+      }
+
+      // Use Convex Auth to reset password
+      const formData = new FormData()
+      formData.append('code', data.token)
+      formData.append('newPassword', data.newPassword)
+      formData.append('email', emailFromUrl)
+      formData.append('flow', 'reset-verification')
+
+      await signIn('password', formData)
+
       showSuccessToast(
         'Password reset successful!',
         'Your password has been changed successfully. You can now log in with your new password.'
       )
+
+      // Redirect to login page after successful password reset
+      router.push('/login')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Password reset failed'
       setError(errorMessage)
@@ -95,11 +120,11 @@ export function ResetPasswordForm() {
         </div>
       </div>
 
-      {/* Token Field (hidden if from URL) */}
+      {/* Code Field (hidden if from URL) */}
       {!tokenFromUrl && (
         <div className="space-y-2">
           <label htmlFor="token" className="block text-sm font-medium text-gray-200">
-            Reset Token
+            Reset Code
           </label>
           <div className="relative">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
@@ -109,7 +134,7 @@ export function ResetPasswordForm() {
               {...register('token')}
               type="text"
               id="token"
-              placeholder="Enter the token from your email"
+              placeholder="Enter the code from your email"
               className="pl-10 bg-black/40 border-pink-500/30 text-white placeholder:text-gray-400 focus:border-pink-400 focus:ring-pink-400/20 font-mono text-sm"
               autoComplete="off"
             />
@@ -212,10 +237,10 @@ export function ResetPasswordForm() {
       {/* Submit Button */}
       <Button
         type="submit"
-        disabled={isSubmitting || isLoading || isResetting}
+        disabled={isSubmitting || isResetting}
         className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
-        {isSubmitting || isLoading || isResetting ? (
+        {isSubmitting || isResetting ? (
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <span>Updating password...</span>
