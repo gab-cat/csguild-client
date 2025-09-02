@@ -13,6 +13,7 @@ export const resendEmailVerificationHandler = async (
   args: { email: string }
 ) => {
   // Find user by email
+  console.log("Resending email verification for email:", args.email);
   const user = await ctx.db
     .query("users")
     .withIndex("by_email", (q) => q.eq("email", args.email))
@@ -53,7 +54,7 @@ export const resendEmailVerificationHandler = async (
 
   // Send email verification using scheduler (with proper error handling)
   try {
-    // @ts-expect-error TODO: Fix type instantiation issue with scheduler
+    // @ts-ignore
     await ctx.scheduler.runAfter(0, api.emailDirect.sendEmailVerificationDirect, {
       email: user.email || "",
       verificationCode: verificationCode,
