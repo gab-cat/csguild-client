@@ -17,6 +17,7 @@ const eslintConfig = [
   },
   {
     rules: {
+      "@typescript-eslint/ban-ts-comment": "off",
       indent: ["error", 2],
       "import/order": ["error", {
         groups: ["builtin", "external", "internal", "parent", "sibling", "index"],
