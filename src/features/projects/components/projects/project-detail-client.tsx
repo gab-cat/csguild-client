@@ -1,16 +1,16 @@
 'use client';
 
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion';
-import { CalendarDays, Users, Tag, User, Settings, Eye, Clock, Check, AlertCircle, X, ChevronDown, ChevronUp } from 'lucide-react';
+import { CalendarDays, Users, Tag, Settings, Eye, Clock, Check, AlertCircle, X, ChevronDown, ChevronUp, User } from 'lucide-react';
 import Image from 'next/image';
 import { useState, useRef, useEffect } from 'react';
 
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { api } from '@/lib/convex'
 
-import { useProjectMembers } from '../../hooks/use-projects-queries';
-import { useRoleMemberCounts, getRoleMemberCount } from '../../hooks/use-role-member-counts';
-import type { ProjectCardType } from '../../types';
+import type { ProjectCardType, Role } from '../../types';
 
 import { ProjectApplicationForm } from './project-application-form';
 
@@ -18,6 +18,36 @@ interface ProjectDetailClientProps {
   project: ProjectCardType;
   onClose: () => void;
 }
+
+// Types for the data returned by getProjectBySlug query
+interface ProjectMember {
+  id: string;
+  username?: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+  status: string;
+  joinedAt?: number;
+  role?: {
+    id: string;
+    name: string;
+    slug: string;
+  } | null;
+}
+
+interface ProjectRoleDetail {
+  id: string;
+  projectSlug: string;
+  roleSlug: string;
+  maxMembers?: number;
+  requirements?: string;
+  role: Role | null;
+  members: ProjectMember[];
+  currentMemberCount: number;
+}
+
+
+
 
 // Component for expandable requirements text
 function ExpandableRequirements({ requirements }: { requirements: string }) {
@@ -72,12 +102,23 @@ function ExpandableRequirements({ requirements }: { requirements: string }) {
 }
 
 export function ProjectDetailClient({ project, onClose }: ProjectDetailClientProps) {
-  const { data: membersData, isLoading: isLoadingMembers } = useProjectMembers(project.slug)
-  const { roleMemberCounts, isLoading: isLoadingCounts } = useRoleMemberCounts(
-    project.slug, 
-    project.roles, 
-    true
-  )
+  // Use Convex queries directly
+  // @ts-ignore
+  const projectDetailData = useQuery(api.projects.getProjectBySlug, { slug: project.slug })
+  const membersData = projectDetailData?.members || []
+  const isLoadingMembers = projectDetailData === undefined
+
+  // Calculate role member counts from members data
+  const roleMemberCounts: Record<string, number> = membersData?.reduce((acc: Record<string, number>, member: ProjectMember) => {
+    const roleSlug = member.role?.slug || 'unknown'
+    if (!acc[roleSlug]) {
+      acc[roleSlug] = 0
+    }
+    acc[roleSlug]++
+    return acc
+  }, {} as Record<string, number>) || {}
+
+  const isLoadingCounts = isLoadingMembers
 
   const getStatusColor = (status: string) => {
     switch (status.toUpperCase()) {
@@ -109,16 +150,17 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (dateValue: string | number | undefined) => {
+    if (!dateValue) return '';
+    return new Date(dateValue).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
       day: 'numeric',
     });
   };
 
-  const isOverdue = project.dueDate ? new Date(project.dueDate) < new Date() : false;
-  const daysDiff = project.dueDate ? Math.ceil((new Date(project.dueDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 0;
+  const isOverdue = projectDetailData?.dueDate ? new Date(projectDetailData.dueDate) < new Date() : false;
+  const daysDiff = projectDetailData?.dueDate ? Math.ceil((new Date(projectDetailData.dueDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 0;
 
   return (
     <div className="w-full min-h-full grid grid-cols-1 lg:grid-cols-5 gap-6">
@@ -152,7 +194,7 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                         isOverdue ? 'text-red-400' : 
                           daysDiff <= 7 ? 'text-yellow-400' : 'text-gray-400'
                       }`}>
-                        Due {formatDate(project.dueDate)}
+                        Due {formatDate(projectDetailData?.dueDate || project.dueDate)}
                         {isOverdue && ' (Overdue)'}
                         {!isOverdue && daysDiff <= 7 && daysDiff > 0 && ` (${daysDiff} days left)`}
                       </span>
@@ -175,7 +217,7 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                       <Users className="w-4 h-4 text-purple-400" />
                       <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Team Size</span>
                     </div>
-                    <div className="text-xl font-bold text-white">{membersData?.filter((member) => member.status === "ACTIVE").length || 0}</div>
+                    <div className="text-xl font-bold text-white">{membersData?.filter((member: ProjectMember) => member.status === "ACTIVE").length || 0}</div>
                     <div className="text-xs text-gray-400">current members</div>
                   </div>
                   
@@ -285,16 +327,18 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
         )}
 
         {/* Open Positions */}
-        {project.roles && project.roles.length > 0 && (
+        {projectDetailData?.roles && projectDetailData.roles.length > 0 && (
           <div className="space-y-4">
             <h2 className="text-lg font-bold text-white flex items-center gap-2">
               <Users className="w-5 h-5 text-purple-400" />
-              Open Positions ({project.roles.length})
+              Open Positions ({projectDetailData.roles.length})
             </h2>
             <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
-              {project.roles.map((roleDto, index) => {
-                const memberCount = getRoleMemberCount(roleMemberCounts, roleDto.roleSlug)
-                const isAvailable = memberCount.availablePositions > 0
+              {projectDetailData.roles.map((roleDto: ProjectRoleDetail, index: number) => {
+                const currentMemberCount = roleMemberCounts[roleDto.roleSlug] || 0
+                const maxMembers = roleDto.maxMembers || 0
+                const availablePositions = maxMembers - currentMemberCount
+                const isAvailable = availablePositions > 0
                 
                 return (
                   <motion.div
@@ -324,14 +368,14 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                           ) : (
                             <>
                               <div className={`text-lg font-bold ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
-                                {memberCount.currentMembers}/{memberCount.maxMembers}
+                                {currentMemberCount}/{maxMembers}
                               </div>
                               <div className="text-xs text-gray-400 uppercase tracking-wide">
                                 {isAvailable ? 'available' : 'filled'}
                               </div>
                               {isAvailable && (
                                 <div className="text-xs text-green-400 mt-1">
-                                  {memberCount.availablePositions} open
+                                  {availablePositions} open
                                 </div>
                               )}
                             </>
@@ -370,7 +414,7 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
         <div className="space-y-4">
           <h2 className="text-lg font-bold text-white flex items-center gap-2">
             <Users className="w-5 h-5 text-green-400" />
-            Current Team ({membersData ? membersData.filter(member => member.status === 'ACTIVE').length : 0})
+            Current Team ({membersData ? membersData.filter((member: ProjectMember) => member.status === 'ACTIVE').length : 0})
           </h2>
           {isLoadingMembers ? (
             <div className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg">
@@ -379,9 +423,9 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                 <span className="text-gray-400 text-sm">Loading team members...</span>
               </div>
             </div>
-          ) : membersData && membersData.filter(member => member.status === 'ACTIVE').length > 0 ? (
+          ) : membersData && membersData.filter((member: ProjectMember) => member.status === 'ACTIVE').length > 0 ? (
             <div className="grid gap-3 sm:grid-cols-1 lg:grid-cols-2">
-              {membersData.filter(member => member.status === 'ACTIVE').map((member, index) => (
+              {membersData.filter((member: ProjectMember) => member.status === 'ACTIVE').map((member: ProjectMember, index: number) => (
                 <motion.div
                   key={member.id}
                   initial={{ opacity: 0, x: -20 }}
@@ -390,43 +434,43 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
                   className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:border-green-500/30 transition-all"
                 >
                   <div className="flex items-center gap-3">
-                    {member.user.imageUrl ? (
-                      <Image 
-                        src={member.user.imageUrl} 
-                        alt={`${member.user.firstName} ${member.user.lastName}`}
+                    {member.imageUrl ? (
+                      <Image
+                        src={member.imageUrl}
+                        alt={`${member.firstName || ''} ${member.lastName || ''}`}
                         width={40}
                         height={40}
                         className="w-10 h-10 rounded-full object-cover ring-2 ring-green-500/30"
                       />
                     ) : (
                       <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                        {member.user.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                        {member.firstName ? member.firstName.charAt(0).toUpperCase() : 'U'}
                       </div>
                     )}
                     <div className="flex-1 min-w-0">
                       <p className="text-white font-semibold truncate">
-                        {`${member.user.firstName || ''} ${member.user.lastName || ''}`.trim() || 'Unknown User'}
+                        {`${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'}
                       </p>
                       <p className="text-green-400 text-sm font-medium truncate">
-                        {member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'}
+                        {member.role?.name || 'Team Member'}
                       </p>
                       <p className="text-gray-400 text-xs">
-                        @{member.user.username || 'unknown'}
+                        @{member.username || 'unknown'}
                       </p>
                     </div>
                     <div className="text-right">
                       <div className="text-xs text-gray-400">
-                        Joined {new Date(member.joinedAt || '').toLocaleDateString()}
+                        Joined {member.joinedAt ? new Date(member.joinedAt).toLocaleDateString() : 'Unknown'}
                       </div>
                     </div>
                   </div>
                 </motion.div>
               ))}
             </div>
-          ) : project.memberCount > 0 ? (
+          ) : membersData && membersData.length > 0 ? (
             <div className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg">
               <p className="text-gray-400 leading-relaxed text-sm">
-                This project currently has <span className="text-white font-semibold">{project.memberCount}</span> active member{project.memberCount === 1 ? '' : 's'}. 
+                This project currently has <span className="text-white font-semibold">{membersData.length}</span> active member{membersData.length === 1 ? '' : 's'}.
                 Connect with the project lead to learn more about the team structure and collaboration style.
               </p>
             </div>

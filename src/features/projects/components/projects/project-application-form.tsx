@@ -1,13 +1,15 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useMutation, useQuery } from 'convex/react'
 import { useState, useRef, useEffect } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { AuthGuard } from '@/components/shared/auth-guard'
+import { api } from '@/lib/convex'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useJoinProject, useMyApplications, useCurrentUserMembershipStatus } from '../../hooks/use-projects-queries'
+
 import { joinProjectSchema, type JoinProjectFormData } from '../../schemas'
 import type { ProjectCardType } from '../../types'
 
@@ -25,9 +27,15 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
   const [selectedRole, setSelectedRole] = useState<string>('')
   const [isRoleDropdownOpen, setIsRoleDropdownOpen] = useState(false)
   const dropdownRef = useRef<HTMLDivElement>(null)
-  const joinProjectMutation = useJoinProject()
-  const { data: myApplicationsData, isLoading: isLoadingApplications } = useMyApplications()
-  const { isRemoved } = useCurrentUserMembershipStatus(project.slug)
+  // Use Convex hooks directly
+  const joinProjectMutation = useMutation(api.projects.joinProject)
+  const myApplicationsData = useQuery(api.projects.getMyApplications)
+  const isLoadingApplications = myApplicationsData === undefined
+
+  // Check if user is removed from project by looking at project members
+  const projectData = useQuery(api.projects.getProjectBySlug, { slug: project.slug })
+  const projectMembers = projectData?.members || []
+  const isRemoved = projectMembers.some((member: { status: string }) => member.status === 'REMOVED')
 
   const form = useForm<JoinProjectFormData>({
     resolver: zodResolver(joinProjectSchema),
@@ -49,8 +57,8 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
   const acceptTerms = watch('acceptTerms')
 
   // Check if user has already applied to this project
-  const existingApplication = myApplicationsData?.applications?.find(
-    app => app.projectSlug === project.slug
+  const existingApplication = myApplicationsData?.all?.find(
+    (app: { projectSlug: string }) => app.projectSlug === project.slug
   )
 
   // Users who were removed should not be allowed to reapply automatically
@@ -79,7 +87,7 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
         roleSlug: data.roleSlug,
         message: data.message,
       }
-      await joinProjectMutation.mutateAsync(apiData)
+      await joinProjectMutation(apiData)
       showSuccessToast('Application Submitted', 'Your application has been sent to the project owner for review.')
       reset({
         projectSlug: project.slug,
@@ -94,7 +102,7 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
     }
   }
 
-  const selectedRoleInfo = project.roles.find(role => role.role.slug === selectedRole)
+  const selectedRoleInfo = project.roles.find(role => role.role?.slug === selectedRole)
   const isProjectOpen = project.status === 'OPEN'
 
   // Show loading state while checking applications
@@ -147,8 +155,13 @@ export function ProjectApplicationForm({ project, onSuccess }: ProjectApplicatio
         />
       ) : (
         /* Show existing application status */
-        <ExistingApplicationDisplay 
-          existingApplication={existingApplication}
+        <ExistingApplicationDisplay
+          existingApplication={{
+            status: existingApplication.status,
+            roleSlug: existingApplication.roleSlug,
+            createdAt: existingApplication.appliedAt ? new Date(existingApplication.appliedAt).toISOString() : new Date().toISOString(),
+            reviewMessage: existingApplication.reviewMessage,
+          }}
           project={project}
           isRemoved={isRemoved}
         />

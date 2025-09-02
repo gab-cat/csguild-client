@@ -69,7 +69,7 @@ export function ApplicationsTable({ applications, onViewMessage, onViewReview }:
               {applications.map((application, index) => {
                 const projectTitle = application.project?.title || application.projectSlug;
                 const roleName = application.projectRole.role?.name || application.roleSlug;
-                const appliedDate = new Date(application.createdAt).toLocaleDateString();
+                const appliedDate = new Date(application.appliedAt || Date.now()).toLocaleDateString();
                 
                 return (
                   <motion.tr
@@ -104,12 +104,14 @@ export function ApplicationsTable({ applications, onViewMessage, onViewReview }:
                           </span>
                         </div>
                         {/* Show member status for approved applications */}
-                        <MemberStatusIndicator
-                          projectSlug={application.projectSlug}
-                          applicationStatus={application.status as 'PENDING' | 'APPROVED' | 'REJECTED'}
-                          memberStatus={application.projectMember?.status || 'INACTIVE'}
-                          compact={true}
-                        />
+                        {application.status === 'APPROVED' && (
+                          <MemberStatusIndicator
+                            projectSlug={application.projectSlug}
+                            applicationStatus={application.status as 'PENDING' | 'APPROVED' | 'REJECTED'}
+                            memberStatus={application.projectMember?.status || 'ACTIVE'}
+                            compact={true}
+                          />
+                        )}
                       </div>
                     </TableCell>
                     <TableCell>

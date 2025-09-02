@@ -1,8 +1,10 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion'
 import { Plus, Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { useState, useCallback, useMemo } from 'react'
 
 import { AuthGuard } from '@/components/shared/auth-guard'
@@ -10,9 +12,9 @@ import { SimplePaginationControl } from '@/components/shared/simple-pagination-c
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
 import { useAuthStore } from '@/features/auth'
+import { api } from '@/lib/convex'
 
-import { useProjects, useProjectFilters, useSavedProjects } from '../../hooks'
-import { toProjectCard } from '../../types'
+import { isValidProjectCard, Project } from '../../types'
 import { CreateProjectModal } from '../create-project-modal'
 
 import { PinnedProjectsSection } from './pinned-projects-section'
@@ -20,24 +22,95 @@ import { ProjectCard } from './project-card'
 import { ProjectFiltersComponent } from './project-filters'
 
 
+// Define the filters type to match Convex query expectations
+type ProjectFilters = {
+  page: number
+  limit: number
+  sortBy: 'createdAt' | 'updatedAt' | 'dueDate' | 'title'
+  sortOrder: 'asc' | 'desc'
+  search?: string
+  status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+  tags?: string // Convex expects string, will be split by comma in query
+}
+
+type RegularProjectFilters = ProjectFilters & {
+  pinned: boolean
+}
+
 export function ProjectsClient() {
   const { isAuthenticated } = useAuthStore()
   const router = useRouter()
-  const filters = useProjectFilters()
+  const searchParams = useSearchParams()
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
+  // Inline filter logic from useProjectFilters
+  const filters = useMemo((): ProjectFilters => {
+    const params = new URLSearchParams(searchParams)
+    const filters: ProjectFilters = {
+      // Set default values
+      page: 1,
+      limit: 12,
+      sortBy: 'createdAt' as const,
+      sortOrder: 'desc' as const,
+    }
+
+    // Override with URL params if they exist
+    if (params.get('search')) filters.search = params.get('search')!
+    if (params.get('status')) {
+      const status = params.get('status') as 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
+      if (['OPEN', 'IN_PROGRESS', 'COMPLETED', 'CANCELLED'].includes(status)) {
+        filters.status = status
+      }
+    }
+    if (params.get('sortBy')) {
+      const sortBy = params.get('sortBy') as 'createdAt' | 'updatedAt' | 'dueDate' | 'title'
+      if (['createdAt', 'updatedAt', 'dueDate', 'title'].includes(sortBy)) {
+        filters.sortBy = sortBy
+      }
+    }
+    if (params.get('sortOrder')) {
+      const sortOrder = params.get('sortOrder') as 'asc' | 'desc'
+      if (['asc', 'desc'].includes(sortOrder)) {
+        filters.sortOrder = sortOrder
+      }
+    }
+    if (params.get('tags')) {
+      filters.tags = params.get('tags')! // Keep as string for Convex
+    }
+    if (params.get('page')) {
+      const page = parseInt(params.get('page')!)
+      if (!isNaN(page) && page > 0) {
+        filters.page = page
+      }
+    }
+    if (params.get('limit')) {
+      const limit = parseInt(params.get('limit')!)
+      if (!isNaN(limit) && limit > 0) {
+        filters.limit = limit
+      }
+    }
+
+    return filters
+  }, [searchParams])
+
   // Get regular projects (excluding pinned ones)
-  const regularFilters = useMemo(() => ({
+  const regularFilters = useMemo((): RegularProjectFilters => ({
     ...filters,
     pinned: false, // Explicitly exclude pinned projects
   }), [filters])
 
-  const { data: projectsData, isLoading, error } = useProjects(regularFilters)
-  const { data: savedProjectsData } = useSavedProjects()
+  // Use Convex queries directly
+  const projectsQuery = useQuery(api.projects.getProjects, regularFilters)
+  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, {})
+
+  const projectsData = projectsQuery
+  const savedProjectsData = savedProjectsQuery
+  const isLoading = projectsQuery === undefined
+  const error = null // Convex handles errors differently
 
   // Create a set of saved project slugs for quick lookup
   const savedProjectSlugs = useMemo(() => {
-    return new Set(savedProjectsData?.data?.map(project => project.slug) || [])
+    return new Set(savedProjectsData?.data?.map((project: Project) => project.slug) || [])
   }, [savedProjectsData])
 
   const handleCreateButtonClick = useCallback(() => {
@@ -53,8 +126,8 @@ export function ProjectsClient() {
   }, [router])
 
   const projects = projectsData?.data || []
-  const validProjects = projects.map(toProjectCard).filter((p): p is NonNullable<typeof p> => p !== null)
-  const totalProjects = projectsData?.pagination?.total || 0
+  const validProjects = projects.filter(isValidProjectCard)
+  const totalProjects = projectsData?.meta?.total || 0
 
   return (
     <div className="relative min-h-screen">
@@ -79,7 +152,7 @@ export function ProjectsClient() {
 
           {/* Project Modal with Auth Guard */}
           <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
-            <DialogContent className={`${!isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-7xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
+            <DialogContent className={`${isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-7xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
               <AuthGuard 
                 title="Authentication Required" 
                 description="Please sign in or create an account to post a new project."
@@ -99,7 +172,7 @@ export function ProjectsClient() {
                 {filters.page && filters.page > 1 && ` (page ${filters.page})`}
                 {filters.search && ` for "${filters.search}"`}
                 {filters.status && ` with status "${filters.status}"`}
-                {filters.tags?.length && ` tagged with "${filters.tags.join(', ')}"`}
+                {filters.tags && ` tagged with "${filters.tags}"`}
               </>
             ) : (
               <>No projects found matching your criteria</>
@@ -139,7 +212,7 @@ export function ProjectsClient() {
             transition={{ duration: 0.5 }}
             className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6"
           >
-            {validProjects.map((project, index) => (
+            {validProjects.map((project: Project, index: number) => (
               <ProjectCard
                 key={project.id}
                 project={project}
@@ -160,7 +233,7 @@ export function ProjectsClient() {
               }
             </div>
             <div className="space-x-4">
-              {(filters.search || filters.status || filters.tags?.length) && (
+              {(filters.search || filters.status || filters.tags) && (
                 <Button 
                   onClick={handleClearFilters}
                   variant="outline"

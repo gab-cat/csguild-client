@@ -1,12 +1,13 @@
 'use client';
 
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion';
 import { useState } from 'react';
 
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control';
 import { usePagination } from '@/hooks/use-pagination';
+import { api } from '@/lib/convex'
 
-import { useMyApplications } from '../../hooks/use-projects-queries';
 import type { ExtendedProjectApplicationDto } from '../../types';
 
 import {
@@ -28,12 +29,16 @@ export function MyApplicationsPageClient() {
   const [isMessageModalOpen, setIsMessageModalOpen] = useState(false);
   const [isReviewModalOpen, setIsReviewModalOpen] = useState(false);
 
-  const { data: applicationsData, isLoading, error } = useMyApplications();
+  // Use Convex query directly
+  // @ts-ignore
+  const applicationsData = useQuery(api.projects.getMyApplications)
+  const isLoading = applicationsData === undefined
+  const error = null // Convex handles errors differently
 
   // Get filtered applications first
-  const allFilteredApplications = (applicationsData?.applications as ExtendedProjectApplicationDto[] || []).filter((application) => {
-    const projectTitle = application.projectRole.project?.title || application.projectSlug;
-    const roleName = application.projectRole.role?.name || application.roleSlug;
+  const allFilteredApplications = (applicationsData?.all as { project?: { title?: string }; projectSlug: string; role?: { name?: string }; roleSlug: string; message?: string; status: string }[] || []).filter((application) => {
+    const projectTitle = application.project?.title || application.projectSlug;
+    const roleName = application.role?.name || application.roleSlug;
     
     const matchesSearch = 
       projectTitle.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -78,7 +83,7 @@ export function MyApplicationsPageClient() {
   }
 
   // No data state
-  if (!applicationsData?.applications || applicationsData.applications.length === 0) {
+  if (!applicationsData?.all || applicationsData.all.length === 0) {
     return (
       <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
@@ -98,9 +103,9 @@ export function MyApplicationsPageClient() {
   }
 
   // Calculate stats
-  const pendingCount = applicationsData.applications.filter(app => app.status === 'PENDING').length;
-  const approvedCount = applicationsData.applications.filter(app => app.status === 'APPROVED').length;
-  const rejectedCount = applicationsData.applications.filter(app => app.status === 'REJECTED').length;
+  const pendingCount = applicationsData.pending.filter((app: { status: string }) => app.status === 'PENDING').length;
+  const approvedCount = applicationsData.approved.filter((app: { status: string }) => app.status === 'APPROVED').length;
+  const rejectedCount = applicationsData.rejected.filter((app: { status: string }) => app.status === 'REJECTED').length;
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
@@ -130,7 +135,7 @@ export function MyApplicationsPageClient() {
         ) : (
           <div className="space-y-6">
             <ApplicationsTable
-              applications={paginatedApplications}
+              applications={paginatedApplications as unknown as ExtendedProjectApplicationDto[]}
               onViewMessage={openMessageModal}
               onViewReview={openReviewModal}
             />

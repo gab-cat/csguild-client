@@ -1,5 +1,6 @@
 'use client'
 
+import { useMutation } from 'convex/react'
 import { UserMinus, AlertTriangle } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -13,14 +14,30 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { useRemoveProjectMember } from '../../hooks/use-projects-queries'
-import type { ProjectMemberDto } from '../../types'
+import { api } from '../../../../../convex/_generated/api'
+
+// Define local member type that matches the expected structure
+interface ProjectMember {
+  id: string
+  username: string | undefined
+  firstName: string | undefined
+  lastName: string | undefined
+  imageUrl: string | undefined
+  status: "ACTIVE" | "INACTIVE" | "REMOVED"
+  joinedAt: number | undefined
+  role: {
+    id: string
+    name: string
+    slug: string
+  } | null
+}
 
 interface RemoveMemberDialogProps {
   isOpen: boolean
   onClose: () => void
-  member: ProjectMemberDto
+  member: ProjectMember
   projectSlug: string
   projectTitle: string
 }
@@ -33,34 +50,49 @@ export function RemoveMemberDialog({
   projectTitle,
 }: RemoveMemberDialogProps) {
   const [isRemoving, setIsRemoving] = useState(false)
-  const removeProjectMember = useRemoveProjectMember()
+  // @ts-ignore
+  const removeProjectMember = useMutation(api.projects.removeProjectMember)
 
   const handleRemoveMember = async () => {
-    if (!member.user?.username) {
+    if (!member.username) {
       return
     }
 
-    const memberName = `${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'
+    const memberName = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'
 
     try {
       setIsRemoving(true)
-      
-      await removeProjectMember.mutateAsync({
+
+      await removeProjectMember({
         slug: projectSlug,
-        memberUserSlug: member.user.username,
-        memberName,
+        memberUserSlug: member.username,
       })
+
+      showSuccessToast(
+        'Member Removed',
+        memberName
+          ? `${memberName} has been removed from the project`
+          : 'Member has been removed from the project'
+      )
 
       onClose()
     } catch (error) {
+      showErrorToast(
+        'Failed to Remove Member',
+        error instanceof Error
+          ? error.message
+          : memberName
+            ? `Failed to remove ${memberName}. Please try again.`
+            : 'Failed to remove member. Please try again.'
+      )
       console.error('Failed to remove member:', error)
     } finally {
       setIsRemoving(false)
     }
   }
 
-  const memberName = `${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'
-  const roleName = member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'
+  const memberName = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'
+  const roleName = member.role?.name || member.role?.slug || 'Team Member'
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -95,9 +127,9 @@ export function RemoveMemberDialog({
 
           <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
             <div className="flex items-center gap-3">
-              {member.user?.imageUrl ? (
-                <Image 
-                  src={member.user.imageUrl} 
+              {member.imageUrl ? (
+                <Image
+                  src={member.imageUrl}
                   alt={memberName}
                   width={40}
                   height={40}
@@ -105,14 +137,14 @@ export function RemoveMemberDialog({
                 />
               ) : (
                 <div className="w-10 h-10 bg-gradient-to-br from-red-500 to-red-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                  {member.firstName ? member.firstName.charAt(0).toUpperCase() : 'U'}
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-white font-medium truncate">{memberName}</p>
                 <p className="text-red-400 text-sm truncate">{roleName}</p>
                 <p className="text-gray-400 text-xs truncate">
-                  @{member.user?.username || 'unknown'}
+                  @{member.username || 'unknown'}
                 </p>
               </div>
             </div>

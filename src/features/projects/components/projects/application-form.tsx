@@ -1,10 +1,10 @@
 'use client'
 
-import type { UseMutationResult } from '@tanstack/react-query'
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion'
 import {
   ChevronDown,
-  User,
+  User as UserIcon,
   MessageSquare,
   Shield,
   Check,
@@ -15,10 +15,11 @@ import type { UseFormReturn } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
+import { api } from '@/lib/convex'
 
-import { useRoleMemberCounts, getRoleMemberCount } from '../../hooks/use-role-member-counts'
 import type { JoinProjectFormData } from '../../schemas'
-import type { ProjectCardType, JoinProjectData, JoinProjectResponseDto } from '../../types'
+import type { ProjectCardType } from '../../types'
+
 
 interface ApplicationFormProps {
   project: ProjectCardType
@@ -28,7 +29,8 @@ interface ApplicationFormProps {
   isRoleDropdownOpen: boolean
   setIsRoleDropdownOpen: (open: boolean) => void
   dropdownRef: React.RefObject<HTMLDivElement | null>
-  joinProjectMutation: UseMutationResult<JoinProjectResponseDto, Error, JoinProjectData, unknown>
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  joinProjectMutation: any
   form: UseFormReturn<JoinProjectFormData>
   messageValue: string
   acceptTerms: boolean
@@ -61,11 +63,23 @@ export function ApplicationForm({
   } = form
 
   // Get role member counts to filter available positions
-  const { roleMemberCounts, isLoading: isLoadingCounts } = useRoleMemberCounts(
-    project.slug, 
-    project.roles, 
-    true
-  )
+  // Use Convex query directly
+  // @ts-ignore
+  const projectData = useQuery(api.projects.getProjectBySlug, { slug: project.slug })
+  const membersData = projectData?.members || []
+  const isLoadingCounts = projectData === undefined
+
+  // Calculate role member counts from members data
+  const roleMemberCounts = membersData?.reduce((acc: Record<string, number>, member) => {
+    const roleSlug = member.role?.slug || ''
+    if (roleSlug && !acc[roleSlug]) {
+      acc[roleSlug] = 0
+    }
+    if (roleSlug) {
+      acc[roleSlug]++
+    }
+    return acc
+  }, {} as Record<string, number>) || {}
 
   return (
     <motion.div
@@ -81,7 +95,7 @@ export function ApplicationForm({
           <div className="space-y-3">
             <div className="flex items-center gap-2 mb-3">
               <div className="w-6 h-6 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
-                <User className="w-3 h-3 text-white" />
+                <UserIcon className="w-3 h-3 text-white" />
               </div>
               <Label className="text-white font-semibold">Choose Your Role</Label>
             </div>
@@ -92,8 +106,8 @@ export function ApplicationForm({
                 className="w-full bg-gray-800/50 border border-gray-600 text-white px-4 py-3 rounded-xl flex items-center justify-between hover:bg-gray-700/50 hover:border-purple-500/50 transition-all focus:outline-none focus:ring-2 focus:ring-purple-500/50"
               >
                 <span className={selectedRole ? 'text-white' : 'text-gray-400'}>
-                  {selectedRole 
-                    ? (project.roles.find(r => r.role.slug === selectedRole)?.role.name || selectedRole)
+                  {selectedRole
+                    ? (project.roles.find(r => r.role?.slug === selectedRole)?.role?.name || selectedRole)
                     : 'Select a role to apply for'
                   }
                 </span>
@@ -115,19 +129,19 @@ export function ApplicationForm({
                     <>
                       {project.roles.filter(roleInfo => {
                         // Filter roles that have available positions
-                        const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
-                        return memberCount.availablePositions > 0
+                        const memberCount = roleMemberCounts[roleInfo.roleSlug] || 0
+                        return (roleInfo.maxMembers || 0) - memberCount > 0
                       }).map((roleInfo, index) => {
-                        const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
+                        const memberCount = roleMemberCounts[roleInfo.roleSlug] || 0
                         return (
                           <motion.button
-                            key={roleInfo.role.slug}
+                            key={roleInfo.role?.slug || roleInfo.roleSlug}
                             type="button"
                             initial={{ opacity: 0 }}
                             animate={{ opacity: 1 }}
                             transition={{ delay: index * 0.05 }}
                             onClick={() => {
-                              const roleSlug = roleInfo.role.slug || roleInfo.role.name || ''
+                              const roleSlug = roleInfo.role?.slug || roleInfo.roleSlug || ''
                               if (roleSlug) {
                                 setSelectedRole(roleSlug)
                                 setValue('roleSlug', roleSlug)
@@ -139,7 +153,7 @@ export function ApplicationForm({
                             <div className="flex items-center justify-between">
                               <div className="flex-1 min-w-0">
                                 <div className="font-medium text-white group-hover:text-purple-300 transition-colors">
-                                  {roleInfo.role.name || roleInfo.role.slug}
+                                  {roleInfo.role?.name || roleInfo.role?.slug || roleInfo.roleSlug}
                                 </div>
                                 {roleInfo.requirements && (
                                   <div className="text-xs text-gray-400 mt-1 line-clamp-2 pr-2">
@@ -149,7 +163,7 @@ export function ApplicationForm({
                               </div>
                               <div className="text-right flex-shrink-0 ml-3">
                                 <div className="text-sm font-medium text-green-400">
-                                  {memberCount.availablePositions}/{roleInfo.maxMembers}
+                                  {memberCount}/{roleInfo.maxMembers || '∞'}
                                 </div>
                                 <div className="text-xs text-gray-400">available</div>
                               </div>
@@ -158,8 +172,8 @@ export function ApplicationForm({
                         )
                       })}
                       {project.roles.filter(roleInfo => {
-                        const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
-                        return memberCount.availablePositions > 0
+                        const memberCount = roleMemberCounts[roleInfo.roleSlug] || 0
+                        return (roleInfo.maxMembers || 0) - memberCount > 0
                       }).length === 0 && (
                         <div className="px-4 py-6 text-center">
                           <div className="text-gray-400 text-sm">

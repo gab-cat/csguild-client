@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery, useMutation } from 'convex/react'
 import { motion } from 'framer-motion'
 import { Clock, CheckCircle, XCircle, User, MessageSquare, Calendar } from 'lucide-react'
 import { useState } from 'react'
@@ -12,8 +13,8 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Textarea } from '@/components/ui/textarea'
+import { api, Id } from '@/lib/convex'
 
-import { useProjectApplications, useReviewApplication } from '../../hooks/use-projects-queries'
 import { hasReviewMessage } from '../../types'
 import type { ProjectCardType, ReviewDecision } from '../../types'
 
@@ -27,13 +28,14 @@ export function ApplicationsModal({ project, onClose }: ApplicationsModalProps) 
   const [reviewMessages, setReviewMessages] = useState<Record<string, string>>({})
   const [showReviewForm, setShowReviewForm] = useState<Record<string, boolean>>({})
   
-  const { 
-    data: applications, 
-    isLoading: applicationsLoading, 
-    error: applicationsError 
-  } = useProjectApplications(project.slug)
-  
-  const reviewApplicationMutation = useReviewApplication()
+  // Use Convex queries and mutations directly
+  // @ts-ignore
+  const projectData = useQuery(api.projects.getProjectBySlug, { slug: project.slug })
+  const applications = projectData?.applications || []
+  const applicationsLoading = projectData === undefined
+  const applicationsError = null // Convex handles errors differently
+
+  const reviewApplicationMutation = useMutation(api.projects.reviewApplication)
 
   const handleReviewApplication = async (applicationId: string, decision: ReviewDecision) => {
     setReviewingApplication(applicationId)
@@ -42,8 +44,8 @@ export function ApplicationsModal({ project, onClose }: ApplicationsModalProps) 
         decision === 'APPROVED' ? 'Welcome to the project!' : 'Thank you for your interest.'
       )
       
-      await reviewApplicationMutation.mutateAsync({
-        applicationId,
+      await reviewApplicationMutation({
+        applicationId: applicationId as Id<'projectApplications'>,
         decision,
         reviewMessage,
       })
@@ -104,8 +106,8 @@ export function ApplicationsModal({ project, onClose }: ApplicationsModalProps) 
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
+  const formatDate = (timestamp: number) => {
+    return new Date(timestamp).toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -208,23 +210,23 @@ export function ApplicationsModal({ project, onClose }: ApplicationsModalProps) 
                         <div className="flex items-start justify-between">
                           <div className="flex items-center gap-3">
                             <Avatar className="h-10 w-10">
-                              <AvatarImage src={application.user.imageUrl} alt={application.user.username} />
+                              <AvatarImage src={application.user?.imageUrl} alt={application.user?.username} />
                               <AvatarFallback className="bg-purple-500/20 text-purple-400">
-                                {application.user.firstName[0]}{application.user.lastName[0]}
+                                {application.user?.firstName?.[0]}{application.user?.lastName?.[0]}
                               </AvatarFallback>
                             </Avatar>
                             <div>
                               <div className="flex items-center gap-2">
                                 <h4 className="font-semibold text-white">
-                                  {application.user.firstName} {application.user.lastName}
+                                  {application.user?.firstName || 'Unknown'} {application.user?.lastName || 'User'}
                                 </h4>
                                 <Badge variant="outline" className="bg-purple-500/10 text-purple-400 border-purple-500/30 text-xs">
-                                  {application.projectRole.role?.name || application.roleSlug}
+                                  {application.role?.name || application.roleSlug}
                                 </Badge>
                               </div>
                               <p className="text-sm text-gray-400 flex items-center gap-1">
                                 <User className="w-3 h-3" />
-                                @{application.user.username}
+                                @{application.user?.username || 'unknown'}
                               </p>
                             </div>
                           </div>
@@ -256,7 +258,7 @@ export function ApplicationsModal({ project, onClose }: ApplicationsModalProps) 
                             {/* Application Date */}
                             <div className="flex items-center gap-1 text-xs text-gray-500">
                               <Calendar className="w-3 h-3" />
-                              Applied on {formatDate(application.createdAt)}
+                              Applied on {application.appliedAt ? formatDate(application.appliedAt) : 'Unknown date'}
                             </div>
                           </div>
 
@@ -351,17 +353,17 @@ export function ApplicationsModal({ project, onClose }: ApplicationsModalProps) 
                           <div className="flex-1">
                             <div className="flex items-center gap-3 mb-3">
                               <Avatar className="h-8 w-8">
-                                <AvatarImage src={application.user.imageUrl} alt={application.user.username} />
+                                <AvatarImage src={application.user?.imageUrl} alt={application.user?.username} />
                                 <AvatarFallback className="bg-gray-600 text-gray-300 text-xs">
-                                  {application.user.firstName[0]}{application.user.lastName[0]}
+                                  {application.user?.firstName?.[0]}{application.user?.lastName?.[0]}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <h4 className="font-medium text-gray-300">
-                                  {application.user.firstName} {application.user.lastName}
+                                  {application.user?.firstName || 'Unknown'} {application.user?.lastName || 'User'}
                                 </h4>
                                 <p className="text-xs text-gray-500">
-                                  Applied for {application.projectRole.role?.name || application.roleSlug}
+                                  Applied for {application.role?.name || application.roleSlug}
                                 </p>
                               </div>
                             </div>

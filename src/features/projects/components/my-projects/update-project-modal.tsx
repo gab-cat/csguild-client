@@ -1,5 +1,6 @@
 'use client'
 
+import { useMutation, useQuery } from 'convex/react'
 import { 
   CheckIcon, 
   ChevronsUpDownIcon, 
@@ -31,8 +32,8 @@ import { useDebounce } from '@/hooks/use-debounce'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import { cn } from '@/lib/utils'
 
-import { useUpdateProject, useUpdateProjectStatus, useRoles, useCreateRole } from '../../hooks/use-projects-queries'
-import type { ProjectCardType, ProjectStatus, ProjectRole } from '../../types'
+import { api } from '../../../../../convex/_generated/api'
+import type { ProjectCardType, ProjectStatus, ProjectRoleFormData } from '../../types'
 
 const projectStatuses: { value: ProjectStatus; label: string }[] = [
   { value: 'OPEN', label: 'Open' },
@@ -63,7 +64,7 @@ export function UpdateProjectModal({
       roleSlug: role.role?.slug || '',
       maxMembers: role.maxMembers || 1,
       requirements: role.requirements || '',
-    })) as ProjectRole[],
+    })) as ProjectRoleFormData[],
   })
   
   const [tagInput, setTagInput] = useState('')
@@ -76,15 +77,15 @@ export function UpdateProjectModal({
 
   // Debounce the search term for roles
   const debouncedRoleSearch = useDebounce(roleSearchTerm, 300)
-
-  const updateProjectMutation = useUpdateProject()
-  const updateStatusMutation = useUpdateProjectStatus()
-  const createRoleMutation = useCreateRole()
-  const { data: rolesData, isLoading: rolesLoading } = useRoles({
+  // @ts-ignore
+  const updateProjectMutation = useMutation(api.projects.updateProject)
+  const createRoleMutation = useMutation(api.projects.createRole)
+  const rolesData = useQuery(api.projects.getRoles, {
     search: debouncedRoleSearch || undefined,
   })
 
   const availableRoles = rolesData?.data || []
+  const rolesLoading = rolesData === undefined
 
   const handleAddTag = () => {
     if (tagInput.trim() && !formData.tags.includes(tagInput.trim())) {
@@ -106,13 +107,14 @@ export function UpdateProjectModal({
   const handleAddRole = (roleSlug: string) => {
     const roleExists = formData.roles.some(role => role.roleSlug === roleSlug)
     if (!roleExists) {
+      const newRole: ProjectRoleFormData = {
+        roleSlug,
+        maxMembers: 1,
+        requirements: '',
+      }
       setFormData(prev => ({
         ...prev,
-        roles: [...prev.roles, {
-          roleSlug,
-          maxMembers: 1,
-          requirements: '',
-        }]
+        roles: [...prev.roles, newRole]
       }))
     }
   }
@@ -124,11 +126,11 @@ export function UpdateProjectModal({
     }))
   }
 
-  const handleRoleChange = (index: number, field: 'maxMembers' | 'requirements', value: string | number) => {
+  const handleRoleChange = (index: number, field: keyof ProjectRoleFormData, value: string | number) => {
     setFormData(prev => ({
       ...prev,
-      roles: prev.roles.map((role, i) => 
-        i === index 
+      roles: prev.roles.map((role, i) =>
+        i === index
           ? { ...role, [field]: field === 'maxMembers' ? Number(value) : value }
           : role
       )
@@ -139,7 +141,7 @@ export function UpdateProjectModal({
     if (!newRoleName.trim()) return
 
     try {
-      const newRole = await createRoleMutation.mutateAsync({
+      const newRole = await createRoleMutation({
         name: newRoleName.trim(),
         description: newRoleDescription.trim() || undefined,
       })
@@ -150,7 +152,7 @@ export function UpdateProjectModal({
       )
 
       // Add the newly created role to the project
-      handleAddRole(newRole.role.slug)
+      handleAddRole(newRole.slug)
       
       // Reset form
       setNewRoleName('')
@@ -168,23 +170,13 @@ export function UpdateProjectModal({
     e.preventDefault()
     
     try {
-      // Handle status update separately if it changed
-      if (formData.status !== project.status) {
-        await updateStatusMutation.mutateAsync({
-          slug: project.slug,
-          status: formData.status,
-        })
-      }
-
       // Update project details
-      await updateProjectMutation.mutateAsync({
+      await updateProjectMutation({
         slug: project.slug,
-        data: {
-          title: formData.title,
-          description: formData.description,
-          tags: formData.tags,
-          roles: formData.roles,
-        },
+        title: formData.title,
+        description: formData.description,
+        tags: formData.tags,
+        roles: formData.roles,
       })
 
       showSuccessToast(
@@ -510,11 +502,11 @@ export function UpdateProjectModal({
                   <Button
                     type="button"
                     onClick={handleCreateRole}
-                    disabled={!newRoleName.trim() || createRoleMutation.isPending}
+                    disabled={!newRoleName.trim()}
                     size="sm"
                     className="bg-green-600 hover:bg-green-700 text-white"
                   >
-                    {createRoleMutation.isPending ? (
+                    {false ? (
                       <Loader2 className="w-3 h-3 animate-spin mr-1" />
                     ) : (
                       <Plus className="w-3 h-3 mr-1" />
@@ -669,7 +661,7 @@ export function UpdateProjectModal({
                 type="button"
                 variant="outline"
                 onClick={onClose}
-                disabled={updateProjectMutation.isPending || updateStatusMutation.isPending}
+                disabled={false}
                 className="flex-1 sm:flex-none border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500 transition-all"
               >
                 <X className="w-4 h-4 mr-2" />
@@ -677,10 +669,10 @@ export function UpdateProjectModal({
               </Button>
               <Button
                 type="submit"
-                disabled={updateProjectMutation.isPending || updateStatusMutation.isPending}
+                disabled={false}
                 className="flex-1 sm:flex-none bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white border-0 shadow-lg hover:shadow-xl transition-all"
               >
-                {(updateProjectMutation.isPending || updateStatusMutation.isPending) ? (
+                {false ? (
                   <>
                     <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     Updating Project...

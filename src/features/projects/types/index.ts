@@ -1,38 +1,4 @@
-// Project types based on API documentation
-import type {
-  ProjectListResponseDto,
-  ProjectDetailDto,
-  ProjectApplicationDto,
-  ProjectMemberDto,
-  CreateProjectDto,
-  JoinProjectDto,
-  UpdateProjectDto,
-  ProjectCreateResponseDto,
-  JoinProjectResponseDto,
-  ReviewApplicationDto,
-  ReviewApplicationResponseDto,
-  MyProjectsResponseDto,
-  MyApplicationsResponseDto,
-  ProjectSummaryDto,
-} from '@generated/api-client'
-
-// Re-export API types for convenience
-export type {
-  ProjectListResponseDto,
-  ProjectDetailDto,
-  ProjectApplicationDto,
-  ProjectMemberDto,
-  CreateProjectDto,
-  JoinProjectDto,
-  UpdateProjectDto,
-  ProjectCreateResponseDto,
-  JoinProjectResponseDto,
-  ReviewApplicationDto,
-  ReviewApplicationResponseDto,
-  MyProjectsResponseDto,
-  MyApplicationsResponseDto,
-  ProjectSummaryDto,
-}
+// Project types based on Convex data structures
 
 // Project status enum
 export type ProjectStatus = 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
@@ -56,8 +22,8 @@ export interface ProjectFilters {
   pinned?: boolean
 }
 
-// Project role for creation
-export interface ProjectRole {
+// Project role for form input/creation
+export interface ProjectRoleFormData {
   roleSlug: string
   maxMembers: number
   requirements?: string
@@ -69,7 +35,7 @@ export interface CreateProjectData {
   description: string
   tags: string[]
   dueDate: string
-  roles: ProjectRole[]
+  roles: ProjectRoleFormData[]
 }
 
 // Join project application data
@@ -93,36 +59,28 @@ export interface RemoveMemberData {
 }
 
 // Extended application type that includes review information and full project data
-export interface ExtendedProjectApplicationDto extends Omit<ProjectApplicationDto, 'projectRole'> {
+export interface ExtendedProjectApplicationDto extends ProjectApplicationDto {
   reviewMessage?: string
   reviewedAt?: string
-  project: {
-    title: string
+  project?: {
+    id: string
     slug: string
+    title: string
     description: string
-  },
+    status: ProjectStatus
+    dueDate?: number
+    owner?: User | null
+  } | null
   projectRole: {
     id: string
-    role?: {
-      id: string
-      name: string
-      slug: string
-    }
-    project?: {
-      id: string
-      title: string
-      slug: string
-      description: string
-      status: ProjectStatus
-      owner?: {
-        id: string
-        username: string
-        firstName: string
-        lastName: string
-        imageUrl?: string
-      }
-    }
+    role: Role | null
   }
+  projectMember?: {
+    id: string
+    status: 'ACTIVE' | 'INACTIVE' | 'REMOVED'
+    joinedAt?: number
+  }
+  reviewer?: User | null
 }
 
 // Type guard to check if application has review data
@@ -142,43 +100,106 @@ export function hasProjectData(
          (application as { projectRole: { project?: unknown } }).projectRole?.project != null
 }
 
-// Project card data for listing - now extends ProjectSummaryDto but makes dueDate required
-export interface ProjectCardType extends Omit<ProjectSummaryDto, 'dueDate'> {
-  dueDate: string
+// User type from Convex
+export interface User {
+  id: string
+  username?: string
+  firstName?: string
+  lastName?: string
+  imageUrl?: string
 }
 
-// Utility function to convert ProjectSummaryDto to ProjectCard
-export function toProjectCard(summary: ProjectSummaryDto): ProjectCardType | null {
-  if (!summary.dueDate) {
-    return null // Skip projects without due dates
-  }
-  
-  return {
-    ...summary,
-    dueDate: summary.dueDate,
+// Application type from Convex
+export interface ProjectApplicationDto {
+  id: string
+  projectSlug: string
+  userSlug: string
+  roleSlug: string
+  message?: string
+  status: ApplicationStatus
+  appliedAt: number
+  reviewedAt?: number
+  reviewedBySlug?: string
+  reviewMessage?: string
+  user: User | null
+  role: Role | null
+}
+
+// Role type from Convex
+export interface Role {
+  id: string
+  name: string
+  slug: string
+  description?: string
+}
+
+// Project role type from Convex
+export interface ProjectRole {
+  id?: string
+  _id?: string
+  projectSlug: string
+  roleSlug: string
+  maxMembers?: number
+  requirements?: string
+  role: Role | null
+}
+
+// User role type from Convex
+export interface UserRole {
+  id: string
+  name: string
+  slug: string
+  joinedAt: number
+  status: string
+}
+
+// Project type from Convex queries
+export interface Project {
+  id: string
+  slug: string
+  title: string
+  description: string
+  tags: string[]
+  dueDate: string | number | undefined
+  status: ProjectStatus
+  createdAt: number | undefined
+  updatedAt: number | undefined
+  owner: User | null
+  roles: ProjectRole[]
+  memberCount: number
+  applicationCount?: number // For saved projects
+  pendingApplicationsCount?: number // For owned/member projects
+  savedAt?: number // For saved projects
+  isOwner?: boolean // For owned/member projects
+  userRole?: UserRole | null // For owned/member projects
+}
+
+// Project list response from Convex
+export interface ProjectListResponse {
+  data: Project[]
+  meta: {
+    total: number
+    page: number
+    limit: number
+    totalPages: number
   }
 }
 
-// Utility function to convert ProjectDetailDto to ProjectCard
-export function toProjectCardFromDetail(detail: ProjectDetailDto, memberCount: number = 0, applicationCount: number = 0): ProjectCardType | null {
-  if (!detail.dueDate) {
-    return null // Skip projects without due dates
-  }
-  
-  return {
-    id: detail.id,
-    slug: detail.slug,
-    title: detail.title,
-    description: detail.description,
-    tags: detail.tags,
-    dueDate: detail.dueDate,
-    status: detail.status,
-    createdAt: detail.createdAt,
-    owner: detail.owner,
-    roles: detail.roles,
-    memberCount,
-    applicationCount,
-  } as ProjectCardType
+// Saved projects response from Convex
+export interface SavedProjectsResponse extends ProjectListResponse {
+  data: (Project & { savedAt: number })[]
+}
+
+// Project card data for listing
+export type ProjectCardType = Project
+
+// Utility function to check if project has required data for card display
+export function isValidProjectCard(project: Project): project is ProjectCardType {
+  return !!(
+    project.title &&
+    project.description &&
+    project.owner?.username
+  )
 }
 
 // API Error types

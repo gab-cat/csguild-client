@@ -1,15 +1,17 @@
 'use client';
 
+import { zodResolver } from '@hookform/resolvers/zod';
+import { useQuery, useMutation } from 'convex/react';
 import { motion } from 'framer-motion';
-import { 
-  CalendarDays, 
-  Loader2, 
-  Plus, 
-  Tag, 
-  Trash2, 
-  Users, 
-  X, 
-  CheckIcon, 
+import {
+  CalendarDays,
+  Loader2,
+  Plus,
+  Tag,
+  Trash2,
+  Users,
+  X,
+  CheckIcon,
   ChevronsUpDownIcon,
   FileText,
   Info,
@@ -22,6 +24,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { useState } from 'react';
+import { useForm } from 'react-hook-form';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -45,113 +48,98 @@ import { useDebounce } from '@/hooks/use-debounce';
 import { showSuccessToast, showErrorToast } from '@/lib/toast';
 import { cn } from '@/lib/utils';
 
-import { useCreateProject } from '../hooks/use-projects-queries';
-import { useRoles } from '../hooks/use-projects-queries';
-import { createProjectSchema } from '../schemas';
-import type { CreateProjectData } from '../types';
+import { api } from '../../../../convex/_generated/api';
+import { createProjectSchema, type CreateProjectFormData } from '../schemas';
 
 interface CreateProjectModalProps {
   onClose: () => void;
 }
 
 export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
-  const [formData, setFormData] = useState<CreateProjectData>({
-    title: '',
-    description: '',
-    tags: [],
-    dueDate: '',
-    roles: [],
+  const {
+    register,
+    handleSubmit,
+    watch,
+    setValue,
+    getValues,
+    formState: { errors, isSubmitting }
+  } = useForm<CreateProjectFormData>({
+    resolver: zodResolver(createProjectSchema),
+    defaultValues: {
+      title: '',
+      description: '',
+      tags: [],
+      dueDate: '',
+      roles: [],
+    },
   });
-  const [errors, setErrors] = useState<Record<string, string>>({});
   const [newTag, setNewTag] = useState('');
   const [newRole, setNewRole] = useState({ slug: '', maxMembers: 1, requirements: '' });
   const [roleComboboxOpen, setRoleComboboxOpen] = useState(false);
   const [roleSearchQuery, setRoleSearchQuery] = useState('');
 
   const debouncedRoleSearch = useDebounce(roleSearchQuery, 500);
-
-  const { mutate: createProject, isPending } = useCreateProject();
-  const { data: rolesData, isLoading: isLoadingRoles } = useRoles({
+  // @ts-ignore
+  const createProjectMutation = useMutation(api.projects.createProject);
+  const rolesQuery = useQuery(api.projects.getRoles, {
     search: debouncedRoleSearch || undefined,
   });
+  const rolesData = rolesQuery?.data || [];
+  const isLoadingRoles = rolesQuery === undefined;
 
-  const validateForm = () => {
+  const onSubmit = async (data: CreateProjectFormData) => {
     try {
-      createProjectSchema.parse(formData);
-      setErrors({});
-      return true;
+      await createProjectMutation({
+        title: data.title,
+        description: data.description,
+        tags: data.tags,
+        dueDate: data.dueDate,
+        roles: data.roles,
+      });
+      showSuccessToast('Project Created', 'Your project has been created successfully');
+      onClose();
     } catch (error) {
-      const fieldErrors: Record<string, string> = {};
-      if (error && typeof error === 'object' && 'errors' in error) {
-        const zodError = error as { errors: Array<{ path: string[]; message: string }> };
-        zodError.errors.forEach((err) => {
-          if (err.path) {
-            fieldErrors[err.path.join('.')] = err.message;
-          }
-        });
-      }
-      setErrors(fieldErrors);
-      return false;
+      showErrorToast(
+        'Failed to Create Project',
+        error instanceof Error ? error.message : 'Please try again.'
+      );
+      console.error('Create project error:', error);
     }
-  };
-
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!validateForm()) {
-      return;
-    }
-
-    createProject(formData, {
-      onSuccess: () => {
-        showSuccessToast('Project created successfully!');
-        onClose();
-      },
-      onError: (error: unknown) => {
-        showErrorToast('Failed to create project', error instanceof Error ? error.message : 'An error occurred');
-      },
-    });
   };
 
   const addTag = () => {
-    if (newTag.trim() && !formData.tags.includes(newTag.trim())) {
-      setFormData(prev => ({
-        ...prev,
-        tags: [...prev.tags, newTag.trim()],
-      }));
-      setNewTag('');
+    if (newTag.trim()) {
+      const currentTags = getValues('tags') || [];
+      if (!currentTags.includes(newTag.trim())) {
+        setValue('tags', [...currentTags, newTag.trim()]);
+        setNewTag('');
+      }
     }
   };
 
   const removeTag = (tagToRemove: string) => {
-    setFormData(prev => ({
-      ...prev,
-      tags: prev.tags.filter(tag => tag !== tagToRemove),
-    }));
+    const currentTags = getValues('tags') || [];
+    setValue('tags', currentTags.filter(tag => tag !== tagToRemove));
   };
 
   const addRole = () => {
     if (newRole.slug.trim() && newRole.maxMembers > 0) {
-      setFormData(prev => ({
-        ...prev,
-        roles: [
-          ...prev.roles,
-          {
-            roleSlug: newRole.slug.trim(),
-            maxMembers: newRole.maxMembers,
-            requirements: newRole.requirements.trim() || undefined,
-          },
-        ],
-      }));
+      const currentRoles = getValues('roles') || [];
+      setValue('roles', [
+        ...currentRoles,
+        {
+          roleSlug: newRole.slug.trim(),
+          maxMembers: newRole.maxMembers,
+          requirements: newRole.requirements.trim() || undefined,
+        },
+      ]);
       setNewRole({ slug: '', maxMembers: 1, requirements: '' });
     }
   };
 
   const removeRole = (roleSlug: string) => {
-    setFormData(prev => ({
-      ...prev,
-      roles: prev.roles.filter(role => role.roleSlug !== roleSlug),
-    }));
+    const currentRoles = getValues('roles') || [];
+    setValue('roles', currentRoles.filter(role => role.roleSlug !== roleSlug));
   };
 
   return (
@@ -194,11 +182,11 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
         </div>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
         {/* Enhanced Two Column Layout */}
-        <div className="grid grid-cols-1 xl:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
           {/* Left Column - Form Fields */}
-          <div className="xl:col-span-2 space-y-8">
+          <div className="space-y-6 lg:space-y-8">
             {/* Project Basics Section */}
             <div className="space-y-6">
               <div className="flex items-center gap-2 mb-4">
@@ -215,8 +203,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                   <Input
                     id="title"
                     type="text"
-                    value={formData.title}
-                    onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
+                    {...register('title')}
                     placeholder="Project Name * (e.g., AI-Powered Task Manager, E-commerce Platform)"
                     className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-purple-500/50 focus:border-purple-500/50 transition-all pl-10"
                   />
@@ -228,7 +215,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                 {errors.title && (
                   <p className="text-red-400 text-sm flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    {errors.title}
+                    {errors.title.message}
                   </p>
                 )}
               </div>
@@ -240,8 +227,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                   <Input
                     id="dueDate"
                     type="date"
-                    value={formData.dueDate}
-                    onChange={(e) => setFormData(prev => ({ ...prev, dueDate: e.target.value }))}
+                    {...register('dueDate')}
                     className="bg-gray-800/50 border-gray-700 text-white pl-10 focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
                     title="Project Deadline (Optional)"
                   />
@@ -253,19 +239,19 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                 {errors.dueDate && (
                   <p className="text-red-400 text-sm flex items-center gap-1">
                     <AlertTriangle className="w-3 h-3" />
-                    {errors.dueDate}
+                    {errors.dueDate.message}
                   </p>
                 )}
               </div>
             </div>
 
             {/* Technology Stack Section */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 bg-orange-500/20 rounded-lg flex items-center justify-center">
                   <Hash className="w-3 h-3 text-orange-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Technology Stack</h3>
+                <h3 className="text-lg font-semibold text-white">Tags</h3>
               </div>
 
               {/* Tags */}
@@ -301,9 +287,9 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                   Add technologies, frameworks, and skills relevant to your project
                 </p>
                 
-                {formData.tags.length > 0 && (
+                {watch('tags')?.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3 p-3 bg-gray-800/30 rounded-lg border border-gray-700/50">
-                    {formData.tags.map((tag, index) => (
+                    {watch('tags')?.map((tag, index) => (
                       <motion.span
                         key={tag}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -324,11 +310,17 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                     ))}
                   </div>
                 )}
+                {errors.tags && (
+                  <p className="text-red-400 text-sm flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    {errors.tags.message}
+                  </p>
+                )}
               </div>
             </div>
 
             {/* Team Structure Section */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               <div className="flex items-center gap-2 mb-4">
                 <div className="w-6 h-6 bg-green-500/20 rounded-lg flex items-center justify-center">
                   <Users className="w-3 h-3 text-green-400" />
@@ -360,7 +352,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                             <div className="flex items-center gap-2">
                               <Users className="w-4 h-4 text-green-400" />
                               {newRole.slug
-                                ? rolesData?.data?.find((role) => role.slug === newRole.slug)?.name || newRole.slug
+                                ? rolesData?.find((role: { slug: string; name: string }) => role.slug === newRole.slug)?.name || newRole.slug
                                 : "Select role..."}
                             </div>
                             <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
@@ -379,7 +371,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                                 {isLoadingRoles ? "Loading roles..." : "No role found."}
                               </CommandEmpty>
                               <CommandGroup>
-                                {rolesData?.data?.map((role) => (
+                                {rolesData?.map((role: { slug: string; name: string; description?: string }) => (
                                   <CommandItem
                                     key={role.slug}
                                     value={role.slug}
@@ -445,14 +437,14 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                   </p>
                 </div>
 
-                {formData.roles.length > 0 && (
+                {watch('roles')?.length > 0 && (
                   <div className="space-y-2 mt-4">
                     <h4 className="text-sm font-medium text-gray-300 flex items-center gap-2">
                       <Users className="w-4 h-4" />
-                      Added Roles ({formData.roles.length})
+                      Added Roles ({watch('roles')?.length})
                     </h4>
-                    {formData.roles.map((role, index) => {
-                      const roleData = rolesData?.data?.find(r => r.slug === role.roleSlug);
+                    {watch('roles')?.map((role, index) => {
+                      const roleData = rolesData?.find((r: { slug: string; name: string }) => r.slug === role.roleSlug);
                       return (
                         <motion.div
                           key={role.roleSlug}
@@ -489,12 +481,18 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                     })}
                   </div>
                 )}
+                {errors.roles && (
+                  <p className="text-red-400 text-sm flex items-center gap-1">
+                    <AlertTriangle className="w-3 h-3" />
+                    {errors.roles.message}
+                  </p>
+                )}
               </div>
             </div>
           </div>
 
           {/* Right Column - Description and Guidelines */}
-          <div className="space-y-6">
+          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start">
             {/* Project Description */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -505,8 +503,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
               </div>
               <Textarea
                 id="description"
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                {...register('description')}
                 placeholder={`Describe your project in detail...
 
 • What problem does it solve?
@@ -516,8 +513,8 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
 • Any specific requirements or preferences?
 
 Example: "We're building a modern task management app that helps remote teams stay organized. Looking for passionate developers to join our journey..."`}
-                rows={22}
-                className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 resize-none h-full min-h-[500px] focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                rows={12}
+                className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 resize-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
               />
               <p className="text-xs text-gray-400 flex items-center gap-1">
                 <Lightbulb className="w-3 h-3" />
@@ -526,7 +523,7 @@ Example: "We're building a modern task management app that helps remote teams st
               {errors.description && (
                 <p className="text-red-400 text-sm flex items-center gap-1">
                   <AlertTriangle className="w-3 h-3" />
-                  {errors.description}
+                  {errors.description.message}
                 </p>
               )}
             </div>
@@ -673,10 +670,10 @@ Example: "We're building a modern task management app that helps remote teams st
             </Button>
             <Button
               type="submit"
-              disabled={isPending}
+              disabled={isSubmitting}
               className="flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg hover:shadow-xl transition-all"
             >
-              {isPending ? (
+              {isSubmitting ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                   Creating Project...

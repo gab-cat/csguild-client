@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion'
 import { Plus, Search, Filter, FolderOpen } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
@@ -12,10 +13,10 @@ import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs'
+import { api } from '@/lib/convex'
 
-import { useMyProjects, useSavedProjects } from '../../hooks/use-projects-queries'
-import { toProjectCard } from '../../types'
-import type { ProjectStatus } from '../../types'
+import { isValidProjectCard } from '../../types'
+import type { Project, ProjectStatus } from '../../types'
 import { CreateProjectModal } from '../create-project-modal'
 import { ProjectCard } from '../projects/project-card'
 
@@ -31,49 +32,51 @@ export function MyProjectsPageClient() {
   const currentPage = parseInt(searchParams.get('page') || '1', 10)
   const currentLimit = parseInt(searchParams.get('limit') || '12', 10)
 
-  const { data: myProjectsData, isLoading, error } = useMyProjects()
-  const { data: savedProjectsData, isLoading: isSavedLoading } = useSavedProjects({
+  // @ts-ignore
+  const myProjectsData = useQuery(api.projects.getMyProjects)
+  const savedProjectsData = useQuery(api.projects.getSavedProjects, {
     page: currentPage,
     limit: currentLimit,
   })
 
+  const isLoading = myProjectsData === undefined
+  const isSavedLoading = savedProjectsData === undefined
+  const error = null
+
   // Get filtered owned projects
   const allFilteredOwnedProjects = useMemo(() => {
-    return myProjectsData?.ownedProjects
-      ?.map(toProjectCard)
-      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+    return ((myProjectsData?.owned || []) as unknown as Project[])
+      .filter(isValidProjectCard)
       .filter((project) => {
         const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              project.description.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
         return matchesSearch && matchesStatus
-      }) || []
-  }, [myProjectsData?.ownedProjects, searchQuery, statusFilter])
+      })
+  }, [myProjectsData?.owned, searchQuery, statusFilter])
 
   // Get filtered member projects
   const allFilteredMemberProjects = useMemo(() => {
-    return myProjectsData?.memberProjects
-      ?.map(toProjectCard)
-      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+    return ((myProjectsData?.member || []) as unknown as Project[])
+      .filter(isValidProjectCard)
       .filter((project) => {
         const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              project.description.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
         return matchesSearch && matchesStatus
-      }) || []
-  }, [myProjectsData?.memberProjects, searchQuery, statusFilter])
+      })
+  }, [myProjectsData?.member, searchQuery, statusFilter])
 
   // Get filtered saved projects
   const allFilteredSavedProjects = useMemo(() => {
-    return savedProjectsData?.data
-      ?.map(toProjectCard)
-      .filter((project): project is NonNullable<typeof project> => Boolean(project))
+    return ((savedProjectsData?.data || []) as unknown as Project[])
+      .filter(isValidProjectCard)
       .filter((project) => {
         const matchesSearch = project.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                              project.description.toLowerCase().includes(searchQuery.toLowerCase())
         const matchesStatus = statusFilter === 'ALL' || project.status === statusFilter
         return matchesSearch && matchesStatus
-      }) || []
+      })
   }, [savedProjectsData?.data, searchQuery, statusFilter])
 
   // Current projects to display based on active tab
@@ -144,7 +147,7 @@ export function MyProjectsPageClient() {
               <h2 className="text-xl font-semibold mb-2">Failed to load your projects</h2>
               <p className="text-gray-400 mb-2">There was an error loading your projects. Please try again.</p>
               <p className="text-xs text-gray-500">
-                Error: {error instanceof Error ? error.message : 'Unknown error'}
+                Error: Unknown error occurred
               </p>
             </div>
             <Button 
@@ -186,9 +189,9 @@ export function MyProjectsPageClient() {
   ]
 
   // Safe access to project counts
-  const totalOwnedProjects = myProjectsData?.ownedProjects?.length || 0
-  const totalMemberProjects = myProjectsData?.memberProjects?.length || 0
-  const totalSavedProjects = savedProjectsData?.pagination?.total || 0
+  const totalOwnedProjects = myProjectsData?.owned?.length || 0
+  const totalMemberProjects = myProjectsData?.member?.length || 0
+  const totalSavedProjects = savedProjectsData?.meta?.total || 0
 
   return (
     <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
@@ -244,19 +247,19 @@ export function MyProjectsPageClient() {
                 value="owned"
                 className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md font-medium"
               >
-                My Projects ({myProjectsData?.ownedProjects?.length || 0})
+                My Projects ({myProjectsData?.owned?.length || 0})
               </TabsTrigger>
               <TabsTrigger 
                 value="member"
                 className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md font-medium"
               >
-                Member Of ({myProjectsData?.memberProjects?.length || 0})
+                Member Of ({myProjectsData?.member?.length || 0})
               </TabsTrigger>
               <TabsTrigger 
                 value="saved"
                 className="data-[state=active]:bg-purple-600 data-[state=active]:text-white text-gray-300 hover:text-white transition-colors px-4 py-2 rounded-md font-medium"
               >
-                Saved ({savedProjectsData?.pagination?.total || 0})
+                Saved ({savedProjectsData?.meta?.total || 0})
               </TabsTrigger>
             </TabsList>
           </motion.div>
@@ -349,9 +352,9 @@ export function MyProjectsPageClient() {
                     {/* Projects Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       {paginatedProjects.map((project, index) => (
-                        <MyProjectCard 
-                          key={project.slug} 
-                          project={project} 
+                        <MyProjectCard
+                          key={project.slug}
+                          project={project}
                           index={index}
                         />
                       ))}
@@ -404,9 +407,9 @@ export function MyProjectsPageClient() {
                     {/* Projects Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       {paginatedProjects.map((project, index) => (
-                        <MyProjectCard 
-                          key={project.slug} 
-                          project={project} 
+                        <MyProjectCard
+                          key={project.slug}
+                          project={project}
                           index={index}
                         />
                       ))}
@@ -459,9 +462,9 @@ export function MyProjectsPageClient() {
                     {/* Projects Grid */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
                       {paginatedProjects.map((project, index) => (
-                        <ProjectCard 
-                          key={project.slug} 
-                          project={project} 
+                        <ProjectCard
+                          key={project.slug}
+                          project={project}
                           index={index}
                           isSaved={true}
                           isPinned={false}

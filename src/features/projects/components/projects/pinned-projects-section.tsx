@@ -1,46 +1,67 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Pin, ChevronUp, ChevronDown } from 'lucide-react'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { useAuthStore } from '@/features/auth'
+import { api } from '@/lib/convex'
 
-import { usePinnedProjects, usePinnedProjectsVisibility, useSavedProjects } from '../../hooks'
-import { toProjectCard } from '../../types'
+import { isValidProjectCard, Project } from '../../types'
 
 import { ProjectCard } from './project-card'
 
+// Custom hook for pinned projects visibility
+function usePinnedProjectsVisibility() {
+  const [cardsVisible, setCardsVisible] = useState(true)
+
+  useEffect(() => {
+    const saved = localStorage.getItem('pinnedProjectsCardsVisible')
+    if (saved !== null) {
+      setCardsVisible(JSON.parse(saved))
+    }
+  }, [])
+
+  const toggleCards = () => {
+    const newValue = !cardsVisible
+    setCardsVisible(newValue)
+    localStorage.setItem('pinnedProjectsCardsVisible', JSON.stringify(newValue))
+  }
+
+  return {
+    cardsVisible,
+    toggleCards
+  }
+}
+
 export function PinnedProjectsSection() {
   const { isAuthenticated } = useAuthStore()
-  const { data: pinnedProjectsData, isLoading, error } = usePinnedProjects()
-  
-  // Only fetch saved projects if authenticated
-  const { data: savedProjectsData } = useSavedProjects(
-    { limit: 1000 },
-    isAuthenticated // Only fetch if authenticated
-  )
-  
   const { cardsVisible, toggleCards } = usePinnedProjectsVisibility()
+
+  // @ts-ignore
+  const pinnedProjectsData= useQuery(api.projects.getPinnedProjects)
+  const isLoadingPinned = pinnedProjectsData === undefined
+
+  // Always call useQuery but conditionally use the result
+  const savedProjectsData = useQuery(api.projects.getSavedProjects, { limit: 1000 })
 
   // Create a Set of saved project slugs for efficient lookup
   const savedProjectSlugs = useMemo(() => {
     if (!isAuthenticated || !savedProjectsData?.data) {
       return new Set<string>()
     }
-    return new Set(savedProjectsData.data.map(project => project.slug))
+    return new Set(savedProjectsData.data.map((project: Project) => project.slug))
   }, [isAuthenticated, savedProjectsData])
 
-  // Don't render anything if there are no pinned projects or if loading/error
-  if (isLoading || error || !pinnedProjectsData?.data?.length) {
+  // Don't render anything if there are no pinned projects or if loading
+  if (isLoadingPinned || !pinnedProjectsData?.data?.length) {
     return null
   }
 
-  const pinnedProjects = pinnedProjectsData.data
-    .map(toProjectCard)
-    .filter((p): p is NonNullable<typeof p> => p !== null)
+  const pinnedProjects = pinnedProjectsData.data.filter((project: Project) => isValidProjectCard(project))
 
   if (pinnedProjects.length === 0) {
     return null
@@ -99,9 +120,9 @@ export function PinnedProjectsSection() {
               className="relative"
             >
               <div className="flex gap-4 sm:gap-6 overflow-x-auto pb-4 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600 hover:scrollbar-thumb-gray-500">
-                {pinnedProjects.map((project, index) => {
+                {pinnedProjects.map((project: Project, index: number) => {
                   const isSaved = savedProjectSlugs.has(project.slug)
-                  
+
                   return (
                     <div
                       key={project.id}

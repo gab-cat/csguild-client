@@ -1,17 +1,33 @@
 'use client'
 
-import { motion } from 'framer-motion'
-import { CalendarDays, Users, Tag, User, Settings, Eye, X, Edit, Clock, Check, AlertCircle, UserMinus, UserPlus } from 'lucide-react'
-import Image from 'next/image'
-import { useState } from 'react'
+import { useQuery } from 'convex/react';
+import { motion } from 'framer-motion';
+import { CalendarDays, Users, Tag, User, Settings, Eye, X, Edit, Clock, Check, AlertCircle, UserMinus, UserPlus } from 'lucide-react';
+import Image from 'next/image';
+import { useState } from 'react';
 
-import { Badge } from '@/components/ui/badge'
-import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { api } from '@/lib/convex';
 
-import { useProject, useProjectMembers } from '../../hooks/use-projects-queries'
-import { useRoleMemberCounts, getRoleMemberCount } from '../../hooks/use-role-member-counts'
-import type { ProjectCardType, ProjectMemberDto } from '../../types'
+import type { ProjectCardType } from '../../types'
+
+// Define member type based on Convex query result
+interface ProjectMember {
+  id: string
+  username: string | undefined
+  firstName: string | undefined
+  lastName: string | undefined
+  imageUrl: string | undefined
+  status: "ACTIVE" | "INACTIVE" | "REMOVED"
+  joinedAt: number | undefined
+  role: {
+    id: string
+    name: string
+    slug: string
+  } | null
+}
 
 import { ReactivateMemberDialog } from './reactivate-member-dialog'
 import { RemoveMemberDialog } from './remove-member-dialog'
@@ -31,16 +47,20 @@ export function ProjectDetailsModal({
   canEdit = false 
 }: ProjectDetailsModalProps) {
   const [showUpdateModal, setShowUpdateModal] = useState(false)
-  const [memberToRemove, setMemberToRemove] = useState<ProjectMemberDto | null>(null)
-  const [memberToReactivate, setMemberToReactivate] = useState<ProjectMemberDto | null>(null)
+  const [memberToRemove, setMemberToRemove] = useState<ProjectMember | null>(null)
+  const [memberToReactivate, setMemberToReactivate] = useState<ProjectMember | null>(null)
   
-  const { data: fullProject } = useProject(project.slug)
-  const { data: members } = useProjectMembers(project.slug)
-  const { roleMemberCounts, isLoading: isLoadingCounts } = useRoleMemberCounts(
-    project.slug, 
-    fullProject?.roles || project.roles || [], 
-    true
-  )
+  // Use Convex query directly
+  // @ts-ignore
+  const fullProject = useQuery(api.projects.getProjectBySlug, { slug: project.slug })
+  const members = fullProject?.members || []
+  const isLoadingCounts = fullProject === undefined
+
+  // Calculate role member counts from roles data (each role has currentMemberCount)
+  const roleMemberCounts = fullProject?.roles?.reduce((acc, role) => {
+    acc[role.roleSlug] = role.currentMemberCount
+    return acc
+  }, {} as Record<string, number>) || {}
 
   const displayProject = fullProject || project
 
@@ -82,8 +102,8 @@ export function ProjectDetailsModal({
     })
   }
 
-  const isOverdue = displayProject.dueDate ? new Date(displayProject.dueDate) < new Date() : false
-  const daysDiff = displayProject.dueDate ? Math.ceil((new Date(displayProject.dueDate).getTime() - new Date().getTime()) / (1000 * 3600 * 24)) : 0
+  const isOverdue = displayProject.dueDate ? Number(displayProject.dueDate) < Date.now() : false
+  const daysDiff = displayProject.dueDate ? Math.ceil((Number(displayProject.dueDate) - Date.now()) / (1000 * 3600 * 24)) : 0
 
   return (
     <>
@@ -139,10 +159,10 @@ export function ProjectDetailsModal({
                           <div className="flex items-center gap-2 text-gray-400">
                             <CalendarDays className="w-4 h-4" />
                             <span className={`text-sm font-medium ${
-                              isOverdue ? 'text-red-400' : 
+                              isOverdue ? 'text-red-400' :
                                 daysDiff <= 7 ? 'text-yellow-400' : 'text-gray-400'
                             }`}>
-                              Due {displayProject.dueDate ? formatDate(displayProject.dueDate) : 'No due date'}
+                              Due {displayProject.dueDate ? formatDate(new Date(displayProject.dueDate).toISOString()) : 'No due date'}
                               {isOverdue && ' (Overdue)'}
                               {!isOverdue && daysDiff <= 7 && daysDiff > 0 && ` (${daysDiff} days left)`}
                             </span>
@@ -164,7 +184,7 @@ export function ProjectDetailsModal({
                               <Users className="w-4 h-4 text-purple-400" />
                               <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Team Size</span>
                             </div>
-                            <div className="text-xl font-bold text-white">{'memberCount' in displayProject ? displayProject.memberCount : members?.length || 0}</div>
+                            <div className="text-xl font-bold text-white">{members.length}</div>
                             <div className="text-xs text-gray-400">current members</div>
                           </div>
                           
@@ -173,7 +193,7 @@ export function ProjectDetailsModal({
                               <Eye className="w-4 h-4 text-green-400" />
                               <span className="text-xs font-medium text-gray-400 uppercase tracking-wide">Applications</span>
                             </div>
-                            <div className="text-xl font-bold text-white">{'applicationCount' in displayProject ? displayProject.applicationCount : 0}</div>
+                            <div className="text-xl font-bold text-white">{fullProject?.applications?.length || 0}</div>
                             <div className="text-xs text-gray-400">pending review</div>
                           </div>
 
@@ -282,8 +302,9 @@ export function ProjectDetailsModal({
                     </h2>
                     <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2">
                       {displayProject.roles.map((roleDto, index) => {
-                        const memberCount = getRoleMemberCount(roleMemberCounts, roleDto.roleSlug)
-                        const isAvailable = memberCount.availablePositions > 0
+                        const currentMemberCount = roleMemberCounts[roleDto.roleSlug] || 0
+                        const availablePositions = (roleDto.maxMembers || 0) - currentMemberCount
+                        const isAvailable = availablePositions > 0
                         
                         return (
                           <motion.div
@@ -313,14 +334,14 @@ export function ProjectDetailsModal({
                                   ) : (
                                     <>
                                       <div className={`text-lg font-bold ${isAvailable ? 'text-green-400' : 'text-red-400'}`}>
-                                        {memberCount.currentMembers}/{memberCount.maxMembers}
+                                        {currentMemberCount}/{roleDto.maxMembers || 0}
                                       </div>
                                       <div className="text-xs text-gray-400 uppercase tracking-wide">
                                         {isAvailable ? 'available' : 'filled'}
                                       </div>
                                       {isAvailable && (
                                         <div className="text-xs text-green-400 mt-1">
-                                          {memberCount.availablePositions} open
+                                          {availablePositions} open
                                         </div>
                                       )}
                                     </>
@@ -367,7 +388,7 @@ export function ProjectDetailsModal({
                   <div className="space-y-4">
                     <h2 className="text-lg font-bold text-white flex items-center gap-2">
                       <Users className="w-5 h-5 text-green-400" />
-                      Team Members ({'memberCount' in displayProject ? displayProject.memberCount : members?.length || 0})
+                      Team Members ({members.length})
                     </h2>
                     {members && members.length > 0 ? (
                       <div className="space-y-4">
@@ -387,37 +408,34 @@ export function ProjectDetailsModal({
                                 className="p-4 bg-gray-800/30 border border-gray-700/50 rounded-lg hover:border-green-500/30 transition-all"
                               >
                                 <div className="flex items-center gap-3">
-                                  {member.user?.imageUrl ? (
-                                    <Image 
-                                      src={member.user.imageUrl} 
-                                      alt={`${member.user.firstName} ${member.user.lastName}`}
+                                  {member.imageUrl ? (
+                                    <Image
+                                      src={member.imageUrl}
+                                      alt={`${member.firstName} ${member.lastName}`}
                                       width={48}
                                       height={48}
                                       className="w-12 h-12 rounded-full object-cover ring-2 ring-green-500/30"
                                     />
                                   ) : (
                                     <div className="w-12 h-12 bg-gradient-to-br from-green-500 to-emerald-500 rounded-full flex items-center justify-center text-white font-bold">
-                                      {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                                      {member.firstName ? member.firstName.charAt(0).toUpperCase() : 'U'}
                                     </div>
                                   )}
                                   <div className="flex-1 min-w-0">
                                     <p className="text-white font-semibold truncate">
-                                      {`${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'}
+                                      {`${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'}
                                     </p>
                                     <p className="text-green-400 text-sm font-medium truncate">
-                                      {member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'}
+                                      {member.role?.name || member.role?.slug || 'Team Member'}
                                     </p>
                                     <p className="text-purple-400 text-xs truncate">
-                                      @{member.user?.username || 'unknown'}
+                                      @{member.username || 'unknown'}
                                     </p>
                                     <p className="text-gray-400 text-xs truncate">
-                                      {member.user?.email || 'Email not available'}
+                                      Joined {new Date(member.joinedAt || 0).toLocaleDateString()}
                                     </p>
                                   </div>
                                   <div className="flex flex-col items-end gap-2">
-                                    <div className="text-xs text-gray-400">
-                                      Joined {new Date(member.joinedAt || '').toLocaleDateString()}
-                                    </div>
                                     {canEdit && (
                                       <Button
                                         size="sm"
@@ -453,28 +471,28 @@ export function ProjectDetailsModal({
                                   className="p-4 bg-gray-800/20 border border-gray-700/30 rounded-lg hover:border-yellow-500/30 transition-all opacity-75"
                                 >
                                   <div className="flex items-center gap-3">
-                                    {member.user?.imageUrl ? (
-                                      <Image 
-                                        src={member.user.imageUrl} 
-                                        alt={`${member.user.firstName} ${member.user.lastName}`}
+                                    {member.imageUrl ? (
+                                      <Image
+                                        src={member.imageUrl}
+                                        alt={`${member.firstName} ${member.lastName}`}
                                         width={48}
                                         height={48}
                                         className="w-12 h-12 rounded-full object-cover ring-2 ring-gray-500/30 grayscale"
                                       />
                                     ) : (
                                       <div className="w-12 h-12 bg-gradient-to-br from-gray-500 to-gray-600 rounded-full flex items-center justify-center text-white font-bold">
-                                        {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                                        {member.firstName ? member.firstName.charAt(0).toUpperCase() : 'U'}
                                       </div>
                                     )}
                                     <div className="flex-1 min-w-0">
                                       <p className="text-gray-300 font-semibold truncate">
-                                        {`${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'}
+                                        {`${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'}
                                       </p>
                                       <p className="text-gray-400 text-sm font-medium truncate">
-                                        {member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'}
+                                        {member.role?.name || member.role?.slug || 'Team Member'}
                                       </p>
                                       <p className="text-gray-500 text-xs truncate">
-                                        @{member.user?.username || 'unknown'}
+                                        @{member.username || 'unknown'}
                                       </p>
                                       <p className="text-red-400 text-xs truncate">
                                         Removed from project
@@ -482,7 +500,7 @@ export function ProjectDetailsModal({
                                     </div>
                                     <div className="flex flex-col items-end gap-2">
                                       <div className="text-xs text-gray-500">
-                                        Previously joined {new Date(member.joinedAt || '').toLocaleDateString()}
+                                        Previously joined {new Date(member.joinedAt || 0).toLocaleDateString()}
                                       </div>
                                       {canEdit && (
                                         <Button

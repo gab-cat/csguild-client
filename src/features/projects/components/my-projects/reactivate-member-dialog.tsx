@@ -14,13 +14,31 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 
-import { useReactivateProjectMember } from '../../hooks/use-projects-queries'
+import { useMutation } from 'convex/react'
+import { api } from '../../../../../convex/_generated/api'
+import { showSuccessToast, showErrorToast } from '@/lib/toast'
 import type { ProjectMemberDto } from '../../types'
+
+// Define local member type that matches the expected structure
+interface ProjectMember {
+  id: string
+  username: string | undefined
+  firstName: string | undefined
+  lastName: string | undefined
+  imageUrl: string | undefined
+  status: "ACTIVE" | "INACTIVE" | "REMOVED"
+  joinedAt: number | undefined
+  role: {
+    id: string
+    name: string
+    slug: string
+  } | null
+}
 
 interface ReactivateMemberDialogProps {
   isOpen: boolean
   onClose: () => void
-  member: ProjectMemberDto
+  member: ProjectMember
   projectSlug: string
   projectTitle: string
 }
@@ -33,34 +51,48 @@ export function ReactivateMemberDialog({
   projectTitle,
 }: ReactivateMemberDialogProps) {
   const [isReactivating, setIsReactivating] = useState(false)
-  const reactivateProjectMember = useReactivateProjectMember()
+  const reactivateProjectMember = useMutation(api.projects.reactivateProjectMember)
 
   const handleReactivateMember = async () => {
-    if (!member.user?.username) {
+    if (!member.username) {
       return
     }
 
-    const memberName = `${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'
+    const memberName = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'
 
     try {
       setIsReactivating(true)
-      
-      await reactivateProjectMember.mutateAsync({
+
+      await reactivateProjectMember({
         slug: projectSlug,
-        memberUserSlug: member.user.username,
-        memberName,
+        memberUserSlug: member.username,
       })
+
+      showSuccessToast(
+        'Member Reactivated',
+        memberName
+          ? `${memberName} has been reactivated in the project`
+          : 'Member has been reactivated in the project'
+      )
 
       onClose()
     } catch (error) {
+      showErrorToast(
+        'Failed to Reactivate Member',
+        error instanceof Error
+          ? error.message
+          : memberName
+            ? `Failed to reactivate ${memberName}. Please try again.`
+            : 'Failed to reactivate member. Please try again.'
+      )
       console.error('Failed to reactivate member:', error)
     } finally {
       setIsReactivating(false)
     }
   }
 
-  const memberName = `${member.user?.firstName || ''} ${member.user?.lastName || ''}`.trim() || 'Unknown User'
-  const roleName = member.projectRole?.role?.name || member.projectRole?.roleSlug || 'Team Member'
+  const memberName = `${member.firstName || ''} ${member.lastName || ''}`.trim() || 'Unknown User'
+  const roleName = member.role?.name || member.role?.slug || 'Team Member'
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -95,9 +127,9 @@ export function ReactivateMemberDialog({
 
           <div className="bg-gray-800/50 border border-gray-700/50 rounded-lg p-3">
             <div className="flex items-center gap-3">
-              {member.user?.imageUrl ? (
-                <Image 
-                  src={member.user.imageUrl} 
+              {member.imageUrl ? (
+                <Image
+                  src={member.imageUrl}
                   alt={memberName}
                   width={40}
                   height={40}
@@ -105,14 +137,14 @@ export function ReactivateMemberDialog({
                 />
               ) : (
                 <div className="w-10 h-10 bg-gradient-to-br from-green-500 to-green-600 rounded-full flex items-center justify-center text-white font-bold">
-                  {member.user?.firstName ? member.user.firstName.charAt(0).toUpperCase() : 'U'}
+                  {member.firstName ? member.firstName.charAt(0).toUpperCase() : 'U'}
                 </div>
               )}
               <div className="flex-1 min-w-0">
                 <p className="text-white font-medium truncate">{memberName}</p>
                 <p className="text-green-400 text-sm truncate">{roleName}</p>
                 <p className="text-gray-400 text-xs truncate">
-                  @{member.user?.username || 'unknown'}
+                  @{member.username || 'unknown'}
                 </p>
                 <p className="text-gray-500 text-xs truncate">
                   Previously removed member

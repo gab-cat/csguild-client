@@ -1,6 +1,7 @@
 'use client'
 
 import { DialogTitle } from '@radix-ui/react-dialog'
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion'
 import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
@@ -8,9 +9,9 @@ import { useCallback, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
+import { api } from '@/lib/convex'
 
-import { useProject, useProjectMembers, useProjectApplications } from '../../hooks/use-projects-queries'
-import { toProjectCardFromDetail } from '../../types'
+import { isValidProjectCard } from '../../types'
 
 import { ProjectDetailClient } from './project-detail-client'
 
@@ -20,9 +21,15 @@ interface ProjectDetailPageClientProps {
 
 export function ProjectDetailPageClient({ slug }: ProjectDetailPageClientProps) {
   const router = useRouter()
-  const { data: projectData, isLoading: isLoadingProject, error: projectError } = useProject(slug)
-  const { data: membersData, isLoading: isLoadingMembers } = useProjectMembers(slug)
-  const { data: applicationsData, isLoading: isLoadingApplications } = useProjectApplications(slug)
+  // @ts-ignore
+  const projectData = useQuery(api.projects.getProjectBySlug, { slug })
+  const membersData = projectData?.members || []
+  const applicationsData = projectData?.applications || []
+
+  const isLoadingProject = projectData === undefined
+  const isLoadingMembers = projectData === undefined
+  const isLoadingApplications = projectData === undefined
+  const projectError = null
 
   const handleClose = useCallback(() => {
     router.push('/projects')
@@ -81,8 +88,12 @@ export function ProjectDetailPageClient({ slug }: ProjectDetailPageClientProps) 
   const memberCount = membersData?.length || 0
   const applicationCount = applicationsData?.length || 0
 
-  const project = toProjectCardFromDetail(projectData, memberCount, applicationCount)
-  
+  const project = projectData && isValidProjectCard({
+    ...projectData,
+    memberCount,
+    applicationCount,
+  }) ? { ...projectData, memberCount, applicationCount } : null
+
   if (!project) {
     return (
       <div className="container mx-auto px-4 py-8">

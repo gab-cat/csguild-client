@@ -1,6 +1,7 @@
 'use client'
 
 import { DialogTitle } from '@radix-ui/react-dialog'
+import { useMutation } from 'convex/react'
 import { motion } from 'framer-motion'
 import { Calendar, Users, Eye, Tag, Share, Check, Bookmark, BookmarkCheck, Star } from 'lucide-react'
 import { useState } from 'react'
@@ -12,9 +13,10 @@ import { Card, CardContent, CardFooter, CardHeader } from '@/components/ui/card'
 import { Dialog, DialogContent, DialogTrigger } from '@/components/ui/dialog'
 import { useAuthStore } from '@/features/auth'
 import { useClipboard } from '@/hooks/use-clipboard'
+import { api } from '@/lib/convex'
 import { showSuccessToast } from '@/lib/toast'
 
-import { useSaveProject, useUnsaveProject } from '../../hooks'
+
 import type { ProjectCardType } from '../../types'
 import { RoleMemberDisplay } from '../role-member-display'
 
@@ -39,8 +41,8 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
     }
   })
 
-  const saveProjectMutation = useSaveProject()
-  const unsaveProjectMutation = useUnsaveProject()
+  const saveProjectMutation = useMutation(api.projects.saveProject)
+  const unsaveProjectMutation = useMutation(api.projects.unsaveProject)
 
   const handleSaveToggle = async () => {
     if (!isAuthenticated) {
@@ -50,23 +52,19 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
 
     try {
       if (isSaved) {
-        await unsaveProjectMutation.mutateAsync(project.slug)
+        await unsaveProjectMutation({ slug: project.slug })
       } else {
-        await saveProjectMutation.mutateAsync(project.slug)
+        await saveProjectMutation({ slug: project.slug })
       }
     } catch (error) {
-      // Error handling is done in the mutation hooks
+      // Handle error
       console.error('Error toggling save status:', error)
+      const errorMessage = error instanceof Error ? error.message : 'Failed to update project save status'
+      showSuccessToast('Error', errorMessage)
     }
   }
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-    })
-  }
+
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -87,9 +85,18 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
     ? new Date(project.dueDate) < new Date()
     : false
 
+  const formatDate = (dateValue: string | number | undefined) => {
+    if (!dateValue) return 'No due date'
+    return new Date(dateValue).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+    })
+  }
+
   // Get looking for roles text
   const lookingForRoles = project.roles
-    ?.filter(role => role.maxMembers > 0)
+    ?.filter(role => (role.maxMembers ?? 0) > 0)
     ?.map(role => role.role?.name)
     ?.slice(0, 3)
     ?.join(', ') || 'contributors'
@@ -144,7 +151,7 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
             } flex-shrink-0`}>
               <Calendar className="w-3 h-3" />
               <span className="hidden sm:inline">{formatDate(project.dueDate)}</span>
-              <span className="sm:hidden">{new Date(project.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}</span>
+              <span className="sm:hidden">{project.dueDate ? new Date(project.dueDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No due date'}</span>
             </div>
           </div>
 
@@ -158,13 +165,13 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
           {/* Owner */}
           <div className="flex items-center gap-2">
             <Avatar className="w-5 h-5 sm:w-6 sm:h-6 flex-shrink-0">
-              <AvatarImage src={project.owner.imageUrl} alt={project.owner.username} />
+              <AvatarImage src={project.owner?.imageUrl} alt={project.owner?.username || 'Project owner'} />
               <AvatarFallback className="bg-purple-500/20 text-purple-400 text-xs">
-                {project.owner.firstName[0]}{project.owner.lastName[0]}
+                {project.owner?.firstName?.[0]}{project.owner?.lastName?.[0]}
               </AvatarFallback>
             </Avatar>
             <span className="text-xs sm:text-sm text-gray-400 truncate">
-              by {project.owner.firstName} {project.owner.lastName}
+              by {project.owner?.firstName || 'Unknown'} {project.owner?.lastName || 'User'}
             </span>
           </div>
         </CardHeader>
@@ -236,7 +243,7 @@ export function ProjectCard({ project, index = 0, isSaved = false, isPinned = fa
                 size="sm"
                 variant="outline"
                 onClick={handleSaveToggle}
-                disabled={saveProjectMutation.isPending || unsaveProjectMutation.isPending}
+                disabled={false}
                 className={`border-gray-700 hover:bg-gray-800 hover:border-purple-500/50 p-2 ${
                   isSaved 
                     ? 'text-yellow-400 border-yellow-500/30 bg-yellow-500/10' 

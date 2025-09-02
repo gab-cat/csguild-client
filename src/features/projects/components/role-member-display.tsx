@@ -1,16 +1,17 @@
 'use client'
 
+import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion'
 import { Users, Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 
-import type { ProjectRoleDto } from '@generated/api-client'
+import { api } from '@/lib/convex'
 
-import { useRoleMemberCounts, getRoleMemberCount } from '../hooks/use-role-member-counts'
+import type { ProjectRole } from '../types'
 
 interface RoleMemberDisplayProps {
   projectSlug: string
-  roles: ProjectRoleDto[]
+  roles: ProjectRole[]
   compact?: boolean
   maxRolesShown?: number
   lazyLoad?: boolean // When true, only loads data when component becomes visible or on hover
@@ -18,10 +19,25 @@ interface RoleMemberDisplayProps {
   showRoleCount?: boolean // Whether to show role count in title
 }
 
-export function RoleMemberDisplay({ 
-  projectSlug, 
-  roles, 
-  compact = false, 
+interface ProjectMember {
+  id: string
+  username?: string
+  firstName?: string
+  lastName?: string
+  imageUrl?: string
+  status: string
+  joinedAt?: number
+  role: {
+    id: string
+    name: string
+    slug: string
+  } | null
+}
+
+export function RoleMemberDisplay({
+  projectSlug,
+  roles,
+  compact = false,
   maxRolesShown = 10,
   lazyLoad = false,
   customTitle,
@@ -29,7 +45,10 @@ export function RoleMemberDisplay({
 }: RoleMemberDisplayProps) {
   const [shouldLoadData, setShouldLoadData] = useState(!lazyLoad)
   const containerRef = useRef<HTMLDivElement>(null)
-  
+
+  // Use Convex query directly - moved to top level to avoid conditional hook call
+  const projectData = useQuery(api.projects.getProjectBySlug, { slug: projectSlug })
+
   // Use Intersection Observer to detect when component is visible
   useEffect(() => {
     if (!lazyLoad || shouldLoadData) return
@@ -57,12 +76,23 @@ export function RoleMemberDisplay({
       observer.disconnect()
     }
   }, [lazyLoad, shouldLoadData])
-  
-  const { roleMemberCounts, isLoading, error } = useRoleMemberCounts(
-    projectSlug, 
-    roles, 
-    shouldLoadData // Only fetch data when we should load it
-  )
+
+  // Extract members data from project data
+  const membersData = (shouldLoadData && projectData ? projectData.members || [] : []) as ProjectMember[]
+  const isLoading = shouldLoadData && projectData === undefined
+  const error = null // Convex handles errors differently
+
+  // Calculate role member counts from members data
+  const roleMemberCounts = membersData?.reduce((acc: Record<string, number>, member: ProjectMember) => {
+    const roleSlug = member.role?.slug
+    if (roleSlug) {
+      if (!acc[roleSlug]) {
+        acc[roleSlug] = 0
+      }
+      acc[roleSlug]++
+    }
+    return acc
+  }, {} as Record<string, number>) || {}
 
   if (error) {
     // Fallback to showing without member counts
@@ -112,7 +142,9 @@ export function RoleMemberDisplay({
         </h4>
         <div className="space-y-1">
           {roles.slice(0, maxRolesShown).map((roleInfo, roleIndex) => {
-            const memberCount = getRoleMemberCount(roleMemberCounts, roleInfo.roleSlug)
+            const currentMemberCount = roleMemberCounts[roleInfo.roleSlug] || 0
+            const maxMembers = roleInfo.maxMembers || 0
+            const availablePositions = maxMembers - currentMemberCount
             const showLoadingOrDefault = !shouldLoadData || isLoading
             return (
               <div key={roleIndex} className="flex items-center justify-between text-xs">
@@ -120,15 +152,15 @@ export function RoleMemberDisplay({
                   {roleInfo.role?.name || roleInfo.role?.slug || roleInfo.roleSlug || 'Unknown Role'}
                 </span>
                 <span className={`ml-2 flex-shrink-0 ${
-                  showLoadingOrDefault 
-                    ? 'text-gray-400' 
-                    : memberCount.availablePositions > 0 
-                      ? 'text-green-400' 
+                  showLoadingOrDefault
+                    ? 'text-gray-400'
+                    : availablePositions > 0
+                      ? 'text-green-400'
                       : 'text-red-400'
                 }`}>
-                  {showLoadingOrDefault 
-                    ? `?/${roleInfo.maxMembers}`
-                    : `${memberCount.currentMembers}/${memberCount.maxMembers}`
+                  {showLoadingOrDefault
+                    ? `?/${maxMembers}`
+                    : `${currentMemberCount}/${maxMembers}`
                   }
                 </span>
               </div>
@@ -148,7 +180,9 @@ export function RoleMemberDisplay({
   return (
     <div className="space-y-3" ref={containerRef}>
       {roles.map((roleDto, index) => {
-        const memberCount = getRoleMemberCount(roleMemberCounts, roleDto.roleSlug)
+        const currentMemberCount = roleMemberCounts[roleDto.roleSlug] || 0
+        const maxMembers = roleDto.maxMembers || 0
+        const availablePositions = maxMembers - currentMemberCount
         return (
           <motion.div
             key={index}
@@ -167,7 +201,7 @@ export function RoleMemberDisplay({
                   <h4 className="text-white font-semibold text-base">
                     {roleDto.role?.name || roleDto.role?.slug || roleDto.roleSlug || 'Unknown Role'}
                   </h4>
-                  {memberCount.availablePositions === 0 && (
+                  {availablePositions === 0 && (
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-500/20 text-red-400 border border-red-500/30">
                       Full
                     </span>
@@ -180,19 +214,19 @@ export function RoleMemberDisplay({
                 )}
               </div>
               <div className="text-right ml-4 flex-shrink-0">
-                <div className={`text-xl font-bold ${memberCount.availablePositions > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                <div className={`text-xl font-bold ${availablePositions > 0 ? 'text-green-400' : 'text-red-400'}`}>
                   {isLoading ? (
                     <Loader2 className="w-5 h-5 animate-spin" />
                   ) : (
-                    `${memberCount.currentMembers}/${memberCount.maxMembers}`
+                    `${currentMemberCount}/${maxMembers}`
                   )}
                 </div>
                 <div className="text-xs text-gray-400 uppercase tracking-wide">
                   positions
                 </div>
-                {!isLoading && memberCount.availablePositions > 0 && (
+                {!isLoading && availablePositions > 0 && (
                   <div className="text-xs text-green-400 mt-1">
-                    {memberCount.availablePositions} available
+                    {availablePositions} available
                   </div>
                 )}
               </div>
