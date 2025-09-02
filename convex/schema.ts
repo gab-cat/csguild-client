@@ -138,6 +138,7 @@ const schema = defineSchema({
     reviewedAt: v.optional(v.number()),
     reviewedBySlug: v.optional(v.string()),
     reviewMessage: v.optional(v.string()),
+    notifiedOwnerAt: v.optional(v.number()),
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
   })
@@ -145,6 +146,7 @@ const schema = defineSchema({
     .index("by_userSlug", ["userSlug"])
     .index("by_roleSlug", ["roleSlug"])
     .index("by_status", ["status"])
+    .index("by_notifiedOwnerAt", ["notifiedOwnerAt"])
     .index("by_projectSlug_userSlug_roleSlug", ["projectSlug", "userSlug", "roleSlug"]),
 
   // Project pinning and saving
