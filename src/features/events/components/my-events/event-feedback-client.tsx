@@ -16,9 +16,9 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
+import { api, Id, useMutation, useQuery } from '@/lib/convex'
 import { showSuccessToast } from '@/lib/toast'
 
-import { useEventWithFeedbackForm, useSubmitFeedbackResponseMutation, useSubmitOrganizerRatingMutation } from '../../hooks'
 import type { OrganizerRatingSchemaType } from '../../schemas'
 import type { FeedbackFormFieldDto } from '../../types'
 import { OrganizerRatingForm } from '../shared'
@@ -32,17 +32,16 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   const router = useRouter()
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [organizerRating, setOrganizerRating] = useState<OrganizerRatingSchemaType | undefined>(undefined)
-  
-  const {
-    event,
-    feedbackForm,
-    feedbackStatus,
-    isLoading,
-    error
-  } = useEventWithFeedbackForm(eventSlug)
-  
-  const submitFeedbackMutation = useSubmitFeedbackResponseMutation()
-  const submitOrganizerRatingMutation = useSubmitOrganizerRatingMutation()
+  // @ts-ignore
+  const event = useQuery(api.events.getEventBySlug, { slug: eventSlug })
+  const feedbackStatus = useQuery(api.events.checkFeedbackStatus, { eventSlug })
+  const feedbackForm = useQuery(api.events.getFeedbackForm, { eventId: event?.id as Id<"events"> })
+
+  const isLoading = event === undefined || feedbackForm === undefined || feedbackStatus === undefined
+  const error = null // Error handling is done in Convex queries/mutations
+
+  const submitFeedbackMutation = useMutation(api.events.submitFeedbackResponse)
+  const submitOrganizerRatingMutation = useMutation(api.events.rateOrganizer)
   
   // Simple form without complex validation - validation handled on server
   const { register, handleSubmit: handleFormSubmit, setValue, watch, formState: { errors } } = useForm<Record<string, string | number | string[]>>({
@@ -67,8 +66,8 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
     
     try {
       // Submit feedback response
-      await submitFeedbackMutation.mutateAsync({
-        formId: feedbackForm.id,
+      await submitFeedbackMutation({
+        eventSlug,
         responses: Object.entries(data).reduce((acc, [fieldId, value]) => {
           if (Array.isArray(value)) {
             acc[fieldId] = value.join(',')
@@ -78,15 +77,13 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
           return acc
         }, {} as Record<string, string>)
       })
-      
+
       // Submit organizer rating if provided
       if (organizerRating && organizerRating.rating) {
-        await submitOrganizerRatingMutation.mutateAsync({
-          slug: eventSlug,
-          ratingData: {
-            rating: organizerRating.rating,
-            comment: organizerRating.comment
-          }
+        await submitOrganizerRatingMutation({
+          eventSlug,
+          rating: organizerRating.rating,
+          comment: organizerRating.comment
         })
       }
       
@@ -378,7 +375,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   }
 
   // Handle case where user has already submitted feedback
-  if (feedbackStatus?.hasSubmitted) {
+  if (feedbackStatus?.hasSubmittedFeedback) {
     return (
       <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
@@ -444,7 +441,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   }
 
   // Handle case where no feedback form exists
-  if (!feedbackForm || !feedbackStatus?.hasForm) {
+  if (!feedbackForm) {
     return (
       <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
@@ -560,11 +557,11 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
                   <Separator className="mb-4 text-white bg-white/50" />
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <User className="h-4 w-4" />
-                    <span>by {event.organizer.firstName} {event.organizer.lastName}</span>
+                    <span>by {event.organizer?.firstName || 'Unknown'} {event.organizer?.lastName || 'User'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
                     <Clock className="h-4 w-4" />
-                    <span>{formatDate(event.startDate)}</span>
+                    <span>{formatDate(event.startDate.toString())}</span>
                   </div>
                 </motion.div>
                 
@@ -635,7 +632,8 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
                     }}
                   >
                     <OrganizerRatingForm
-                      event={event}
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      event={event as any}
                       value={organizerRating}
                       onChange={setOrganizerRating}
                       disabled={isSubmitting}

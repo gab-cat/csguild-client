@@ -7,8 +7,9 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { api, useQuery } from '@/lib/convex'
 
-import { useEventWithAttendees } from '../../hooks'
+import { toEventDetailFromConvex } from '../../types'
 import { eventUtils } from '../../utils'
 import { RegisterEventModal } from '../register-event-modal'
 
@@ -26,15 +27,19 @@ interface EventDetailClientProps {
 }
 
 export function EventDetailClient({ slug }: EventDetailClientProps) {
-  const {
-    event,
-    attendees: attendeesData,
-    isLoading,
-    isLoadingAttendees
-  } = useEventWithAttendees(slug)
+  // @ts-ignore
+  const event = useQuery(api.events.getEventBySlug, { slug })
+  // Always call hooks unconditionally; pass undefined args to skip until event is loaded
+  const attendeesData = useQuery(
+    api.events.getEventAttendees,
+    event ? { eventId: event.id } : "skip",
+  )
 
   const [isBookmarked, setIsBookmarked] = React.useState(false)
   const [showRegisterModal, setShowRegisterModal] = React.useState(false)
+
+  const isLoading = event === undefined
+  const isLoadingAttendees = attendeesData === undefined
 
   if (isLoading) {
     return <EventDetailSkeleton />
@@ -57,14 +62,20 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
     )
   }
 
-  const eventStatus = eventUtils.getEventStatus(event.startDate, typeof event.endDate === 'string' ? event.endDate : undefined)
+  // Normalize Convex event to EventDetailResponseDto expected by child components
+  const eventDto = toEventDetailFromConvex(event)
+
+  const eventStatus = eventUtils.getEventStatus(
+    eventDto.startDate,
+    typeof eventDto.endDate === 'string' ? eventDto.endDate : undefined,
+  )
   const isCompleted = eventStatus === 'completed'
 
   const handleShare = async () => {
     if (navigator.share) {
       await navigator.share({
-        title: event.title,
-        text: typeof event.description === 'string' ? event.description : '',
+        title: eventDto.title,
+        text: typeof eventDto.description === 'string' ? eventDto.description : '',
         url: window.location.href,
       })
     } else {
@@ -87,7 +98,7 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
       <div className="relative z-10 pt-24">
         {/* Hero Section */}
         <EventHeroSection
-          event={event}
+          event={eventDto}
           isBookmarked={isBookmarked}
           onToggleBookmark={toggleBookmark}
           onShare={handleShare}
@@ -97,17 +108,39 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
         <div className="relative z-10 bg-gray-950 p-6 lg:p-8">
           <div className="max-w-7xl mx-auto">
             {/* Event Metadata Section */}
-            <EventMetadataSection event={event} />
+            <EventMetadataSection event={eventDto} />
             
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 mt-8">
               {/* Main Content - Event Details */}
               <div className="lg:col-span-2 space-y-8">
                 {/* Event Details Section */}
-                <EventDetails event={event} />
+                <EventDetails event={eventDto} />
 
                 {/* Attendees Card */}
                 <AttendeesSection 
-                  attendeesData={attendeesData || undefined} 
+                  attendeesData={attendeesData ? {
+                    data: attendeesData.data?.map((a) => ({
+                      id: String(a.id),
+                      userId: a.userId,
+                      totalDuration: a.totalDuration,
+                      isEligible: a.isEligible,
+                      registeredAt: a.registeredAt ?? 0,
+                      user: a.user ? {
+                        id: String(a.user.id),
+                        username: a.user.username || '',
+                        firstName: a.user.firstName,
+                        lastName: a.user.lastName,
+                        email: a.user.email,
+                        imageUrl: typeof a.user.imageUrl === 'string' ? a.user.imageUrl : undefined,
+                      } : null,
+                    })) ,
+                    meta: attendeesData.meta ? {
+                      total: attendeesData.meta.total,
+                      page: attendeesData.meta.page,
+                      limit: attendeesData.meta.limit,
+                      totalPages: attendeesData.meta.totalPages,
+                    } : undefined,
+                  } : undefined} 
                   isLoading={isLoadingAttendees} 
                 />
               </div>
@@ -116,13 +149,13 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
               <div className="space-y-6">
                 {/* Register Button */}
                 <RegistrationSection
-                  event={event}
+                  event={eventDto}
                   onRegister={() => setShowRegisterModal(true)}
                   isCompleted={isCompleted}
                 />
 
                 {/* Organizer Card */}
-                <OrganizerCard event={event} />
+                <OrganizerCard event={eventDto} />
               </div>
             </div>
           </div>
@@ -135,20 +168,20 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
           isOpen={showRegisterModal}
           onClose={() => setShowRegisterModal(false)}
           event={{
-            id: event.id,
-            slug: event.slug,
-            title: event.title,
-            type: event.type,
-            description: typeof event.description === 'string' ? event.description : undefined,
-            details: typeof event.details === 'string' ? event.details : undefined,
-            startDate: event.startDate,
-            endDate: typeof event.endDate === 'string' ? event.endDate : null,
+            id: eventDto.id,
+            slug: eventDto.slug,
+            title: eventDto.title,
+            type: eventDto.type,
+            description: typeof eventDto.description === 'string' ? eventDto.description : undefined,
+            details: typeof eventDto.details === 'string' ? eventDto.details : undefined,
+            startDate: eventDto.startDate,
+            endDate: typeof eventDto.endDate === 'string' ? eventDto.endDate : null,
             organizer: {
-              firstName: event.organizer.firstName,
-              lastName: event.organizer.lastName,
-              username: event.organizer.username,
+              firstName: eventDto.organizer.firstName || '',
+              lastName: eventDto.organizer.lastName || '',
+              username: eventDto.organizer.username,
             },
-            tags: event.tags || undefined,
+            tags: eventDto.tags || undefined,
           }}
         />
       )}

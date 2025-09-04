@@ -5,9 +5,9 @@ import { Clock, MapPin, Tag, User } from 'lucide-react'
 import React from 'react'
 
 import { Badge } from '@/components/ui/badge'
+import { formatDateForDisplay } from '@/lib/date-utils'
 
 import { EventDetailResponseDto } from '../../types'
-import { formatDateForDisplay } from '../../utils'
 
 interface EventMetadataSectionProps {
   event: EventDetailResponseDto

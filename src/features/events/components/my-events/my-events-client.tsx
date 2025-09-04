@@ -10,8 +10,8 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { usePagination } from '@/hooks/use-pagination'
+import { api, useQuery } from '@/lib/convex'
 
-import { useMyAttendedEventsQuery, useMyCreatedEventsQuery } from '../../hooks'
 import { toEventCard } from '../../types'
 import { useEventFilters } from '../events/event-filters'
 import { EventFilters } from '../events/event-filters'
@@ -71,38 +71,51 @@ export function MyEventsClient() {
     }
   }, [createdFilters, createdPagination.page, createdPagination.limit])
 
+  // Local helper types to avoid deep generic instantiation
+  type Paginated<TItem> = { data: Array<TItem>; meta: { total: number } }
+  type EventInput = Parameters<typeof toEventCard>[0]
+  type AttendedEventInput = EventInput & {
+    attendeeInfo?: unknown
+    minimumAttendanceMinutes?: number
+  }
+
   // Query attended events
-  const {
-    data: attendedEventsResponse,
-    isLoading: isLoadingAttended,
-    isError: isErrorAttended,
-    error: attendedError,
-  } = useMyAttendedEventsQuery(attendedApiFilters)
+  const attendedEventsResponse = useQuery(
+    // @ts-ignore
+    api.events.getMyAttendedEvents,
+    attendedApiFilters,
+  ) as unknown as Paginated<AttendedEventInput> | undefined | null
+  const isLoadingAttended = attendedEventsResponse === undefined
+  const isErrorAttended = attendedEventsResponse === null
+  const attendedError = isErrorAttended ? new Error('Failed to load attended events') : null
 
   // Query created events
-  const {
-    data: createdEventsResponse,
-    isLoading: isLoadingCreated,
-    isError: isErrorCreated,
-    error: createdError,
-  } = useMyCreatedEventsQuery(createdApiFilters)
+  const createdEventsResponse = useQuery(
+    api.events.getMyCreatedEvents,
+    createdApiFilters,
+  ) as unknown as Paginated<EventInput> | undefined | null
+  const isLoadingCreated = createdEventsResponse === undefined
+  const isErrorCreated = createdEventsResponse === null
+  const createdError = isErrorCreated ? new Error('Failed to load created events') : null
 
   const attendedEvents = React.useMemo(() => {
-    if (!attendedEventsResponse?.events) return []
-    return attendedEventsResponse.events.map(event => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const attendedEvent = event as any
+    const data = attendedEventsResponse?.data ?? []
+    return data.map((event) => {
+      const attendedEvent = event as unknown as {
+        attendeeInfo?: unknown
+        minimumAttendanceMinutes?: number
+      }
       return {
-        ...toEventCard(event),
+        ...toEventCard(event as EventInput),
         attendeeInfo: attendedEvent.attendeeInfo,
-        minimumAttendanceMinutes: attendedEvent.minimumAttendanceMinutes
+        minimumAttendanceMinutes: attendedEvent.minimumAttendanceMinutes,
       }
     })
   }, [attendedEventsResponse])
 
   const createdEvents = React.useMemo(() => {
-    if (!createdEventsResponse?.events) return []
-    return createdEventsResponse.events.map(event => toEventCard(event))
+    const data = createdEventsResponse?.data ?? []
+    return data.map((event) => toEventCard(event as EventInput))
   }, [createdEventsResponse])
 
   const renderEventsContent = (

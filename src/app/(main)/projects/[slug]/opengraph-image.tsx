@@ -1,6 +1,6 @@
 import { ImageResponse } from 'next/og'
 
-import { projectsApi } from '@/features/projects/utils/projects-api'
+// TODO: Update to use Convex projects API
 
 // Image metadata
 export const size = {

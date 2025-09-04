@@ -50,7 +50,7 @@ export function EventHeroSection({
           opacity: imageOpacity,
           scale: imageScale,
           position: 'fixed',
-          top: '2rem',
+          top: '1rem',
           left: 0,
           right: 0,
           zIndex: 0

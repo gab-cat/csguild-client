@@ -17,6 +17,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
+import type { EventDetailResponseDto } from '@generated/api-client'
 
 import { 
   useEventWithFeedbackFormPublic, 
@@ -81,7 +82,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
     
     try {
       // Submit feedback response
-      await submitFeedbackMutation.mutateAsync({
+      await submitFeedbackMutation({
         token,
         userId,
         responseData: {
@@ -96,10 +97,11 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
           }, {} as Record<string, string>)
         }
       })
-      
+
       // Submit organizer rating if provided
       if (organizerRating && organizerRating.rating) {
-        await submitOrganizerRatingMutation.mutateAsync({
+        await submitOrganizerRatingMutation({
+          eventSlug,
           token,
           userId,
           ratingData: {
@@ -648,7 +650,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
                   <Separator className="mb-4 text-white bg-white/50" />
                   <div className="flex items-center gap-2 text-gray-400 text-sm mb-2">
                     <User className="h-4 w-4" />
-                    <span>by {event.organizer.firstName} {event.organizer.lastName}</span>
+                    <span>by {event.organizer?.firstName || 'Unknown'} {event.organizer?.lastName || 'User'}</span>
                   </div>
                   <div className="flex items-center gap-2 text-gray-400 text-sm">
                     <Clock className="h-4 w-4" />
@@ -663,7 +665,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.4, delay: 0.6 }}
                   >
-                    {event.tags.map((tag, index) => (
+                    {event.tags.map((tag: string, index: number) => (
                       <motion.div
                         key={index}
                         initial={{ opacity: 0, scale: 0.8 }}
@@ -711,7 +713,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleFormSubmit(handleSubmit)} className="space-y-6">
-                  {feedbackForm.fields && Array.isArray(feedbackForm.fields) ? feedbackForm.fields.map((field, index) => renderField(field, index)) : null}
+                  {feedbackForm.fields && Array.isArray(feedbackForm.fields) ? feedbackForm.fields.map((field: FeedbackFormFieldDto, index: number) => renderField(field, index)) : null}
                   
                   {/* Organizer Rating Section */}
                   <motion.div
@@ -723,7 +725,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
                     }}
                   >
                     <OrganizerRatingForm
-                      event={event}
+                      event={event as unknown as EventDetailResponseDto}
                       value={organizerRating}
                       onChange={setOrganizerRating}
                       disabled={isSubmitting}

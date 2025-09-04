@@ -8,9 +8,9 @@ import React from 'react'
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
+import { api, useQuery } from '@/lib/convex'
 
-import { useEventsQuery } from '../../hooks'
-import { toEventCard } from '../../types'
+import { toEventCardFromConvex } from '../../types'
 
 import { EventCard, EventCardSkeleton } from './event-card'
 import { EventFilters, useEventFilters } from './event-filters'
@@ -24,8 +24,8 @@ export function EventsClient() {
   const currentPage = parseInt(searchParams.get('page') || '1')
   const itemsPerPage = parseInt(searchParams.get('limit') || '12')
 
-  // Transform filters for API call
-  const apiFilters = React.useMemo(() => {
+  // Transform filters for Convex query
+  const convexFilters = React.useMemo(() => {
     const { tags, ...rest } = filters
     return {
       ...rest,
@@ -35,21 +35,16 @@ export function EventsClient() {
     }
   }, [filters, currentPage, itemsPerPage])
 
-  const {
-    data: eventsResponse,
-    isLoading,
-    isError,
-    error,
-  } = useEventsQuery(apiFilters)
+  const eventsResponse = useQuery(api.events.getEvents, convexFilters)
 
   const events = React.useMemo(() => {
-    if (!eventsResponse?.events) return []
-    return eventsResponse.events.map(event => 
-      toEventCard(event)
-    )
+    if (!eventsResponse?.data) return []
+    return eventsResponse.data.map(toEventCardFromConvex)
   }, [eventsResponse])
 
   const totalItems = eventsResponse?.meta?.total || 0
+  const isLoading = eventsResponse === undefined
+  const isError = eventsResponse === null
 
   const handleClearFilters = React.useCallback(() => {
     updateFilters({
@@ -119,7 +114,7 @@ export function EventsClient() {
                 </div>
                 <h3 className="text-lg font-semibold text-red-400">Failed to load events</h3>
                 <p className="text-gray-400">
-                  {error?.message || 'An unexpected error occurred while loading events.'}
+                  An unexpected error occurred while loading events.
                 </p>
                 <Button 
                   variant="outline" 

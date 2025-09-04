@@ -26,25 +26,32 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import type { UpdateEventDto, CreateFeedbackFormDto, FeedbackFormFieldDto } from '@generated/api-client'
+import { api, Id, useMutation, useQuery } from '@/lib/convex'
 import { CreateEventDtoTypeEnum, FeedbackFormFieldDtoTypeEnum } from '@generated/api-client'
 
-import { 
-  useEventWithFeedbackForm, 
-  useUpdateEventMutation, 
-  useDeleteEventMutation, 
-  useCreateFeedbackFormMutation, 
-  useUpdateFeedbackFormMutation 
-} from '../../hooks'
+import { formatDateForInput, formatDateForApi } from '../../../../lib/date-utils'
 import { updateEventSchema, type UpdateEventSchemaType } from '../../schemas'
 import type { FormField as FeedbackFormField } from '../../types'
-import { toEventCard } from '../../types'
-import { formatDateForInput, formatDateForApi } from '../../utils'
 import { FormBuilder } from '../create/form-builder/form-builder'
+import { EventImageUpload } from '../event-image-upload'
 import { EventNavigationDropdown } from '../shared/event-navigation-dropdown'
 
 interface EditEventClientProps {
   slug: string
+}
+
+interface EventDataForEdit {
+  id: string
+  slug: string
+  title: string
+  type: string
+  description?: string
+  details?: string
+  startDate: number
+  endDate?: number
+  imageUrl?: string
+  tags?: Array<string>
+  minimumAttendanceMinutes?: number
 }
 
 export function EditEventClient({ slug }: EditEventClientProps) {
@@ -55,25 +62,36 @@ export function EditEventClient({ slug }: EditEventClientProps) {
   const imageOpacity = useTransform(scrollY, [0, 300], [1, 0])
   const imageScale = useTransform(scrollY, [0, 300], [1, 1.01])
   
-  // Use the combined hook for event and feedback form data
-  const {
-    event: eventData,
-    feedbackForm: feedbackFormData,
-    isLoadingEvent,
-    error: eventError
-  } = useEventWithFeedbackForm(slug)
+  // Use direct Convex queries for event and feedback form data
   
+  // @ts-ignore
+  const eventData = useQuery(api.events.getEventBySlug, { slug }) as unknown as (EventDataForEdit | null | undefined)
+  const feedbackFormData = useQuery(
+    // @ts-ignore
+    api.events.getFeedbackForm,
+    eventData ? { eventId: eventData.id as Id<'events'> } : "skip"
+  )
+
   // Mutation hooks
-  const updateEventMutation = useUpdateEventMutation()
-  const deleteEventMutation = useDeleteEventMutation()
-  const createFeedbackFormMutation = useCreateFeedbackFormMutation()
-  const updateFeedbackFormMutation = useUpdateFeedbackFormMutation()
+  // @ts-ignore
+  const updateEvent = useMutation(api.events.updateEvent)
+  const deleteEvent = useMutation(api.events.deleteEvent)
+  const createFeedbackForm = useMutation(api.events.createFeedbackForm)
+  const updateFeedbackForm = useMutation(api.events.updateFeedbackForm)
+  // @ts-ignore
+  const generateUploadUrl = useMutation(api.events.generateUploadUrl)
+  const saveEventImage = useMutation(api.events.saveEventImage)
 
   // Local state
   const [feedbackFields, setFeedbackFields] = useState<FeedbackFormField[]>([])
   const [tagInput, setTagInput] = useState('')
   const [isDeleting, setIsDeleting] = useState(false)
   const [showDeleteDialog, setShowDeleteDialog] = useState(false)
+
+  // Image upload state
+  const [preparedImageBlob, setPreparedImageBlob] = useState<Blob | null>(null)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
+  // Removed unused uploadedImageStorageId state
 
   // Initialize React Hook Form with Zod resolver
   const form = useForm<UpdateEventSchemaType>({
@@ -94,18 +112,16 @@ export function EditEventClient({ slug }: EditEventClientProps) {
   // Load event data into form when available
   useEffect(() => {
     if (eventData) {
-      const eventCard = toEventCard(eventData)
-      
       form.reset({
-        title: eventCard.title,
-        type: eventCard.type,
-        description: eventCard.description || '',
-        details: eventCard.details || '',
-        startDate: formatDateForInput(eventCard.startDate),
-        endDate: eventCard.endDate ? formatDateForInput(eventCard.endDate) : '',
-        imageUrl: eventCard.imageUrl || '',
-        tags: eventCard.tags || [],
-        minimumAttendanceMinutes: 0, // Default value since not available in API
+        title: eventData.title,
+        type: (eventData.type as 'IN_PERSON' | 'VIRTUAL' | 'HYBRID' | 'OTHERS'),
+        description: eventData.description || '',
+        details: eventData.details || '',
+        startDate: formatDateForInput(new Date(eventData.startDate).toISOString()),
+        endDate: eventData.endDate ? formatDateForInput(new Date(eventData.endDate).toISOString()) : '',
+        imageUrl: eventData.imageUrl || '',
+        tags: eventData.tags || [],
+        minimumAttendanceMinutes: eventData.minimumAttendanceMinutes || 0,
       })
     }
   }, [eventData, form])
@@ -113,8 +129,17 @@ export function EditEventClient({ slug }: EditEventClientProps) {
   // Load feedback form data when available
   useEffect(() => {
     if (feedbackFormData?.fields && Array.isArray(feedbackFormData.fields)) {
-      // Map the API response fields to our internal field format
-      const fieldsArray: FeedbackFormField[] = feedbackFormData.fields.map((field: FeedbackFormFieldDto) => ({
+      // Map the Convex response fields to our internal field format
+      const fieldsArray: FeedbackFormField[] = feedbackFormData.fields.map((field: {
+        id?: string
+        label?: string
+        type?: FeedbackFormFieldDtoTypeEnum
+        required?: boolean
+        options?: Array<string>
+        placeholder?: string
+        description?: string
+        maxRating?: number
+      }) => ({
         id: field.id || `field_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         label: field.label || '',
         type: field.type || FeedbackFormFieldDtoTypeEnum.TEXT,
@@ -124,22 +149,7 @@ export function EditEventClient({ slug }: EditEventClientProps) {
         description: field.description || '',
         maxRating: field.maxRating || 5,
       }))
-      
-      setFeedbackFields(fieldsArray)
-    } else if (feedbackFormData?.fields && !Array.isArray(feedbackFormData.fields)) {
-      // Fallback: If fields is an object, convert it to array format
-      const fieldsObj = feedbackFormData.fields as Record<string, FeedbackFormFieldDto>
-      const fieldsArray: FeedbackFormField[] = Object.entries(fieldsObj).map(([key, field]: [string, FeedbackFormFieldDto]) => ({
-        id: field.id || key,
-        label: field.label || '',
-        type: field.type || FeedbackFormFieldDtoTypeEnum.TEXT,
-        required: field.required || false,
-        options: field.options || [],
-        placeholder: field.placeholder || '',
-        description: field.description || '',
-        maxRating: field.maxRating || 5,
-      }))
-      
+
       setFeedbackFields(fieldsArray)
     }
   }, [feedbackFormData])
@@ -165,18 +175,35 @@ export function EditEventClient({ slug }: EditEventClientProps) {
     }
   }
 
+  // Handle prepared image from child component
+  const handleImagePrepared = (blob: Blob) => {
+    setPreparedImageBlob(blob)
+  }
+
   // Handle form submission
   const onSubmit = async (data: UpdateEventSchemaType) => {
     try {
-      // Prepare event data with correct structure, only including changed fields
-      const updateEventPayload: UpdateEventDto = {}
+      // Prepare event data for Convex mutation, only including changed fields
+      const updateEventPayload: {
+        slug: string
+        title?: string
+        type?: 'IN_PERSON' | 'VIRTUAL' | 'HYBRID' | 'OTHERS'
+        description?: string
+        details?: string
+        startDate?: number
+        endDate?: number
+        imageUrl?: string
+        imageStorageId?: Id<'_storage'>
+        tags?: Array<string>
+        minimumAttendanceMinutes?: number
+      } = { slug }
 
       // Only include fields that have been changed from original values
       if (data.title && data.title !== eventData?.title) {
         updateEventPayload.title = data.title
       }
       if (data.type && data.type !== eventData?.type) {
-        updateEventPayload.type = data.type
+        updateEventPayload.type = data.type as 'IN_PERSON' | 'VIRTUAL' | 'HYBRID' | 'OTHERS'
       }
       if (data.description !== eventData?.description) {
         updateEventPayload.description = data.description || undefined
@@ -185,23 +212,35 @@ export function EditEventClient({ slug }: EditEventClientProps) {
         updateEventPayload.details = data.details || undefined
       }
       if (data.startDate) {
-        const newStartDate = formatDateForApi(data.startDate)
-        const originalStartDate = eventData?.startDate || ''
+        const newStartDate = new Date(formatDateForApi(data.startDate)).getTime()
+        const originalStartDate = eventData?.startDate || 0
         if (newStartDate !== originalStartDate) {
           updateEventPayload.startDate = newStartDate
         }
       }
       if (data.endDate) {
-        const newEndDate = formatDateForApi(data.endDate)
-        const originalEndDate = eventData?.endDate && typeof eventData.endDate === 'string' 
-          ? eventData.endDate 
-          : undefined
+        const newEndDate = new Date(formatDateForApi(data.endDate)).getTime()
+        const originalEndDate = eventData?.endDate || undefined
         if (newEndDate !== originalEndDate) {
           updateEventPayload.endDate = newEndDate
         }
       }
-      if (data.imageUrl !== eventData?.imageUrl) {
-        updateEventPayload.imageUrl = data.imageUrl || undefined
+      // If an image was prepared, upload it now
+      if (preparedImageBlob) {
+        const uploadUrl = await generateUploadUrl({})
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': preparedImageBlob.type },
+          body: preparedImageBlob,
+        })
+        if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.statusText}`)
+        const { storageId } = await uploadResponse.json()
+        const saveRes = await saveEventImage({ storageId })
+        setUploadedImageUrl(saveRes.imageUrl)
+        updateEventPayload.imageUrl = saveRes.imageUrl
+        updateEventPayload.imageStorageId = saveRes.storageId as Id<'_storage'>
+      } else if (uploadedImageUrl || data.imageUrl !== eventData?.imageUrl) {
+        updateEventPayload.imageUrl = uploadedImageUrl || data.imageUrl || undefined
       }
       if (JSON.stringify(data.tags) !== JSON.stringify(eventData?.tags)) {
         updateEventPayload.tags = data.tags
@@ -211,17 +250,17 @@ export function EditEventClient({ slug }: EditEventClientProps) {
       }
 
       // Only update if there are changes
-      if (Object.keys(updateEventPayload).length > 0) {
-        await updateEventMutation.mutateAsync({ slug, updateData: updateEventPayload })
+      if (Object.keys(updateEventPayload).length > 1) { // More than just 'slug'
+        await updateEvent(updateEventPayload)
       }
       
       // Handle feedback form creation/update
-      if (feedbackFields.length > 0 && eventData?.id) {
+      if (feedbackFields.length > 0) {
         if (!feedbackFormData) {
           // Create new feedback form
-          const feedbackFormPayload: CreateFeedbackFormDto = {
-            eventId: eventData.id,
-            title: `${data.title || eventData.title} Feedback`,
+          const feedbackFormPayload = {
+            eventSlug: eventData?.slug || slug,
+            title: `${data.title || eventData?.title} Feedback`,
             fields: feedbackFields.map(field => ({
               id: field.id,
               label: field.label,
@@ -233,12 +272,13 @@ export function EditEventClient({ slug }: EditEventClientProps) {
               maxRating: field.maxRating,
             }))
           }
-          
-          await createFeedbackFormMutation.mutateAsync(feedbackFormPayload)
+
+          await createFeedbackForm(feedbackFormPayload)
         } else {
           // Update existing feedback form
           const updateFeedbackFormPayload = {
-            title: `${data.title || eventData.title} Feedback`,
+            eventSlug: eventData?.slug || slug,
+            title: `${data.title || eventData?.title} Feedback`,
             fields: feedbackFields.map(field => ({
               id: field.id,
               label: field.label,
@@ -250,11 +290,8 @@ export function EditEventClient({ slug }: EditEventClientProps) {
               maxRating: field.maxRating,
             }))
           }
-          
-          await updateFeedbackFormMutation.mutateAsync({
-            formId: feedbackFormData.id,
-            updateData: updateFeedbackFormPayload
-          })
+
+          await updateFeedbackForm(updateFeedbackFormPayload)
         }
       }
       
@@ -268,10 +305,10 @@ export function EditEventClient({ slug }: EditEventClientProps) {
   // Handle event deletion
   const handleDelete = async () => {
     if (!eventData) return
-    
+
     setIsDeleting(true)
     try {
-      await deleteEventMutation.mutateAsync(slug)
+      await deleteEvent({ slug })
       router.push('/events/my-events')
     } catch (error) {
       console.error('Failed to delete event:', error)
@@ -282,11 +319,11 @@ export function EditEventClient({ slug }: EditEventClientProps) {
   }
 
   // Loading states
-  const isLoading = updateEventMutation.isPending || createFeedbackFormMutation.isPending || updateFeedbackFormMutation.isPending
-  const isFormLoading = isLoadingEvent || !eventData
+  const isLoading = false // TODO: Add proper loading state management for Convex mutations
+  const isFormLoading = eventData === undefined
 
   // Error state
-  if (eventError) {
+  if (eventData === null) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
@@ -648,31 +685,22 @@ export function EditEventClient({ slug }: EditEventClientProps) {
                         )}
                       />
 
-                      {/* Image URL */}
-                      <FormField
-                        control={form.control}
-                        name="imageUrl"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-sm font-medium flex items-center gap-2 text-gray-200">
-                              <ImageIcon className="h-4 w-4" />
-                              Event Image URL
-                            </FormLabel>
-                            <FormControl>
-                              <Input
-                                type="url"
-                                placeholder="https://example.com/your-event-image.jpg"
-                                {...field}
-                                className="h-12 bg-gray-800/50 border-gray-700/50 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-200"
-                              />
-                            </FormControl>
-                            <FormDescription className="text-xs text-gray-500">
-                              Add an image to make your event more appealing. Use a high-quality image (recommended: 1200x630px).
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
+                      {/* Event Image Upload */}
+                      <div className="space-y-3">
+                        <FormLabel className="text-sm font-medium flex items-center gap-2 text-gray-200">
+                          <ImageIcon className="h-4 w-4" />
+                          Event Image
+                        </FormLabel>
+                        <EventImageUpload
+                          currentImageUrl={uploadedImageUrl || eventData?.imageUrl || ''}
+                          onImagePrepared={handleImagePrepared}
+                          className="w-full"
+                          size="lg"
+                        />
+                        <FormDescription className="text-xs text-gray-500">
+                          Upload an image for your event. Images are automatically cropped to 1200×630px for optimal social media sharing and compressed to JPEG format.
+                        </FormDescription>
+                      </div>
 
                       {/* Tags */}
                       <FormField

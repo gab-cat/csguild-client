@@ -16,25 +16,36 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import type { CreateEventDto, CreateFeedbackFormDto } from '@generated/api-client'
+import { api, useMutation } from '@/lib/convex'
 import { CreateEventDtoTypeEnum } from '@generated/api-client'
 
-import { useCreateEventMutation, useCreateFeedbackFormMutation } from '../../hooks'
+import { formatDateForApi } from '../../../../lib/date-utils'
 import { createEventSchema, type CreateEventSchemaType } from '../../schemas'
 import type { FormField as FeedbackFormField } from '../../types'
-import { formatDateForApi } from '../../utils'
+import { EventImageUpload } from '../event-image-upload'
 
 import { FormBuilder } from './form-builder/form-builder'
 
 
 export function CreateEventClient() {
   const router = useRouter()
-  const createEventMutation = useCreateEventMutation()
-  const createFeedbackFormMutation = useCreateFeedbackFormMutation()
+  // @ts-ignore
+  const createEvent = useMutation(api.events.createEvent)
+  const createFeedbackForm = useMutation(api.events.createFeedbackForm)
 
   // Feedback form state
   const [feedbackFields, setFeedbackFields] = useState<FeedbackFormField[]>([])
   const [tagInput, setTagInput] = useState('')
+  const [isLoading, setIsLoading] = useState(false)
+
+  // Image upload state (prepare blob, upload on save)
+  const [preparedImageBlob, setPreparedImageBlob] = useState<Blob | null>(null)
+  const [uploadedImageUrl, setUploadedImageUrl] = useState<string>('')
+  const [uploadedImageStorageId, setUploadedImageStorageId] = useState<string>('')
+
+  // @ts-ignore
+  const generateUploadUrl = useMutation(api.events.generateUploadUrl)
+  const saveEventImage = useMutation(api.events.saveEventImage)
 
   // Initialize React Hook Form with Zod resolver
   const form = useForm<CreateEventSchemaType>({
@@ -73,31 +84,66 @@ export function CreateEventClient() {
     }
   }
 
+  // Handle prepared image from child component
+  const handleImagePrepared = (blob: Blob) => {
+    setPreparedImageBlob(blob)
+  }
+
   // Handle form submission
   const onSubmit = async (data: CreateEventSchemaType) => {
+    setIsLoading(true)
     try {
-      // Prepare event data with correct structure
-      const createEventPayload: CreateEventDto = {
+      // Use locals to avoid races with async state updates
+      let finalImageUrl: string | undefined = undefined
+      let finalImageStorageId: string | undefined = undefined
+
+      // If an image was prepared, upload it now
+      if (preparedImageBlob) {
+        const uploadUrl = await generateUploadUrl({})
+        const uploadResponse = await fetch(uploadUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': preparedImageBlob.type },
+          body: preparedImageBlob,
+        })
+        if (!uploadResponse.ok) throw new Error(`Upload failed: ${uploadResponse.statusText}`)
+        const { storageId } = await uploadResponse.json()
+        const saveRes = await saveEventImage({ storageId })
+        // set state for UI preview, but rely on locals for payload
+        setUploadedImageUrl(saveRes.imageUrl)
+        setUploadedImageStorageId(saveRes.storageId)
+        finalImageUrl = saveRes.imageUrl
+        finalImageStorageId = saveRes.storageId
+      }
+
+      // Prepare event data for Convex mutation
+      const createEventPayload = {
         title: data.title,
         type: data.type,
         description: data.description,
         details: data.details,
-        startDate: formatDateForApi(data.startDate),
-        endDate: data.endDate ? formatDateForApi(data.endDate) : undefined,
-        imageUrl: data.imageUrl || undefined,
+        startDate: new Date(formatDateForApi(data.startDate)).getTime(),
+        endDate: data.endDate ? new Date(formatDateForApi(data.endDate)).getTime() : undefined,
+        imageUrl: finalImageUrl || uploadedImageUrl || data.imageUrl || undefined,
+        // @ts-ignore - server expects Id<'_storage'>, client holds string
+        imageStorageId: finalImageStorageId || uploadedImageStorageId || undefined,
         tags: data.tags,
-        minimumAttendanceMinutes: data.minimumAttendanceMinutes && data.minimumAttendanceMinutes > 0 
-          ? data.minimumAttendanceMinutes 
+        minimumAttendanceMinutes: data.minimumAttendanceMinutes && data.minimumAttendanceMinutes > 0
+          ? data.minimumAttendanceMinutes
           : undefined,
       }
 
       // First, create the event
-      const eventResult = await createEventMutation.mutateAsync(createEventPayload)
-      
+      // Convex client type for Id<'_storage'> is opaque; cast field only
+      const payloadWithCast = {
+        ...createEventPayload,
+        imageStorageId: (createEventPayload as unknown as { imageStorageId?: string }).imageStorageId as unknown as never,
+      }
+      const eventResult = await createEvent(payloadWithCast)
+
       // If feedback fields exist, create the feedback form separately
-      if (feedbackFields.length > 0 && eventResult.event?.id) {
-        const feedbackFormPayload: CreateFeedbackFormDto = {
-          eventId: eventResult.event.id,
+      if (feedbackFields.length > 0) {
+        const feedbackFormPayload = {
+          eventSlug: eventResult.slug,
           title: `${data.title} Feedback`,
           fields: feedbackFields.map(field => ({
             id: field.id,
@@ -110,22 +156,22 @@ export function CreateEventClient() {
             maxRating: field.maxRating,
           }))
         }
-        
+
         // Wait for feedback form creation before redirecting
-        await createFeedbackFormMutation.mutateAsync(feedbackFormPayload)
+        await createFeedbackForm(feedbackFormPayload)
       }
-      
+
       // Only redirect after both event and feedback form (if any) are created
-      router.push(`/events/${eventResult.event.slug}`)
+      router.push(`/events/${eventResult.slug}`)
     } catch (error) {
       console.error('Failed to create event:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
 
-  const isLoading = createEventMutation.isPending || createFeedbackFormMutation.isPending
-
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background max-w-7xl mx-auto">
       {/* Gradient Background */}
       <div className="fixed inset-0 bg-gray-950" />
       <div className="fixed inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-purple-900/20 via-transparent to-transparent" />
@@ -368,31 +414,22 @@ export function CreateEventClient() {
                       )}
                     />
 
-                    {/* Image URL */}
-                    <FormField
-                      control={form.control}
-                      name="imageUrl"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-sm font-medium flex items-center gap-2 text-gray-200">
-                            <ImageIcon className="h-4 w-4" />
-                            Event Image URL
-                          </FormLabel>
-                          <FormControl>
-                            <Input
-                              type="url"
-                              placeholder="https://example.com/your-event-image.jpg"
-                              {...field}
-                              className="h-12 bg-gray-800/50 border-gray-700/50 text-white placeholder:text-gray-500 focus:border-purple-500 focus:ring-purple-500/20 transition-all duration-200"
-                            />
-                          </FormControl>
-                          <FormDescription className="text-xs text-gray-500">
-                            Add an image to make your event more appealing. Use a high-quality image (recommended: 1200x630px).
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
+                    {/* Event Image Upload */}
+                    <div className="space-y-3">
+                      <FormLabel className="text-sm font-medium flex items-center gap-2 text-gray-200">
+                        <ImageIcon className="h-4 w-4" />
+                        Event Image
+                      </FormLabel>
+                      <EventImageUpload
+                        currentImageUrl={uploadedImageUrl}
+                        onImagePrepared={handleImagePrepared}
+                        className="w-full"
+                        size="lg"
+                      />
+                      <FormDescription className="text-xs text-gray-500">
+                        Upload an image for your event. Images are automatically cropped to 1200×630px for optimal social media sharing and compressed to JPEG format.
+                      </FormDescription>
+                    </div>
 
                     {/* Tags */}
                     <FormField

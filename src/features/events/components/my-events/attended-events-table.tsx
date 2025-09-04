@@ -11,7 +11,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 import { showInfoToast } from '@/lib/toast'
 
-import { useFeedbackStatusQuery } from '../../hooks'
+import { api, useQuery } from '@/lib/convex'
 import { toEventCard } from '../../types'
 import { getEventStatusDetails } from '../../utils'
 
@@ -37,7 +37,8 @@ interface FeedbackStatusCellProps {
 }
 
 function FeedbackStatusCell({ event, isEligible }: FeedbackStatusCellProps) {
-  const { data: feedbackStatus, isLoading } = useFeedbackStatusQuery(event.slug)
+  const feedbackStatus = useQuery(api.events.checkFeedbackStatus, { eventSlug: event.slug })
+  const isLoading = feedbackStatus === undefined
   
   const handleRequestCertification = () => {
     showInfoToast('Certification feature coming soon!')

@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
 
-import { useRegisterToEventMutation } from '../hooks'
+import { api, useMutation } from '@/lib/convex'
 import { EventDetailResponseDtoTypeEnum } from '../types'
 import { eventUtils } from '../utils'
 
@@ -41,19 +41,21 @@ interface RegisterEventModalProps {
 }
 
 export function RegisterEventModal({ isOpen, onClose, event }: RegisterEventModalProps) {
-  const registerMutation = useRegisterToEventMutation()
+  const registerForEvent = useMutation(api.events.registerForEvent)
+  const [isLoading, setIsLoading] = React.useState(false)
 
   const handleRegister = async () => {
+    setIsLoading(true)
     try {
-      await registerMutation.mutateAsync(event.slug)
+      await registerForEvent({ slug: event.slug })
       onClose()
     } catch (error) {
       // Error is handled by the mutation
       console.error('Registration failed:', error)
+    } finally {
+      setIsLoading(false)
     }
   }
-
-  const isLoading = registerMutation.isPending
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>

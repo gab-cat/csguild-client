@@ -1,6 +1,7 @@
-import React from 'react'
+'use client'
 
-import { useFormBuilder } from '../../../hooks'
+import React, { useState, useCallback } from 'react'
+
 import type { FormField, FieldTemplate } from '../../../types'
 import { FIELD_TEMPLATES } from '../../../types'
 
@@ -17,21 +18,84 @@ interface FormBuilderProps {
 }
 
 export function FormBuilder({ initialFields = [], onFieldsChange, className }: FormBuilderProps) {
-  const {
-    fields,
-    isPreviewMode,
-    activeFieldId,
-    setIsPreviewMode,
-    setActiveFieldId,
-    addField,
-    updateField,
-    removeField,
-    duplicateField,
-    reorderFields,
-    clearForm,
-    initializeFields,
-    validateForm,
-  } = useFormBuilder(initialFields)
+  const [fields, setFields] = useState<FormField[]>(initialFields)
+  const [isPreviewMode, setIsPreviewMode] = useState(false)
+  const [activeFieldId, setActiveFieldId] = useState<string | null>(null)
+
+  const addField = useCallback((template: FieldTemplate) => {
+    const newField: FormField = {
+      id: `field-${Date.now()}`,
+      ...template.defaultConfig,
+      label: template.defaultConfig.label || template.name,
+      type: template.type,
+    }
+    setFields(prev => [...prev, newField])
+  }, [])
+
+  const updateField = useCallback((fieldId: string, updates: Partial<FormField>) => {
+    setFields(prev => prev.map(field =>
+      field.id === fieldId ? { ...field, ...updates } : field
+    ))
+  }, [])
+
+  const removeField = useCallback((fieldId: string) => {
+    setFields(prev => prev.filter(field => field.id !== fieldId))
+    if (activeFieldId === fieldId) {
+      setActiveFieldId(null)
+    }
+  }, [activeFieldId])
+
+  const duplicateField = useCallback((fieldId: string) => {
+    const fieldToDuplicate = fields.find(field => field.id === fieldId)
+    if (fieldToDuplicate) {
+      const newField: FormField = {
+        ...fieldToDuplicate,
+        id: `field-${Date.now()}`,
+        label: `${fieldToDuplicate.label} (Copy)`,
+      }
+      setFields(prev => [...prev, newField])
+    }
+  }, [fields])
+
+  const reorderFields = useCallback((startIndex: number, endIndex: number) => {
+    setFields(prev => {
+      const result = Array.from(prev)
+      const [removed] = result.splice(startIndex, 1)
+      result.splice(endIndex, 0, removed)
+      return result
+    })
+  }, [])
+
+  // Update parent when fields change
+  React.useEffect(() => {
+    onFieldsChange?.(fields)
+  }, [fields, onFieldsChange])
+
+  const clearForm = useCallback(() => {
+    setFields([])
+    setActiveFieldId(null)
+    setIsPreviewMode(false)
+  }, [])
+
+  const initializeFields = useCallback((newFields: FormField[]) => {
+    setFields(newFields)
+  }, [])
+
+  const validateForm = useCallback(() => {
+    const errors: string[] = []
+    fields.forEach((field, index) => {
+      if (!field.label.trim()) {
+        errors.push(`Field ${index + 1}: Label is required`)
+      }
+      if (field.required === undefined) {
+        field.required = false
+      }
+    })
+    return {
+      isValid: errors.length === 0,
+      errors,
+    }
+  }, [fields])
 
   const [showClearDialog, setShowClearDialog] = React.useState(false)
   const [validationErrors, setValidationErrors] = React.useState<string[]>([])
@@ -48,7 +112,7 @@ export function FormBuilder({ initialFields = [], onFieldsChange, className }: F
   }, [fields, onFieldsChange])
 
   const addFieldFromTemplate = (template: FieldTemplate) => {
-    addField(template.type)
+    addField(template)
   }
 
   const handleValidateForm = () => {

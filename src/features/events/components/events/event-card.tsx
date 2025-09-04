@@ -68,76 +68,50 @@ export function EventCard({ event, showActions = false, className, index = 0 }: 
       transition={{ duration: 0.5, delay: index * 0.1 }}
       className="group relative"
     >
-      <Card className={`group h-full transition-all pt-0 duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 bg-gray-900/50 backdrop-blur-sm border-gray-800 hover:border-purple-500/50 overflow-hidden ${className}`}>
-        {/* Image Header */}
-        {event.imageUrl && (
-          <div className="relative h-48 overflow-hidden">
-            <Image
-              src={event.imageUrl ?? '/events-placeholder.png'}
-              alt={event.title}
-              fill
-              className="object-cover transition-all duration-300 group-hover:scale-105"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
-            
-            {/* Status Badge Overlay */}
-            <div className="absolute top-3 left-3">
-              <Badge variant="secondary" className={`${currentStatus.className} backdrop-blur-sm border`}>
-                {isOngoing ? (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    {currentStatus.label}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    {StatusIcon && <StatusIcon className="h-3 w-3" />}
-                    {currentStatus.label}
-                  </div>
-                )}
-              </Badge>
-            </div>
-
-            {/* Quick Actions Overlay */}
-            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-              <Button 
-                asChild 
-                size="sm" 
-                variant="secondary"
-                className="bg-gray-900/80 backdrop-blur-sm hover:bg-gray-800/90 border-gray-700"
-              >
-                <Link href={`/events/${event.slug}`}>
-                  <Eye className="h-4 w-4" />
-                </Link>
-              </Button>
-            </div>
-          </div>
-        )}
-
-        <CardHeader className={`pb-3 ${!event.imageUrl ? 'pt-4' : ''}`}>
-          {/* Status badge for events without images */}
-          {!event.imageUrl && (
-            <div className="flex items-center justify-between mb-3">
-              <Badge variant="secondary" className={currentStatus.className}>
-                {isOngoing ? (
-                  <div className="flex items-center gap-1">
-                    <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-                    {currentStatus.label}
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1">
-                    {StatusIcon && <StatusIcon className="h-3 w-3" />}
-                    {currentStatus.label}
-                  </div>
-                )}
-              </Badge>
-              {isOngoing && (
-                <div className="flex items-center gap-1 text-xs text-green-400 font-medium">
-                  <div className="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse" />
-                  LIVE
+      <Card className={`group h-full transition-all pt-0 duration-300 hover:shadow-2xl hover:shadow-purple-500/10 hover:-translate-y-2 bg-gray-900/50 backdrop-blur-sm border-gray-800 hover:border-purple-500/50 overflow-hidden flex flex-col ${className}`}>
+        {/* Image Header (always render; uses placeholder when imageUrl is missing) */}
+        <div className="relative h-48 overflow-hidden">
+          <Image
+            src={event.imageUrl ?? '/events-placeholder.png'}
+            alt={event.title}
+            fill
+            className="object-cover transition-all duration-300 group-hover:scale-105"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+          
+          {/* Status Badge Overlay */}
+          <div className="absolute top-3 left-3">
+            <Badge variant="secondary" className={`${currentStatus.className} backdrop-blur-sm border`}>
+              {isOngoing ? (
+                <div className="flex items-center gap-1">
+                  <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                  {currentStatus.label}
+                </div>
+              ) : (
+                <div className="flex items-center gap-1">
+                  {StatusIcon && <StatusIcon className="h-3 w-3" />}
+                  {currentStatus.label}
                 </div>
               )}
-            </div>
-          )}
+            </Badge>
+          </div>
+
+          {/* Quick Actions Overlay */}
+          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <Button 
+              asChild 
+              size="sm" 
+              variant="secondary"
+              className="bg-gray-900/80 backdrop-blur-sm hover:bg-gray-800/90 border-gray-700"
+            >
+              <Link href={`/events/${event.slug}`}>
+                <Eye className="h-4 w-4" />
+              </Link>
+            </Button>
+          </div>
+        </div>
+
+        <CardHeader className={`pb-3`}>
           
           <Link 
             href={`/events/${event.slug}`}
@@ -155,7 +129,7 @@ export function EventCard({ event, showActions = false, className, index = 0 }: 
           )}
         </CardHeader>
 
-        <CardContent className="pt-0 pb-4 space-y-3">
+        <CardContent className="pt-0 pb-4 space-y-3 flex-1">
           {/* Event Date & Time */}
           <div className="flex items-center text-sm text-gray-400">
             <Calendar className="w-4 h-4 mr-2 flex-shrink-0 text-purple-400" />
@@ -233,7 +207,7 @@ export function EventCard({ event, showActions = false, className, index = 0 }: 
         </CardContent>
 
         {showActions && (
-          <CardFooter className="pt-0 pb-4">
+          <CardFooter className="pt-0 pb-4 mt-auto">
             <div className="w-full">
               {isUpcoming && (
                 <Button 

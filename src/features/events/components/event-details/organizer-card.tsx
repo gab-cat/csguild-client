@@ -18,7 +18,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Separator } from '@/components/ui/separator'
 
-import { useOrganizerStatisticsQuery } from '../../hooks'
+import { api, useQuery } from '@/lib/convex'
 import { EventDetailResponseDto } from '../../types'
 
 interface OrganizerCardProps {
@@ -29,7 +29,8 @@ export function OrganizerCard({ event }: OrganizerCardProps) {
   const organizer = event.organizer
   
   // Fetch organizer statistics
-  const { data: statisticsData, isLoading: isLoadingStats } = useOrganizerStatisticsQuery(organizer.username)
+  const statisticsData = useQuery(api.events.getOrganizerStatistics, { username: organizer.username })
+  const isLoadingStats = statisticsData === undefined
 
   return (
     <motion.div

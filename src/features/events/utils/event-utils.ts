@@ -4,19 +4,39 @@ import { formatDateForDisplay } from '../../../lib/date-utils'
 
 // Utility functions for data transformation and validation
 export const eventUtils = {
+  // Internal: normalize various date inputs to a valid Date (or null)
+  _toDate(input: string | number | undefined | null): Date | null {
+    if (input === undefined || input === null) return null
+    if (typeof input === 'number') {
+      const d = new Date(input)
+      return isNaN(d.getTime()) ? null : d
+    }
+    // Accept numeric-like strings e.g., "1693440000000" or ISO/local strings
+    const numeric = Number(input)
+    if (!Number.isNaN(numeric) && input.trim() !== '') {
+      const d = new Date(numeric)
+      if (!isNaN(d.getTime())) return d
+    }
+    const d = new Date(input)
+    return isNaN(d.getTime()) ? null : d
+  },
+
   // Format event date for display (using standardized date utils)
-  formatEventDate(dateString: string): string {
-    const formatted = formatDateForDisplay(dateString)
+  formatEventDate(dateInput: string | number): string {
+    const d = this._toDate(dateInput)
+    if (!d) return ''
+    const formatted = formatDateForDisplay(d.toISOString())
     return formatted.full
   },
 
   // Check if event is ongoing
-  isEventOngoing(startDate: string, endDate?: string): boolean {
+  isEventOngoing(startDate: string | number, endDate?: string | number): boolean {
     const now = new Date()
-    const start = new Date(startDate)
+    const start = this._toDate(startDate)
+    if (!start) return false
     
     if (!endDate) {
-      // If no end date, consider ongoing for the day of start date
+      // If no end date, consider ongoing for the day of start date (local day)
       const startOfDay = new Date(start)
       startOfDay.setHours(0, 0, 0, 0)
       const endOfDay = new Date(start)
@@ -25,46 +45,51 @@ export const eventUtils = {
       return now >= startOfDay && now <= endOfDay
     }
     
-    const end = new Date(endDate)
+    const end = this._toDate(endDate)
+    if (!end) return now >= start
     return now >= start && now <= end
   },
 
   // Check if event is upcoming
-  isEventUpcoming(startDate: string): boolean {
+  isEventUpcoming(startDate: string | number): boolean {
     const now = new Date()
-    const start = new Date(startDate)
+    const start = this._toDate(startDate)
+    if (!start) return false
     return start > now
   },
 
   // Check if event is completed
-  isEventCompleted(startDate: string, endDate?: string): boolean {
+  isEventCompleted(startDate: string | number, endDate?: string | number): boolean {
     const now = new Date()
     
     if (!endDate) {
+      const start = this._toDate(startDate)
+      if (!start) return false
       // If no end date, consider completed after the day of start date
-      const start = new Date(startDate)
       const endOfDay = new Date(start)
       endOfDay.setHours(23, 59, 59, 999)
       return now > endOfDay
     }
     
-    const end = new Date(endDate)
+    const end = this._toDate(endDate)
+    if (!end) return false
     return now > end
   },
 
   // Get event status
-  getEventStatus(startDate: string, endDate?: string): 'upcoming' | 'ongoing' | 'completed' {
+  getEventStatus(startDate: string | number, endDate?: string | number): 'upcoming' | 'ongoing' | 'completed' {
     if (this.isEventUpcoming(startDate)) return 'upcoming'
     if (this.isEventOngoing(startDate, endDate)) return 'ongoing'
     return 'completed'
   },
 
   // Calculate event duration in a readable format
-  getEventDuration(startDate: string, endDate?: string): string {
+  getEventDuration(startDate: string | number, endDate?: string | number): string {
     if (!endDate) return '0 hours'
     
-    const start = new Date(startDate)
-    const end = new Date(endDate)
+    const start = this._toDate(startDate)
+    const end = this._toDate(endDate)
+    if (!start || !end) return '0 hours'
     const diffMs = end.getTime() - start.getTime()
     const totalHours = Math.round(diffMs / (1000 * 60 * 60))
     
@@ -96,17 +121,17 @@ export const eventUtils = {
   },
 
   // Validate event times
-  validateEventTimes(startDate: string, endDate?: string): { isValid: boolean; error?: string } {
-    const start = new Date(startDate)
+  validateEventTimes(startDate: string | number, endDate?: string | number): { isValid: boolean; error?: string } {
+    const start = this._toDate(startDate)
     const now = new Date()
 
-    if (start <= now) {
+    if (!start || start <= now) {
       return { isValid: false, error: 'Start date must be in the future' }
     }
 
     if (endDate) {
-      const end = new Date(endDate)
-      if (end <= start) {
+      const end = this._toDate(endDate)
+      if (!end || end <= start) {
         return { isValid: false, error: 'End date must be after start date' }
       }
     }
@@ -190,12 +215,12 @@ export const eventUtils = {
 }
 
 // Event status utility function for display
-export const getEventStatusDetails = (startDate: string, endDate?: string) => {
+export const getEventStatusDetails = (startDate: string | number, endDate?: string | number) => {
   const now = new Date()
-  const start = new Date(startDate)
-  const end = endDate ? new Date(endDate) : null
+  const start = eventUtils._toDate(startDate)
+  const end = endDate ? eventUtils._toDate(endDate) : null
 
-  if (now < start) {
+  if (start && now < start) {
     return { status: 'upcoming', color: 'bg-blue-500/20 text-blue-300 border-blue-500/30' }
   } else if (end && now > end) {
     return { status: 'completed', color: 'bg-gray-500/20 text-gray-300 border-gray-500/30' }

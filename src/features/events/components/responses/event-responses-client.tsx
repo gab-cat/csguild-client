@@ -12,9 +12,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { useQuery } from '@/lib/convex'
+import { api } from '@/lib/convex'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
+import type { EventDetailResponseDto, FeedbackResponseDto, EventFeedbackFormDto } from '@generated/api-client'
 
-import { useEventFeedbackResponsesQuery, useEventQuery } from '../../hooks'
 import type { FeedbackResponsesFilters } from '../../utils'
 import { exportResponsesToExcel, formatDateForDisplay } from '../../utils'
 import { EventNavigationDropdown } from '../shared/event-navigation-dropdown'
@@ -60,14 +62,51 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
     sortOrder: localSortOrder,
   }), [currentPage, itemsPerPage, searchQuery, localSortBy, localSortOrder])
 
-  // Fetch data
-  const { data: event, isLoading: isLoadingEvent } = useEventQuery(slug)
-  const {
-    data: responsesData,
-    isLoading: isLoadingResponses,
-    isError,
-    error,
-  } = useEventFeedbackResponsesQuery(slug, filters)
+  // Fetch data - Event query
+  const eventResult = useQuery(
+    // @ts-ignore
+    api.events.getEventBySlug,
+    slug ? { slug } : 'skip'
+  )
+  const event = eventResult || null
+  const isLoadingEvent = eventResult === undefined
+
+  // Fetch data - Event feedback responses query
+  const responsesResult = useQuery(
+    api.events.getEventFeedbackResponses,
+    slug ? {
+      eventSlug: slug,
+      paginationOpts: {
+        numItems: filters.limit || 10,
+        cursor: filters.page && filters.page > 1 ? ((filters.page - 1) * (filters.limit || 10)).toString() : null
+      },
+      search: filters.search,
+      sortBy: filters.sortBy,
+      sortOrder: filters.sortOrder,
+    } : 'skip'
+  )
+
+  // Transform data to match expected types
+  const responsesData = React.useMemo(() => {
+    if (!responsesResult) return null
+
+    return {
+      ...responsesResult,
+      responses: (responsesResult.responses?.map(response => ({
+        ...response,
+        submittedAt: response.submittedAt ? new Date(response.submittedAt).toISOString() : undefined
+      })) || []) as FeedbackResponseDto[],
+      form: responsesResult.form ? {
+        ...responsesResult.form,
+        title: responsesResult.form.title || 'Feedback Form',
+        isActive: responsesResult.form.isActive ?? true
+      } as EventFeedbackFormDto : null
+    }
+  }, [responsesResult])
+
+  const isLoadingResponses = responsesResult === undefined
+  const isError = false
+  const error = null
 
   // Handle search
   const handleSearch = React.useCallback((value: string) => {
@@ -115,9 +154,9 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
     setIsExporting(true)
     try {
       const result = exportResponsesToExcel({
-        responses: responsesData.responses,
-        form: responsesData.form,
-        event: event
+        responses: responsesData.responses as FeedbackResponseDto[],
+        form: responsesData.form as EventFeedbackFormDto,
+        event: event ? (event as unknown as EventDetailResponseDto) : undefined
       })
 
       showSuccessToast(
@@ -224,7 +263,7 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
               <MessageSquare className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
               <h3 className="text-lg font-bold text-red-400/80 mb-2">Failed to Load Responses</h3>
               <p className="text-muted-foreground text-sm mb-4">
-                {error instanceof Error ? error.message : 'An unexpected error occurred'}
+                {error && typeof error === 'object' && 'message' in error ? (error as Error).message : 'An unexpected error occurred'}
               </p>
               <Button onClick={() => window.location.reload()} variant="outline">
                 Try Again
@@ -344,7 +383,7 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                     <div className="min-w-0">
                       <p className="text-xs text-gray-500 uppercase tracking-wide">Event Type</p>
                       <Badge className="bg-blue-500/20 text-blue-300 border-blue-500/30 text-xs">
-                        {event.type.replace('_', ' ')}
+                        {event.type?.replace('_', ' ') || 'Unknown'}
                       </Badge>
                     </div>
                   </div>
@@ -355,10 +394,10 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                     <div className="min-w-0">
                       <p className="text-xs text-gray-500 uppercase tracking-wide">Start Date</p>
                       <p className="text-sm text-white font-medium">
-                        {formatDateForDisplay(event.startDate).date}
+                        {formatDateForDisplay(new Date(event.startDate).toISOString()).date}
                       </p>
                       <p className="text-xs text-gray-400">
-                        {formatDateForDisplay(event.startDate).time}
+                        {formatDateForDisplay(new Date(event.startDate).toISOString()).time}
                       </p>
                     </div>
                   </div>
@@ -370,10 +409,10 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                       <div className="min-w-0">
                         <p className="text-xs text-gray-500 uppercase tracking-wide">End Date</p>
                         <p className="text-sm text-white font-medium">
-                          {formatDateForDisplay(String(event.endDate)).date}
+                          {formatDateForDisplay(new Date(event.endDate).toISOString()).date}
                         </p>
                         <p className="text-xs text-gray-400">
-                          {formatDateForDisplay(String(event.endDate)).time}
+                          {formatDateForDisplay(new Date(event.endDate).toISOString()).time}
                         </p>
                       </div>
                     </div>
@@ -390,9 +429,9 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                           : event.organizer?.username || 'Unknown'
                         }
                       </p>
-                      {event.organizer?.email && (
+                      {event.organizer?.username && (
                         <p className="text-xs text-gray-400 truncate">
-                          {event.organizer.email}
+                          @{event.organizer.username}
                         </p>
                       )}
                     </div>
@@ -414,7 +453,7 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
                   <div className="mt-4">
                     <p className="text-xs text-gray-500 uppercase tracking-wide mb-2">Tags</p>
                     <div className="flex flex-wrap gap-2">
-                      {event.tags.map((tag, index) => (
+                      {event.tags.map((tag: string, index: number) => (
                         <Badge key={index} variant="outline" className="bg-gray-800/50 border-gray-700 text-gray-300 text-xs">
                           <Tag className="h-3 w-3 mr-1" />
                           {tag}
@@ -533,9 +572,9 @@ export function EventResponsesClient({ slug }: EventResponsesClientProps) {
 
               {/* Right Side - User Responses */}
               <div className="space-y-4">
-                <FeedbackResponsesList 
-                  responses={responsesData.responses}
-                  form={responsesData.form}
+                <FeedbackResponsesList
+                  responses={responsesData.responses as FeedbackResponseDto[]}
+                  form={responsesData.form as EventFeedbackFormDto}
                   isLoading={isLoadingResponses}
                 />
               </div>

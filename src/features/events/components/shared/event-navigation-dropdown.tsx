@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ChevronDown, Calendar, Edit, MessageSquare, Users, ArrowLeft, Eye } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
@@ -12,10 +13,10 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
-import { useAuthStore } from '@/features/auth'
+import { useCurrentUser } from '@/features/auth'
+import { api } from '@/lib/convex'
 import { cn } from '@/lib/utils'
 
-import { useEventQuery } from '../../hooks'
 
 interface EventNavigationOption {
   key: 'detail' | 'edit' | 'responses' | 'attend'
@@ -74,8 +75,9 @@ export function EventNavigationDropdown({
   const currentOption = navigationOptions.find(option => option.key === currentPage)
   const CurrentIcon = currentOption?.icon || Calendar
 
-  const { data: event } = useEventQuery(eventSlug);
-  const { user } = useAuthStore();
+  // @ts-ignore
+  const event = useQuery(api.events.getEventBySlug, { slug: eventSlug });
+  const { user } = useCurrentUser();
 
   const isOwner = event?.organizer?.username === user?.username;
 

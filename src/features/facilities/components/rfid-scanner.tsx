@@ -16,8 +16,11 @@ import {
 import { useState, useRef, useEffect } from 'react'
 
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
+import { FacilityQrScanner } from '@/features/facilities'
+// Toasts are handled at the parent level (FacilitiesClient) for a single source of truth
 
 import type { Facility, FacilityToggleResponse } from '../types'
 
@@ -34,6 +37,7 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
   const [rfidInput, setRfidInput] = useState('')
   const [scanFeedback, setScanFeedback] = useState<'success' | 'error' | null>(null)
   const rfidInputRef = useRef<HTMLInputElement>(null)
+  const [isQrMode, setIsQrMode] = useState(false)
 
   // Auto-focus functionality
   useEffect(() => {
@@ -73,6 +77,7 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
         if (rfidInputRef.current) {
           setRfidInput('')
           rfidInputRef.current.focus()
+          // Reset feedback after failure/success so the card returns to normal state
           setScanFeedback(null)
         }
       }, 1000)
@@ -113,35 +118,68 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
               : 'from-pink-900/20 to-violet-900/20 border-pink-500/30'
         }`}>
           <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-white">
-              <motion.div 
-                className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
-                  scanFeedback === 'success' 
-                    ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
-                    : scanFeedback === 'error'
-                      ? 'bg-gradient-to-br from-red-500 to-orange-500'
-                      : 'bg-gradient-to-br from-pink-500 to-violet-500'
-                }`}
-                animate={scanFeedback ? { scale: [1, 1.2, 1] } : {}}
-                transition={{ duration: 0.5 }}
-              >
-                {scanFeedback === 'success' ? (
-                  <CheckCircle className="h-4 w-4 text-white" />
-                ) : scanFeedback === 'error' ? (
-                  <AlertCircle className="h-4 w-4 text-white" />
-                ) : (
-                  <Scan className="h-4 w-4 text-white" />
-                )}
-              </motion.div>
-              <span className="text-lg font-bold">
-                {scanFeedback === 'success' ? 'Scan Successful!' : 
-                  scanFeedback === 'error' ? 'Scan Failed!' : 
-                    'RFID Scanner'}
+            <CardTitle className="flex items-center justify-between text-white">
+              <span className="flex items-center gap-2">
+                <motion.div 
+                  className={`w-8 h-8 rounded-lg flex items-center justify-center transition-all duration-300 ${
+                    scanFeedback === 'success' 
+                      ? 'bg-gradient-to-br from-green-500 to-emerald-500' 
+                      : scanFeedback === 'error'
+                        ? 'bg-gradient-to-br from-red-500 to-orange-500'
+                        : 'bg-gradient-to-br from-pink-500 to-violet-500'
+                  }`}
+                  animate={scanFeedback ? { scale: [1, 1.2, 1] } : {}}
+                  transition={{ duration: 0.5 }}
+                >
+                  {scanFeedback === 'success' ? (
+                    <CheckCircle className="h-4 w-4 text-white" />
+                  ) : scanFeedback === 'error' ? (
+                    <AlertCircle className="h-4 w-4 text-white" />
+                  ) : (
+                    <Scan className="h-4 w-4 text-white" />
+                  )}
+                </motion.div>
+                <span className="text-lg font-bold">
+                  {scanFeedback === 'success' ? 'Scan Successful!' : 
+                    scanFeedback === 'error' ? 'Scan Failed!' : 
+                      'RFID Scanner'}
+                </span>
               </span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-gray-300">QR Mode</span>
+                <Button
+                  type="button"
+                  size="sm"
+                  variant={isQrMode ? 'default' : 'outline'}
+                  onClick={() => setIsQrMode((v) => !v)}
+                >
+                  {isQrMode ? 'On' : 'Off'}
+                </Button>
+              </div>
             </CardTitle>
           </CardHeader>
           
           <CardContent className="space-y-4">
+            {isQrMode && (
+              <div className="mb-4">
+                <FacilityQrScanner
+                  onScan={async (value) => {
+                    try {
+                      await onScan(value)
+                      setScanFeedback('success')
+                      setTimeout(() => setScanFeedback(null), 1000)
+                    } catch {
+                      setScanFeedback('error')
+                      setTimeout(() => setScanFeedback(null), 1000)
+                    }
+                  }}
+                  isScanning={isProcessing}
+                  lastScannedRfid={rfidInput}
+                  disabled={!selectedFacility}
+                  errorMessage={!selectedFacility ? 'Select a facility to start scanning' : null}
+                />
+              </div>
+            )}
             <form onSubmit={handleSubmit}>
               <motion.div 
                 className="relative"
@@ -307,7 +345,7 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
                     <Clock className="h-4 w-4 text-green-400" />
                     <div className="text-sm">
                       <span className="text-gray-400">Time In:</span>
-                      <span className="text-white ml-2">{formatTime(lastScanResult.session.timeIn)}</span>
+                      <span className="text-white ml-2">{lastScanResult.session.timeIn ? formatTime(lastScanResult.session.timeIn) : '—'}</span>
                     </div>
                   </div>
                   
@@ -321,7 +359,7 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
                     </div>
                   )}
                   
-                  {lastScanResult.session.durationMinutes ? (
+                  {typeof lastScanResult.session.durationMinutes === 'number' ? (
                     <div className="flex items-center gap-2 p-2 rounded bg-black/30">
                       <Timer className="h-4 w-4 text-purple-400" />
                       <div className="text-sm">
@@ -329,15 +367,7 @@ export function RfidScanner({ facilities, setSelectedFacility, selectedFacility,
                         <span className="text-white ml-2">{formatDuration(lastScanResult.session.durationMinutes)}</span>
                       </div>
                     </div>
-                  ) : (
-                    <div className="flex items-center gap-2 p-2 rounded bg-black/30">
-                      <Timer className="h-4 w-4 text-purple-400" />
-                      <div className="text-sm">
-                        <span className="text-gray-400">Duration:</span>
-                        <span className="text-white ml-2">0m</span>
-                      </div>
-                    </div>
-                  )}
+                  ) : null}
                 </div>
               </div>
             ) : (

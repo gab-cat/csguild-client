@@ -29,7 +29,7 @@ import { Label } from '@/components/ui/label'
 import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle, SheetTrigger } from '@/components/ui/sheet'
 import { Textarea } from '@/components/ui/textarea'
 
-import { useFormBuilder } from '../../hooks'
+import { useFormBuilder } from '../../hooks/use-form-builder'
 import type { FormField, FieldTemplate } from '../../types'
 import { FIELD_TEMPLATES } from '../../types'
 
@@ -521,7 +521,7 @@ export function FormBuilder({ initialFields = [], onFieldsChange, className }: F
         createdAt: new Date().toISOString(),
         version: '1.0.0',
         fieldCount: fields.length,
-        requiredFields: fields.filter(f => f.required).length,
+        requiredFields: fields.filter((f: FormField) => f.required).length,
       }
     }
     
@@ -691,7 +691,7 @@ export function FormBuilder({ initialFields = [], onFieldsChange, className }: F
             </div>
           </div>
         ) : (
-          fields.map((field, index) => (
+          fields.map((field: FormField, index: number) => (
             <div
               key={field.id}
               className={`transition-all duration-200 bg-gray-900 border border-gray-700 rounded-lg ${
@@ -800,7 +800,7 @@ export function FormBuilder({ initialFields = [], onFieldsChange, className }: F
                 </span>
                 <div className="w-px h-4 bg-gray-600" />
                 <span className="text-gray-400">
-                  {fields.filter(f => f.required).length} required
+                  {fields.filter((f: FormField) => f.required).length} required
                 </span>
               </div>
               

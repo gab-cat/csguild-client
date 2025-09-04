@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 
 import { ProjectDetailPageClient } from '@/features/projects/components/projects/project-detail-page-client'
-import { projectsApi } from '@/features/projects/utils/projects-api'
+// TODO: Update to use Convex projects API
 
 interface ProjectDetailPageProps {
   params: Promise<{

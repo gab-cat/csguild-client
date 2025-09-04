@@ -10,24 +10,29 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 
-// Use the actual API response type
+// Use the Convex response type
 interface AttendeesSectionProps {
   attendeesData?: {
-    attendees?: Array<{
-      id?: string
-      username?: string
-      firstName?: string
-      lastName?: string
-      email?: string
-      imageUrl?: string | null
-      sessionCount?: number
-      isCurrentlyAttending?: boolean
+    data?: Array<{
+      id: string
+      userId: string
+      totalDuration?: number
+      isEligible?: boolean
+      registeredAt: number
+      user: {
+        id: string
+        username: string
+        firstName?: string
+        lastName?: string
+        email?: string
+        imageUrl?: string
+      } | null
     }>
     meta?: {
-      total?: number
-      page?: number
-      limit?: number
-      totalPages?: number
+      total: number
+      page: number
+      limit: number
+      totalPages: number
     }
   }
   isLoading: boolean
@@ -67,27 +72,27 @@ export function AttendeesSection({ attendeesData, isLoading }: AttendeesSectionP
                 </div>
               ))}
             </div>
-          ) : attendeesData?.attendees && attendeesData.attendees.length > 0 ? (
+          ) : attendeesData?.data && attendeesData.data.length > 0 ? (
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                {attendeesData.attendees.slice(0, 12).map((attendee, index) => (
+                {attendeesData.data.slice(0, 12).map((attendee) => (
                   <div 
-                    key={attendee.username || index} 
+                    key={attendee.user?.username || attendee.id} 
                     className="flex items-center gap-3 p-3 rounded-lg bg-gray-800/30 hover:bg-gray-800/50 transition-colors group"
                   >
                     <div className="relative">
                       <Avatar className="h-12 w-12">
-                        <AvatarImage 
-                          src={attendee.imageUrl || undefined} 
-                          alt={`${attendee.firstName || ''} ${attendee.lastName || ''}`}
+                        <AvatarImage
+                          src={attendee.user?.imageUrl || undefined}
+                          alt={`${attendee.user?.firstName || ''} ${attendee.user?.lastName || ''}`}
                         />
                         <AvatarFallback className="bg-gray-700 text-gray-300 text-sm">
-                          {(attendee.firstName?.[0] || '?')}{(attendee.lastName?.[0] || '')}
+                          {(attendee.user?.firstName?.[0] || '?')}{(attendee.user?.lastName?.[0] || '')}
                         </AvatarFallback>
                       </Avatar>
                       
                       {/* Status indicators */}
-                      {attendee.isCurrentlyAttending && (
+                      {attendee.isEligible && (
                         <div className="absolute -top-1 -right-1 h-4 w-4 bg-green-500 rounded-full border-2 border-gray-800 flex items-center justify-center">
                           <div className="h-2 w-2 bg-white rounded-full animate-pulse" />
                         </div>
@@ -97,26 +102,29 @@ export function AttendeesSection({ attendeesData, isLoading }: AttendeesSectionP
                     <div className="min-w-0 flex-1">
                       <div className="flex items-center gap-2 mb-1">
                         <p className="text-sm font-medium text-white truncate">
-                          {attendee.firstName || ''} {attendee.lastName || ''}
+                          {attendee.user?.firstName && attendee.user?.lastName
+                            ? `${attendee.user.firstName} ${attendee.user.lastName}`
+                            : attendee.user?.username || 'Unknown User'
+                          }
                         </p>
-                        {attendee.sessionCount && attendee.sessionCount > 0 ? (
-                          <Badge 
-                            variant="outline" 
-                            className="bg-green-500/20 text-green-400 border-green-500/30 text-xs px-1 py-0"
+                        {attendee.totalDuration && attendee.totalDuration > 0 ? (
+                          <Badge
+                            variant="outline"
+                            className="bg-blue-500/20 text-blue-400 border-blue-500/30 text-xs px-1 py-0"
                           >
-                            <UserCheck className="h-3 w-3" />
+                            {Math.round(attendee.totalDuration / (1000 * 60))} min
                           </Badge>
                         ) : null}
                       </div>
                       <p className="text-xs text-gray-400 truncate mb-1">
-                        @{attendee.username || 'unknown'}
+                        @{attendee.user?.username || 'unknown'}
                       </p>
                       
                       {/* Session info */}
-                      {attendee.sessionCount && attendee.sessionCount > 0 ? (
+                      {attendee.totalDuration && attendee.totalDuration > 0 ? (
                         <div className="flex items-center gap-1 text-xs text-gray-500">
                           <Clock className="h-3 w-3" />
-                          <span>{attendee.sessionCount} session{attendee.sessionCount > 1 ? 's' : ''}</span>
+                          <span>{Math.round(attendee.totalDuration / (1000 * 60))} minutes attended</span>
                         </div>
                       ) : null}
                     </div>

@@ -154,6 +154,142 @@ export function toEventCardFromBasic(event: EventBasicResponseDto, organizer: Ev
   }
 }
 
+// Convex Event Types
+export interface ConvexEventType {
+  id: string
+  slug: string
+  title: string
+  type: "IN_PERSON" | "VIRTUAL" | "HYBRID" | "OTHERS" | undefined
+  description?: string
+  details?: string
+  imageUrl?: string
+  startDate: number
+  endDate?: number
+  tags: string[]
+  organizedBy: string
+  minimumAttendanceMinutes?: number
+  isPinned?: boolean
+  createdAt: number
+  updatedAt: number
+  organizer: {
+    id: string
+    username: string
+    firstName?: string
+    lastName?: string
+    imageUrl?: string
+  } | null
+  attendeeCount: number
+  averageRating: number | null
+  ratingCount: number
+}
+
+export interface ConvexEventDetailType extends ConvexEventType {
+  attendees: Array<{
+    id: string
+    userId: string
+    totalDuration?: number
+    isEligible?: boolean
+    registeredAt: number
+    user: {
+      id: string
+      username: string
+      firstName?: string
+      lastName?: string
+      email?: string
+      imageUrl?: string
+    } | null
+  }>
+  feedbackForm: {
+    id: string
+    title: string
+    fields: any[]
+    isActive: boolean
+    createdAt: number
+  } | null
+}
+
+// Type adapter functions for Convex data
+export function toEventCardFromConvex(event: any): EventCardType {
+  return {
+    id: event.id,
+    slug: event.slug,
+    title: event.title,
+    type: event.type || "IN_PERSON", // Default to IN_PERSON if undefined
+    description: event.description,
+    details: event.details,
+    imageUrl: event.imageUrl,
+    startDate: new Date(event.startDate).toISOString(),
+    endDate: event.endDate ? new Date(event.endDate).toISOString() : undefined,
+    tags: event.tags || [],
+    organizer: event.organizer ? {
+      id: event.organizer.id,
+      username: event.organizer.username,
+      firstName: event.organizer.firstName,
+      lastName: event.organizer.lastName,
+      imageUrl: event.organizer.imageUrl,
+    } : {
+      id: "",
+      username: event.organizedBy,
+      firstName: undefined,
+      lastName: undefined,
+      imageUrl: undefined,
+    },
+    createdAt: new Date(event.createdAt).toISOString(),
+    updatedAt: new Date(event.updatedAt).toISOString(),
+  }
+}
+
+export function toEventDetailFromConvex(event: any): EventDetailResponseDto {
+  return {
+    id: event.id,
+    slug: event.slug,
+    title: event.title,
+    type: event.type || "IN_PERSON",
+    description: event.description || "",
+    details: event.details || "",
+    imageUrl: event.imageUrl || "",
+    startDate: new Date(event.startDate).toISOString(),
+    endDate: event.endDate ? new Date(event.endDate).toISOString() : "",
+    tags: event.tags,
+    organizedBy: event.organizedBy,
+    minimumAttendanceMinutes: event.minimumAttendanceMinutes || 0,
+    isPinned: event.isPinned,
+    createdAt: new Date(event.createdAt).toISOString(),
+    updatedAt: new Date(event.updatedAt).toISOString(),
+    organizer: event.organizer ? {
+      id: event.organizer.id,
+      username: event.organizer.username,
+      firstName: event.organizer.firstName,
+      lastName: event.organizer.lastName,
+      imageUrl: event.organizer.imageUrl,
+    } : {
+      id: "",
+      username: event.organizedBy,
+      firstName: undefined,
+      lastName: undefined,
+      imageUrl: undefined,
+    },
+    attendees: event.attendees.map(attendee => ({
+      id: attendee.id,
+      userId: attendee.userId,
+      totalDuration: attendee.totalDuration || 0,
+      isEligible: attendee.isEligible || false,
+      registeredAt: new Date(attendee.registeredAt).toISOString(),
+      user: attendee.user || undefined,
+    })),
+    attendeeCount: event.attendeeCount,
+    averageRating: event.averageRating,
+    ratingCount: event.ratingCount,
+    feedbackForm: event.feedbackForm ? {
+      id: event.feedbackForm.id,
+      title: event.feedbackForm.title,
+      fields: event.feedbackForm.fields,
+      isActive: event.feedbackForm.isActive,
+      createdAt: new Date(event.feedbackForm.createdAt).toISOString(),
+    } : undefined,
+  }
+}
+
 // API Error types
 export interface EventApiError {
   message: string
@@ -208,6 +344,44 @@ export function isValidEventField(field: unknown): field is FormField {
 export function hasEventDate(event: unknown): event is EventCardType & { startDate: string } {
   return typeof event === 'object' && event !== null && 
     'startDate' in event && typeof event.startDate === 'string'
+}
+
+// Feedback responses filters for query parameters
+export interface FeedbackResponsesFilters {
+  page?: number
+  limit?: number
+  search?: string
+  sortBy?: 'submittedAt' | 'username' | 'firstName' | 'lastName' | 'email'
+  sortOrder?: 'asc' | 'desc'
+}
+
+// Feedback responses data structure
+export interface FeedbackResponseData {
+  responses: FeedbackSubmissionResponseDto[]
+  form: FeedbackFormResponseDto
+  statistics: {
+    totalResponses: number
+    totalAttendees: number
+    responseRate: number
+    fieldStatistics: Record<string, {
+      totalAnswers: number
+      answerCounts: Record<string, number>
+      averageRating?: number
+    }>
+    fieldStats: Array<{
+      fieldId: string
+      fieldLabel: string
+      totalResponses: number
+      responseRate: number
+      answerDistribution: Record<string, number>
+    }>
+  }
+  meta: {
+    page: number
+    limit: number
+    total: number
+    totalPages: number
+  }
 }
 
 // Form builder configuration
