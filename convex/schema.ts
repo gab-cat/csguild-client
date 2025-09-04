@@ -70,6 +70,7 @@ const schema = defineSchema({
     .index("by_name", ["name"])
     .index("by_isActive", ["isActive"]),
 
+  // Facility usage sessions (existing table with enhanced indexes)
   facilityUsages: defineTable({
     userId: v.id("users"),
     facilityId: v.id("facilities"),
@@ -83,7 +84,46 @@ const schema = defineSchema({
     .index("by_facilityId", ["facilityId"])
     .index("by_timeIn", ["timeIn"])
     .index("by_isActive", ["isActive"])
-    .index("by_userId_facilityId_isActive", ["userId", "facilityId", "isActive"]),
+    .index("by_userId_facilityId_isActive", ["userId", "facilityId", "isActive"])
+    .index("by_facilityId_isActive", ["facilityId", "isActive"]) // New index for real-time occupancy
+    .index("by_facilityId_timeIn", ["facilityId", "timeIn"]), // New index for usage history
+
+  // Audit logs for facility access attempts
+  facilityAccessLogs: defineTable({
+    userId: v.optional(v.id("users")),
+    facilityId: v.id("facilities"),
+    rfidId: v.optional(v.string()),
+    action: v.union(v.literal("checkin"), v.literal("checkout"), v.literal("access_denied")),
+    reason: v.optional(v.string()), // e.g., "capacity_exceeded", "facility_inactive", "invalid_card"
+    success: v.boolean(),
+    timestamp: v.number(),
+    metadata: v.optional(v.object({
+      userAgent: v.optional(v.string()),
+      ipAddress: v.optional(v.string()),
+      deviceId: v.optional(v.string()),
+    })),
+  })
+    .index("by_userId", ["userId"])
+    .index("by_facilityId", ["facilityId"])
+    .index("by_rfId", ["rfidId"])
+    .index("by_timestamp", ["timestamp"])
+    .index("by_facilityId_timestamp", ["facilityId", "timestamp"])
+    .index("by_userId_timestamp", ["userId", "timestamp"]),
+
+  // Real-time occupancy tracking
+  facilityOccupancy: defineTable({
+    facilityId: v.id("facilities"),
+    currentOccupancy: v.number(),
+    maxCapacity: v.number(),
+    lastUpdated: v.number(),
+    activeSessions: v.array(v.object({
+      userId: v.id("users"),
+      sessionId: v.id("facilityUsages"),
+      timeIn: v.number(),
+    })),
+  })
+    .index("by_facilityId", ["facilityId"])
+    .index("by_lastUpdated", ["lastUpdated"]),
 
   // Projects tables
   projects: defineTable({
@@ -175,6 +215,7 @@ const schema = defineSchema({
     slug: v.string(),
     type: v.optional(v.union(v.literal("IN_PERSON"), v.literal("VIRTUAL"), v.literal("HYBRID"), v.literal("OTHERS"))),
     imageUrl: v.optional(v.string()),
+    imageStorageId: v.optional(v.id("_storage")),
     description: v.optional(v.string()),
     details: v.optional(v.string()),
     startDate: v.number(),
