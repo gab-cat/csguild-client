@@ -922,3 +922,60 @@ export const sendEmail = internalAction({
     }
   },
 });
+
+// Send event feedback invitation email with public link
+export const sendEventFeedbackInvite = internalAction({
+  args: {
+    to: v.string(),
+    eventTitle: v.string(),
+    eventSlug: v.string(),
+    token: v.string(),
+    userId: v.string(),
+  },
+  returns: v.object({
+    success: v.boolean(),
+    messageId: v.optional(v.string()),
+    error: v.optional(v.string()),
+  }),
+  handler: async (ctx, args) => {
+    try {
+      const mg = getMailgunClient();
+      const domain = process.env.MAILGUN_DOMAIN!;
+      const baseUrl = process.env.SITE_URL || "http://localhost:3000";
+
+      const feedbackUrl = `${baseUrl}/events/${encodeURIComponent(args.eventSlug)}/feedback/public?token=${encodeURIComponent(args.token)}&userId=${encodeURIComponent(args.userId)}`;
+
+      const html = createBaseEmailHTML(
+        "We'd love your feedback",
+        `
+        <div class="subtitle">Help us improve future events</div>
+        <div class="message">
+          <p>Thanks for attending <strong>${args.eventTitle}</strong>! We'd love to hear your thoughts.</p>
+          <p>Please take a minute to complete our short feedback form.</p>
+        </div>
+        <div class="message" style="font-size: 14px; color: #9ca3af;">
+          If the button doesn't work, copy and paste this link:<br/>
+          <a href="${feedbackUrl}" style="color: #a855f7; word-break: break-all;">${feedbackUrl}</a>
+        </div>
+        `,
+        { text: "Give Feedback", url: feedbackUrl }
+      );
+
+      const result = await mg.messages.create(domain, {
+        from: `CS Guild <no-reply@${domain}>`,
+        to: args.to,
+        subject: `Share feedback for ${args.eventTitle}`,
+        text: `We'd love your feedback for ${args.eventTitle}. Visit: ${feedbackUrl}`,
+        html,
+      });
+
+      return { success: true, messageId: result.id };
+    } catch (error) {
+      console.error("Failed to send event feedback invite:", error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : "Unknown error occurred",
+      };
+    }
+  },
+});

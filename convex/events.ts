@@ -21,8 +21,12 @@ import {
   updateFeedbackFormArgs,
   submitFeedbackResponseHandler,
   submitFeedbackResponseArgs,
+  submitFeedbackResponsePublicHandler,
+  submitFeedbackResponsePublicArgs,
   rateOrganizerHandler,
   rateOrganizerArgs,
+  submitOrganizerRatingPublicHandler,
+  submitOrganizerRatingPublicArgs,
   // Image upload functions
   generateUploadUrl,
   saveEventImage,
@@ -53,6 +57,8 @@ import {
   getEventFeedbackResponsesArgs,
   checkFeedbackStatusHandler,
   checkFeedbackStatusArgs,
+  debugFeedbackFormsHandler,
+  debugFeedbackFormsArgs,
 } from "./events/queries";
 
 // QUERIES
@@ -105,6 +111,11 @@ export const getFeedbackForm = query({
 export const checkFeedbackStatus = query({
   args: checkFeedbackStatusArgs,
   handler: checkFeedbackStatusHandler,
+});
+
+export const debugFeedbackForms = query({
+  args: debugFeedbackFormsArgs,
+  handler: debugFeedbackFormsHandler,
 });
 
 export const getEventWithFeedbackFormPublic = query({
@@ -164,9 +175,19 @@ export const submitFeedbackResponse = mutation({
   handler: submitFeedbackResponseHandler,
 });
 
+export const submitFeedbackResponsePublic = mutation({
+  args: submitFeedbackResponsePublicArgs,
+  handler: submitFeedbackResponsePublicHandler,
+});
+
 export const rateOrganizer = mutation({
   args: rateOrganizerArgs,
   handler: rateOrganizerHandler,
+});
+
+export const submitOrganizerRatingPublic = mutation({
+  args: submitOrganizerRatingPublicArgs,
+  handler: submitOrganizerRatingPublicHandler,
 });
 
 // Image upload functions (already defined as mutations in uploadEventImage.ts)

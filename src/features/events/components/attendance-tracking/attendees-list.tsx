@@ -13,28 +13,37 @@ import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
-import type { 
-  EventsQueryControllerGetEventAttendees200Response,
-  EventsQueryControllerGetEventAttendees200ResponseAttendeesInner
-} from '@generated/api-client'
+// Using Convex query shape: attendeesData = { data: [...], meta: {...} }
 
 interface AttendeesListProps {
-  attendeesData: EventsQueryControllerGetEventAttendees200Response | undefined
+  attendeesData: any
   isLoading: boolean
+  sessionCountByUserId?: Record<string, number>
 }
 
 export function AttendeesList({ 
   attendeesData, 
-  isLoading 
+  isLoading,
+  sessionCountByUserId = {}
 }: AttendeesListProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterStatus, setFilterStatus] = useState<'all' | 'checked-in' | 'not-checked-in'>('all')
   const [sortBy, setSortBy] = useState<'name' | 'time' | 'sessions'>('name')
 
-  const attendees = useMemo(() => 
-    attendeesData?.attendees || [], 
-  [attendeesData?.attendees]
-  )
+  const attendees = useMemo(() => {
+    const raw = attendeesData?.data || []
+    // Normalize to the UI shape and convert ms -> minutes
+    return raw.map((a: any) => ({
+      firstName: a.user?.firstName || '',
+      lastName: a.user?.lastName || '',
+      username: a.user?.username || a.userId,
+      email: a.user?.email || '',
+      imageUrl: a.user?.imageUrl || undefined,
+      totalDuration: Math.round((a.totalDuration || 0) / 60000),
+      isEligible: !!a.isEligible,
+      sessionCount: sessionCountByUserId[a.userId] || 0,
+    }))
+  }, [attendeesData?.data, sessionCountByUserId])
 
   const filteredAndSortedAttendees = useMemo(() => {
     const filtered = attendees.filter(attendee => {
@@ -76,7 +85,7 @@ export function AttendeesList({
     return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`
   }
 
-  const getAttendeeStatus = (attendee: EventsQueryControllerGetEventAttendees200ResponseAttendeesInner) => {
+  const getAttendeeStatus = (attendee: any) => {
     const sessionCount = attendee.sessionCount || 0
     const isEligible = attendee.isEligible || false
     
@@ -85,7 +94,7 @@ export function AttendeesList({
     return 'checked-in'
   }
 
-  const getStatusBadge = (attendee: EventsQueryControllerGetEventAttendees200ResponseAttendeesInner) => {
+  const getStatusBadge = (attendee: any) => {
     const status = getAttendeeStatus(attendee)
     
     switch (status) {

@@ -9,26 +9,21 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
+import { api, useQuery } from '@/lib/convex'
 import { showInfoToast } from '@/lib/toast'
 
-import { api, useQuery } from '@/lib/convex'
 import { toEventCard } from '../../types'
 import { getEventStatusDetails } from '../../utils'
 
 interface AttendedEvent extends ReturnType<typeof toEventCard> {
-  attendeeInfo?: {
+  myAttendance?: {
     totalDuration: number
     isEligible: boolean
-    sessionCount: number
-    registeredAt: string
-    hasCompletedMinimumAttendance: boolean
-    sessions: Array<{
-      id: string
-      startedAt: string
-      endedAt?: string
-    }>
+    registeredAt: number
   }
   minimumAttendanceMinutes?: number | null
+  hasSubmittedFeedback?: boolean
+  hasRatedOrganizer?: boolean
 }
 
 interface FeedbackStatusCellProps {
@@ -37,8 +32,20 @@ interface FeedbackStatusCellProps {
 }
 
 function FeedbackStatusCell({ event, isEligible }: FeedbackStatusCellProps) {
+  // @ts-ignore - Complex type inference issue with useQuery
   const feedbackStatus = useQuery(api.events.checkFeedbackStatus, { eventSlug: event.slug })
   const isLoading = feedbackStatus === undefined
+  
+  // Debug logging
+  console.log('FeedbackStatusCell Debug:', {
+    eventSlug: event.slug,
+    isEligible,
+    feedbackStatus,
+    isLoading,
+    canSubmitFeedback: feedbackStatus?.canSubmitFeedback,
+    reason: feedbackStatus?.reason,
+    hasSubmittedFeedback: feedbackStatus?.hasSubmittedFeedback
+  })
   
   const handleRequestCertification = () => {
     showInfoToast('Certification feature coming soon!')
@@ -62,30 +69,35 @@ function FeedbackStatusCell({ event, isEligible }: FeedbackStatusCellProps) {
     )
   }
   
-  if (!feedbackStatus?.hasForm) {
+  if (!feedbackStatus?.canSubmitFeedback) {
+    // If user has already submitted feedback, show certification button
+    if (feedbackStatus?.hasSubmittedFeedback) {
+      return (
+        <div className="flex items-center gap-2">
+          <Button 
+            size="sm" 
+            variant="outline" 
+            onClick={handleRequestCertification}
+            className="border-green-700 text-green-300 hover:bg-green-800/20"
+          >
+            <Award className="w-4 h-4 mr-1" />
+            Request Certification
+          </Button>
+        </div>
+      )
+    }
+    
+    // Otherwise show the reason
     return (
       <div className="flex items-center gap-2">
         <div className="w-4 h-4 bg-gray-500 rounded-full" />
-        <span className="text-gray-400 text-sm">No feedback form</span>
+        <span className="text-gray-400 text-sm">
+          {feedbackStatus?.reason || 'No feedback form'}
+        </span>
       </div>
     )
   }
   
-  if (feedbackStatus.hasSubmitted) {
-    return (
-      <div className="flex items-center gap-2">
-        <Button 
-          size="sm" 
-          variant="outline" 
-          onClick={handleRequestCertification}
-          className="border-green-700 text-green-300 hover:bg-green-800/20"
-        >
-          <Award className="w-4 h-4 mr-1" />
-          Request Certification
-        </Button>
-      </div>
-    )
-  }
   
   return (
     <div className="flex items-center gap-2">
@@ -119,7 +131,8 @@ export function AttendedEventsTable({ events, isLoading }: AttendedEventsTablePr
     }
   }
 
-  const formatDuration = (minutes: number) => {
+  const formatDuration = (milliseconds: number) => {
+    const minutes = Math.floor(milliseconds / (60 * 1000))
     if (minutes < 60) {
       return `${minutes}m`
     }
@@ -131,28 +144,29 @@ export function AttendedEventsTable({ events, isLoading }: AttendedEventsTablePr
     return `${hours}h ${remainingMinutes}m`
   }
 
-  const getEligibilityStatus = useCallback((attendeeInfo?: AttendedEvent['attendeeInfo'], eventEndDate?: string, minimumAttendanceMinutes?: number | null) => {
+  const getEligibilityStatus = useCallback((myAttendance?: AttendedEvent['myAttendance'], eventEndDate?: string, minimumAttendanceMinutes?: number | null) => {
     const now = new Date()
     const endDate = eventEndDate ? new Date(eventEndDate) : null
     const isCompleted = endDate ? now > endDate : false
     
     // If no attendance data, assume eligible for completed events
-    if (!attendeeInfo) {
+    if (!myAttendance) {
       return { 
         eligible: isCompleted, 
         reason: isCompleted ? 'Event completed - feedback available' : 'Attendance data not available' 
       }
     }
 
-    const { totalDuration, isEligible } = attendeeInfo
+    const { totalDuration, isEligible } = myAttendance
     const minimumMinutes = minimumAttendanceMinutes || 0
+    const minimumMilliseconds = minimumMinutes * 60 * 1000
 
     // If the event is completed, always show as eligible for feedback
     if (isCompleted) {
       return { 
         eligible: true, 
         reason: isEligible 
-          ? `Met requirement (${formatDuration(totalDuration)}/${formatDuration(minimumMinutes)})`
+          ? `Met requirement (${formatDuration(totalDuration)}/${formatDuration(minimumMilliseconds)})`
           : 'Event completed - feedback available'
       }
     }
@@ -164,16 +178,31 @@ export function AttendedEventsTable({ events, isLoading }: AttendedEventsTablePr
     return {
       eligible: isEligible,
       reason: isEligible 
-        ? `Met requirement (${formatDuration(totalDuration)}/${formatDuration(minimumMinutes)})`
-        : `Need ${formatDuration(minimumMinutes - totalDuration)} more`
+        ? `Met requirement (${formatDuration(totalDuration)}/${formatDuration(minimumMilliseconds)})`
+        : `Need ${formatDuration(minimumMilliseconds - totalDuration)} more`
     }
   }, [])
 
   const processedEvents = useMemo(() => {
-    return events.map(event => ({
-      ...event,
-      eligibilityStatus: getEligibilityStatus(event.attendeeInfo, event.endDate, event.minimumAttendanceMinutes)
-    }))
+    return events.map(event => {
+      const eligibilityStatus = getEligibilityStatus(event.myAttendance, event.endDate, event.minimumAttendanceMinutes)
+      
+      // Debug logging
+      console.log('Processed Event Debug:', {
+        eventTitle: event.title,
+        eventSlug: event.slug,
+        myAttendance: event.myAttendance,
+        minimumAttendanceMinutes: event.minimumAttendanceMinutes,
+        eligibilityStatus,
+        hasSubmittedFeedback: event.hasSubmittedFeedback,
+        hasRatedOrganizer: event.hasRatedOrganizer
+      })
+      
+      return {
+        ...event,
+        eligibilityStatus
+      }
+    })
   }, [events, getEligibilityStatus])
 
   if (isLoading) {
@@ -363,13 +392,13 @@ export function AttendedEventsTable({ events, isLoading }: AttendedEventsTablePr
                         >
                           <Clock className="w-4 h-4 text-gray-400" />
                           <div className="text-sm">
-                            {event.attendeeInfo ? (
+                            {event.myAttendance ? (
                               <>
                                 <div className="text-white font-medium">
-                                  {formatDuration(event.attendeeInfo.totalDuration)}
+                                  {formatDuration(event.myAttendance.totalDuration)}
                                 </div>
                                 <div className="text-gray-400">
-                                  {event.attendeeInfo.sessionCount} session{event.attendeeInfo.sessionCount !== 1 ? 's' : ''}
+                                  Registered {new Date(event.myAttendance.registeredAt).toLocaleDateString()}
                                 </div>
                               </>
                             ) : (

@@ -10,3 +10,4 @@ export { getFeedbackFormArgs, getFeedbackFormHandler } from "./getFeedbackForm";
 export { getEventWithFeedbackFormPublicArgs, getEventWithFeedbackFormPublicHandler } from "./getEventWithFeedbackFormPublic";
 export { getEventFeedbackResponsesArgs, getEventFeedbackResponsesHandler } from "./getEventFeedbackResponses";
 export { checkFeedbackStatusArgs, checkFeedbackStatusHandler } from "./checkFeedbackStatus";
+export { debugFeedbackFormsArgs, debugFeedbackFormsHandler } from "./debugFeedbackForms";

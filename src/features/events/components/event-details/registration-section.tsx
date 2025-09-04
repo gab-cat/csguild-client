@@ -7,7 +7,7 @@ import React from 'react'
 import { AuthGuard } from '@/components/shared/auth-guard'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useAuthStore } from '@/features/auth/stores/auth-store'
+import { useAuthStore } from '@/stores/auth-store'
 
 import { EventDetailResponseDto } from '../../types'
 

@@ -33,8 +33,11 @@ export const registerForEventHandler = async (
     throw new Error("Event not found");
   }
 
-  // Check if event is in the future (can't register for past events)
-  if (event.startDate < Date.now()) {
+  // Allow registration if the event is upcoming or currently ongoing.
+  // Only block if the event has definitively ended.
+  const now = Date.now();
+  const eventHasEnded = typeof event.endDate === "number" ? event.endDate < now : false;
+  if (eventHasEnded) {
     throw new Error("Cannot register for past events");
   }
 
@@ -50,7 +53,7 @@ export const registerForEventHandler = async (
     throw new Error("User is already registered for this event");
   }
 
-  const now = Date.now();
+  
 
   // Create attendee record
   const attendeeId = await ctx.db.insert("eventAttendees", {

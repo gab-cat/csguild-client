@@ -36,6 +36,7 @@ import type * as events_mutations_updateEvent from "../events/mutations/updateEv
 import type * as events_mutations_updateFeedbackForm from "../events/mutations/updateFeedbackForm.js";
 import type * as events_mutations_uploadEventImage from "../events/mutations/uploadEventImage.js";
 import type * as events_queries_checkFeedbackStatus from "../events/queries/checkFeedbackStatus.js";
+import type * as events_queries_debugFeedbackForms from "../events/queries/debugFeedbackForms.js";
 import type * as events_queries_getEventAttendees from "../events/queries/getEventAttendees.js";
 import type * as events_queries_getEventBySlug from "../events/queries/getEventBySlug.js";
 import type * as events_queries_getEventFeedbackResponses from "../events/queries/getEventFeedbackResponses.js";
@@ -140,6 +141,7 @@ declare const fullApi: ApiFromModules<{
   "events/mutations/updateFeedbackForm": typeof events_mutations_updateFeedbackForm;
   "events/mutations/uploadEventImage": typeof events_mutations_uploadEventImage;
   "events/queries/checkFeedbackStatus": typeof events_queries_checkFeedbackStatus;
+  "events/queries/debugFeedbackForms": typeof events_queries_debugFeedbackForms;
   "events/queries/getEventAttendees": typeof events_queries_getEventAttendees;
   "events/queries/getEventBySlug": typeof events_queries_getEventBySlug;
   "events/queries/getEventFeedbackResponses": typeof events_queries_getEventFeedbackResponses;

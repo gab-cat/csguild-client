@@ -181,6 +181,124 @@ export const getEventFeedbackResponsesHandler = async (
       })
     );
 
+    // Get total attendees for this event to calculate response rate
+    const totalAttendees = await ctx.db
+      .query("eventAttendees")
+      .withIndex("by_eventId", q => q.eq("eventId", event._id))
+      .collect();
+
+    const totalAttendeesCount = totalAttendees.length;
+    const responseRate = totalAttendeesCount > 0 ? (filteredResponseData.length / totalAttendeesCount) * 100 : 0;
+
+    // Calculate field statistics for filtered responses
+    const fieldStats: Record<string, Record<string, unknown>> = {};
+    
+    if (feedbackForm.fields && Array.isArray(feedbackForm.fields)) {
+      for (const field of feedbackForm.fields) {
+        if (field && typeof field === 'object' && 'id' in field) {
+          const fieldId = field.id as string;
+          const fieldLabel = (field as Record<string, unknown>).label as string || fieldId;
+          const fieldType = (field as Record<string, unknown>).type as string || 'text';
+          
+          let totalAnswers = 0;
+          const responses: unknown[] = [];
+          
+          // Collect all responses for this field from filtered data
+          for (const response of filteredResponseData) {
+            if (response.responses && typeof response.responses === 'object') {
+              const fieldResponse = (response.responses as Record<string, unknown>)[fieldId];
+              if (fieldResponse !== undefined && fieldResponse !== null && fieldResponse !== '') {
+                totalAnswers++;
+                responses.push(fieldResponse);
+              }
+            }
+          }
+          
+          const fieldResponseRate = filteredResponseData.length > 0 ? (totalAnswers / filteredResponseData.length) * 100 : 0;
+          
+          // Initialize field stats
+          fieldStats[fieldId] = {
+            fieldLabel,
+            fieldType,
+            totalAnswers,
+            responseRate: fieldResponseRate,
+          };
+          
+          // Calculate type-specific statistics (same logic as above)
+          if (fieldType === 'rating' && responses.length > 0) {
+            const numericResponses = responses.filter((r): r is number => typeof r === 'number' && !isNaN(r));
+            if (numericResponses.length > 0) {
+              const sum = numericResponses.reduce((a, b) => a + b, 0);
+              const average = sum / numericResponses.length;
+              const min = Math.min(...numericResponses);
+              const max = Math.max(...numericResponses);
+              
+              const distribution: Record<string, number> = {};
+              for (const rating of numericResponses) {
+                distribution[rating.toString()] = (distribution[rating.toString()] || 0) + 1;
+              }
+              
+              fieldStats[fieldId] = {
+                ...fieldStats[fieldId],
+                average,
+                min,
+                max,
+                distribution,
+              };
+            }
+          } else if ((fieldType === 'radio' || fieldType === 'checkbox') && responses.length > 0) {
+            const optionCounts: Record<string, number> = {};
+            for (const response of responses) {
+              if (Array.isArray(response)) {
+                for (const option of response) {
+                  if (typeof option === 'string') {
+                    optionCounts[option] = (optionCounts[option] || 0) + 1;
+                  }
+                }
+              } else if (typeof response === 'string') {
+                optionCounts[response] = (optionCounts[response] || 0) + 1;
+              }
+            }
+            
+            let mostPopular: { option: string; count: number } | undefined;
+            for (const [option, count] of Object.entries(optionCounts)) {
+              if (!mostPopular || count > mostPopular.count) {
+                mostPopular = { option, count };
+              }
+            }
+            
+            fieldStats[fieldId] = {
+              ...fieldStats[fieldId],
+              optionCounts,
+              mostPopular,
+            };
+          } else if ((fieldType === 'text' || fieldType === 'textarea') && responses.length > 0) {
+            const textResponses = responses.filter((r): r is string => typeof r === 'string' && r.trim().length > 0);
+            if (textResponses.length > 0) {
+              const wordCounts = textResponses.map(r => r.trim().split(/\s+/).length);
+              const totalWords = wordCounts.reduce((a, b) => a + b, 0);
+              const averageWordCount = Math.round(totalWords / textResponses.length);
+              
+              const sampleResponses = textResponses.slice(0, 3);
+              
+              fieldStats[fieldId] = {
+                ...fieldStats[fieldId],
+                averageWordCount,
+                totalWords,
+                sampleResponses,
+              };
+            }
+          } else if (fieldType === 'select' && responses.length > 0) {
+            const uniqueResponses = [...new Set(responses.filter((r): r is string => typeof r === 'string'))];
+            fieldStats[fieldId] = {
+              ...fieldStats[fieldId],
+              sampleAnswers: uniqueResponses.slice(0, 5),
+            };
+          }
+        }
+      }
+    }
+
     return {
       responses: responsesWithFullData,
       form: {
@@ -194,10 +312,9 @@ export const getEventFeedbackResponsesHandler = async (
       },
       statistics: {
         totalResponses: filteredResponseData.length,
-        totalAttendees: filteredResponseData.length, // This could be different if we track unique attendees
-        responseRate: 0, // Would need total invited attendees to calculate
-        fieldStatistics: {}, // Would need to calculate field-level statistics
-        fieldStats: [], // Would need to calculate detailed field statistics
+        totalAttendees: totalAttendeesCount,
+        responseRate: Math.round(responseRate * 100) / 100,
+        fieldStats: fieldStats,
       },
       meta: {
         page: Math.floor(startIndex / numItems) + 1,
@@ -271,6 +388,132 @@ export const getEventFeedbackResponsesHandler = async (
 
   const totalCount = totalResponses.length;
 
+  // Get total attendees for this event to calculate response rate
+  const totalAttendees = await ctx.db
+    .query("eventAttendees")
+    .withIndex("by_eventId", q => q.eq("eventId", event._id))
+    .collect();
+
+  const totalAttendeesCount = totalAttendees.length;
+  const responseRate = totalAttendeesCount > 0 ? (totalCount / totalAttendeesCount) * 100 : 0;
+
+  // Calculate field statistics
+  const fieldStats: Record<string, Record<string, unknown>> = {};
+  
+  if (feedbackForm.fields && Array.isArray(feedbackForm.fields)) {
+    for (const field of feedbackForm.fields) {
+      if (field && typeof field === 'object' && 'id' in field) {
+        const fieldId = field.id as string;
+        const fieldLabel = (field as Record<string, unknown>).label as string || fieldId;
+        const fieldType = (field as Record<string, unknown>).type as string || 'text';
+        
+        let totalAnswers = 0;
+        const responses: unknown[] = [];
+        
+        // Collect all responses for this field
+        for (const response of totalResponses) {
+          if (response.responses && typeof response.responses === 'object') {
+            const fieldResponse = (response.responses as Record<string, unknown>)[fieldId];
+            if (fieldResponse !== undefined && fieldResponse !== null && fieldResponse !== '') {
+              totalAnswers++;
+              responses.push(fieldResponse);
+            }
+          }
+        }
+        
+        const responseRate = totalCount > 0 ? (totalAnswers / totalCount) * 100 : 0;
+        
+        // Initialize field stats
+        fieldStats[fieldId] = {
+          fieldLabel,
+          fieldType,
+          totalAnswers,
+          responseRate,
+        };
+        
+        // Calculate type-specific statistics
+        if (fieldType === 'rating' && responses.length > 0) {
+          const numericResponses = responses.filter((r): r is number => typeof r === 'number' && !isNaN(r));
+          if (numericResponses.length > 0) {
+            const sum = numericResponses.reduce((a, b) => a + b, 0);
+            const average = sum / numericResponses.length;
+            const min = Math.min(...numericResponses);
+            const max = Math.max(...numericResponses);
+            
+            // Calculate distribution
+            const distribution: Record<string, number> = {};
+            for (const rating of numericResponses) {
+              distribution[rating.toString()] = (distribution[rating.toString()] || 0) + 1;
+            }
+            
+            fieldStats[fieldId] = {
+              ...fieldStats[fieldId],
+              average,
+              min,
+              max,
+              distribution,
+            };
+          }
+        } else if ((fieldType === 'radio' || fieldType === 'checkbox') && responses.length > 0) {
+          // Calculate option counts
+          const optionCounts: Record<string, number> = {};
+          for (const response of responses) {
+            if (Array.isArray(response)) {
+              // For checkbox (multiple selections)
+              for (const option of response) {
+                if (typeof option === 'string') {
+                  optionCounts[option] = (optionCounts[option] || 0) + 1;
+                }
+              }
+            } else if (typeof response === 'string') {
+              // For radio (single selection)
+              optionCounts[response] = (optionCounts[response] || 0) + 1;
+            }
+          }
+          
+          // Find most popular option
+          let mostPopular: { option: string; count: number } | undefined;
+          for (const [option, count] of Object.entries(optionCounts)) {
+            if (!mostPopular || count > mostPopular.count) {
+              mostPopular = { option, count };
+            }
+          }
+          
+          fieldStats[fieldId] = {
+            ...fieldStats[fieldId],
+            optionCounts,
+            mostPopular,
+          };
+        } else if ((fieldType === 'text' || fieldType === 'textarea') && responses.length > 0) {
+          // Calculate text statistics
+          const textResponses = responses.filter((r): r is string => typeof r === 'string' && r.trim().length > 0);
+          if (textResponses.length > 0) {
+            const wordCounts = textResponses.map(r => r.trim().split(/\s+/).length);
+            const totalWords = wordCounts.reduce((a, b) => a + b, 0);
+            const averageWordCount = Math.round(totalWords / textResponses.length);
+            
+            // Get sample responses (first 3 non-empty ones)
+            const sampleResponses = textResponses.slice(0, 3);
+            
+            fieldStats[fieldId] = {
+              ...fieldStats[fieldId],
+              averageWordCount,
+              totalWords,
+              sampleResponses,
+            };
+          }
+        } else if (fieldType === 'select' && responses.length > 0) {
+          // For select fields, show sample answers
+          const uniqueResponses = [...new Set(responses.filter((r): r is string => typeof r === 'string'))];
+          fieldStats[fieldId] = {
+            ...fieldStats[fieldId],
+            sampleAnswers: uniqueResponses.slice(0, 5),
+          };
+        }
+      }
+    }
+  }
+
   return {
     responses: responsesWithFullData,
     form: {
@@ -284,10 +527,9 @@ export const getEventFeedbackResponsesHandler = async (
     },
     statistics: {
       totalResponses: totalCount,
-      totalAttendees: totalCount,
-      responseRate: 0, // Would need total invited attendees
-      fieldStatistics: {},
-      fieldStats: [],
+      totalAttendees: totalAttendeesCount,
+      responseRate: Math.round(responseRate * 100) / 100, // Round to 2 decimal places
+      fieldStats: fieldStats,
     },
     meta: {
       page: Math.floor((args.paginationOpts.cursor ? parseInt(args.paginationOpts.cursor) : 0) / args.paginationOpts.numItems) + 1,

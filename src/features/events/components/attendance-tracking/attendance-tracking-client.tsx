@@ -65,12 +65,26 @@ export function AttendanceTrackingClient({ slug }: AttendanceTrackingClientProps
   // @ts-ignore
   const event = useQuery(api.events.getEventBySlug, { slug })
   const attendeesData = useQuery(api.events.getEventAttendees, event ? { eventId: event.id } : "skip")
+  const sessionsData = useQuery(api.events.getEventSessions, event ? { eventSlug: event.slug } : "skip")
   const toggleEventSession = useMutation(api.events.toggleEventSession)
 
   // Check if current user is the event organizer
   const isLoading = event === undefined
   const isLoadingAttendees = attendeesData === undefined
   const isOrganizer = user?.username === event?.organizer?.username
+
+  // Build helpers from sessions for UI
+  const sessionCountByUserId = React.useMemo(() => {
+    const counts: Record<string, number> = {}
+    if (!sessionsData?.sessions) return counts
+    for (const s of sessionsData.sessions) {
+      const key = s.attendee.userId as string
+      counts[key] = (counts[key] || 0) + 1
+    }
+    return counts
+  }, [sessionsData?.sessions])
+
+  // Note: If needed in the future, we can also derive active users from sessions
 
   const handleRfidScan = async (rfidId: string) => {
     if (!rfidId.trim() || !event?.id) return
@@ -82,7 +96,7 @@ export function AttendanceTrackingClient({ slug }: AttendanceTrackingClientProps
       setRfidInput(rfidId)
       setLastScannedRfid(rfidId)
 
-      await toggleEventSession({
+      const result = await toggleEventSession({
         rfidId: rfidId.trim(),
         eventSlug: event.slug
       })
@@ -93,17 +107,18 @@ export function AttendanceTrackingClient({ slug }: AttendanceTrackingClientProps
         success: true,
         rfidId: rfidId.trim(),
         timestamp: new Date().toISOString(),
-        userInfo: {
-          name: 'User scanned successfully',
-          username: 'rfid-user',
-          email: 'user@example.com'
-        },
-        attendanceInfo: {
-          action: 'check-in', // This would be determined by the mutation result
-          totalDuration: 0,
-          sessionCount: 1,
-          isEligible: true
-        }
+        userInfo: result?.user ? {
+          name: `${result.user.firstName ?? ''} ${result.user.lastName ?? ''}`.trim() || (result.user.username ?? ''),
+          username: result.user.username ?? '',
+          email: '',
+          imageUrl: result.user.imageUrl ?? undefined,
+        } : undefined,
+        attendanceInfo: result ? {
+          action: (result.action as 'check-in' | 'check-out') ?? 'check-in',
+          totalDuration: (result.attendee?.totalDuration as number) ?? 0,
+          sessionCount: sessionCountByUserId[result.attendee?.userId as string] ?? 0,
+          isEligible: (result.attendee?.isEligible as boolean) ?? false,
+        } : undefined,
       })
       setShowModal(true)
       
@@ -492,6 +507,7 @@ export function AttendanceTrackingClient({ slug }: AttendanceTrackingClientProps
                   <AttendanceStats 
                     attendeesData={attendeesData}
                     isLoading={isLoadingAttendees}
+                    sessionCountByUserId={sessionCountByUserId}
                   />
                 </div>
               </motion.div>
@@ -506,6 +522,7 @@ export function AttendanceTrackingClient({ slug }: AttendanceTrackingClientProps
                 <AttendeesList 
                   attendeesData={attendeesData}
                   isLoading={isLoadingAttendees}
+                  sessionCountByUserId={sessionCountByUserId}
                 />
               </motion.div>
             </div>

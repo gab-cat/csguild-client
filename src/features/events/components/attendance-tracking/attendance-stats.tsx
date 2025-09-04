@@ -6,16 +6,20 @@ import React from 'react'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
-import type { EventsQueryControllerGetEventAttendees200Response } from '@generated/api-client'
+// Using Convex query shape: attendeesData = { data: [...], meta: {...} }
 
 interface AttendanceStatsProps {
-  attendeesData: EventsQueryControllerGetEventAttendees200Response | undefined
+  attendeesData: any
   isLoading: boolean
+  sessionCountByUserId?: Record<string, number>
+  activeUserIds?: Set<string>
 }
 
 export function AttendanceStats({ 
   attendeesData, 
-  isLoading 
+  isLoading,
+  sessionCountByUserId = {},
+  activeUserIds = new Set<string>()
 }: AttendanceStatsProps) {
   if (isLoading) {
     return (
@@ -58,14 +62,17 @@ export function AttendanceStats({
     )
   }
 
-  const attendees = attendeesData?.attendees || []
+  const attendees = (attendeesData?.data || []).map((a: any) => ({
+    userId: a.userId as string,
+    totalDuration: Math.round((a.totalDuration || 0) / 60000), // ms -> minutes
+  }))
   const totalRegistered = attendees.length
-  const checkedIn = attendees.filter(attendee => (attendee.sessionCount || 0) > 0).length
+  const checkedIn = attendees.reduce((acc: number, a: any) => acc + ((sessionCountByUserId[a.userId] || 0) > 0 ? 1 : 0), 0)
   const checkedInPercentage = totalRegistered > 0 ? (checkedIn / totalRegistered) * 100 : 0
 
   // Calculate average attendance time based on total duration
   const avgAttendanceTime = attendees.length > 0 
-    ? Math.round(attendees.reduce((sum, attendee) => sum + (attendee.totalDuration || 0), 0) / attendees.length)
+    ? Math.round(attendees.reduce((sum: number, attendee: any) => sum + (attendee.totalDuration || 0), 0) / attendees.length)
     : 0
 
   return (

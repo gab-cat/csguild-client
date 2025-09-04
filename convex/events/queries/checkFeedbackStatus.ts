@@ -37,7 +37,7 @@ export const checkFeedbackStatusHandler = async (
   const attendee = await ctx.db
     .query("eventAttendees")
     .withIndex("by_eventId_userId", q =>
-      q.eq("eventId", event._id).eq("userId", currentUser.username)
+      q.eq("eventId", event._id).eq("userId", currentUser.username!)
     )
     .first();
 
@@ -50,24 +50,35 @@ export const checkFeedbackStatusHandler = async (
     };
   }
 
-  // Check if event has ended (feedback should only be available after event ends)
+  // Check if event has started (feedback should be available once event starts)
   const now = Date.now();
-  const eventEnded = event.endDate ? event.endDate < now : event.startDate < now;
+  const eventStarted = event.startDate < now;
 
-  if (!eventEnded) {
+  if (!eventStarted) {
     return {
       canSubmitFeedback: false,
-      reason: "Event has not ended yet",
+      reason: "Event has not started yet",
       hasSubmittedFeedback: false,
       hasRatedOrganizer: false,
     };
   }
 
-  // Check if user has sufficient attendance time
+  // Check if user has sufficient attendance time by summing all sessions
+  const sessions = await ctx.db
+    .query("eventSessions")
+    .withIndex("by_attendeeId", q => q.eq("attendeeId", attendee._id))
+    .collect();
+
+  let summedDuration = 0;
+  for (const s of sessions) {
+    const sStart = s.startedAt || 0;
+    const sEnd = s.endedAt || 0;
+    const sDuration = typeof s.duration === 'number' ? s.duration : (sEnd && sStart ? Math.max(0, sEnd - sStart) : 0);
+    summedDuration += sDuration;
+  }
+
   const minMinutes = event.minimumAttendanceMinutes || 0;
-  const hasEnoughAttendance = attendee.totalDuration
-    ? attendee.totalDuration >= (minMinutes * 60 * 1000)
-    : false;
+  const hasEnoughAttendance = summedDuration >= (minMinutes * 60 * 1000);
 
   if (!hasEnoughAttendance) {
     return {
@@ -76,7 +87,7 @@ export const checkFeedbackStatusHandler = async (
       hasSubmittedFeedback: false,
       hasRatedOrganizer: false,
       requiredMinutes: minMinutes,
-      actualMinutes: attendee.totalDuration ? Math.floor(attendee.totalDuration / (60 * 1000)) : 0,
+      actualMinutes: Math.floor(summedDuration / (60 * 1000)),
     };
   }
 
@@ -85,6 +96,16 @@ export const checkFeedbackStatusHandler = async (
     .query("eventFeedbackForms")
     .withIndex("by_eventId", q => q.eq("eventId", event._id))
     .first();
+
+  console.log("[checkFeedbackStatus] Feedback form check:", {
+    eventId: event._id,
+    eventSlug: event.slug,
+    feedbackForm: feedbackForm ? {
+      id: feedbackForm._id,
+      title: feedbackForm.title,
+      isActive: feedbackForm.isActive
+    } : null
+  });
 
   if (!feedbackForm) {
     return {
@@ -108,7 +129,7 @@ export const checkFeedbackStatusHandler = async (
   const existingResponse = await ctx.db
     .query("eventFeedbackResponses")
     .withIndex("by_formId_userId", q =>
-      q.eq("formId", feedbackForm._id).eq("userId", currentUser.username)
+      q.eq("formId", feedbackForm._id).eq("userId", currentUser.username!)
     )
     .first();
 
@@ -116,7 +137,7 @@ export const checkFeedbackStatusHandler = async (
   const existingRating = await ctx.db
     .query("eventOrganizerRatings")
     .withIndex("by_eventId_userId", q =>
-      q.eq("eventId", event._id).eq("userId", currentUser.username)
+      q.eq("eventId", event._id).eq("userId", currentUser.username!)
     )
     .first();
 
@@ -131,8 +152,8 @@ export const checkFeedbackStatusHandler = async (
     },
     attendee: {
       id: attendee._id,
-      totalDuration: attendee.totalDuration,
-      isEligible: attendee.isEligible,
+      totalDuration: summedDuration,
+      isEligible: hasEnoughAttendance,
     },
     event: {
       id: event._id,

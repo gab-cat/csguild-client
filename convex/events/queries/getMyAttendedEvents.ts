@@ -173,6 +173,23 @@ export const getMyAttendedEventsHandler = async (
         )
         .first() : null;
 
+      // Calculate attendance data from sessions (more accurate than stored values)
+      const sessions = await ctx.db
+        .query("eventSessions")
+        .withIndex("by_attendeeId", q => q.eq("attendeeId", event.attendeeInfo._id))
+        .collect();
+
+      let calculatedTotalDuration = 0;
+      for (const session of sessions) {
+        const sessionStart = session.startedAt || 0;
+        const sessionEnd = session.endedAt || 0;
+        const sessionDuration = typeof session.duration === 'number' ? session.duration : (sessionEnd && sessionStart ? Math.max(0, sessionEnd - sessionStart) : 0);
+        calculatedTotalDuration += sessionDuration;
+      }
+
+      const minMinutes = event.minimumAttendanceMinutes || 0;
+      const calculatedIsEligible = calculatedTotalDuration >= (minMinutes * 60 * 1000);
+
       return {
         id: event._id,
         slug: event.slug,
@@ -200,9 +217,9 @@ export const getMyAttendedEventsHandler = async (
         averageRating,
         ratingCount: ratings.length,
         myAttendance: {
-          totalDuration: event.attendeeInfo.totalDuration,
-          isEligible: event.attendeeInfo.isEligible,
-          registeredAt: event.attendeeInfo.registeredAt,
+          totalDuration: calculatedTotalDuration,
+          isEligible: calculatedIsEligible,
+          registeredAt: event.attendeeInfo.registeredAt || event.attendeeInfo.createdAt || Date.now(),
         },
         hasSubmittedFeedback,
         hasRatedOrganizer: !!userRating,

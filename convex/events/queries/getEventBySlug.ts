@@ -96,6 +96,8 @@ export const getEventBySlugHandler = async (
       username: organizer.username,
       firstName: organizer.firstName,
       lastName: organizer.lastName,
+      email: organizer.email,
+      course: organizer.course,
       imageUrl: organizer.imageUrl,
     } : null,
     attendees: attendeeDetails,

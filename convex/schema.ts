@@ -250,6 +250,7 @@ const schema = defineSchema({
     userId: v.string(), // User username
     totalDuration: v.optional(v.number()),
     isEligible: v.optional(v.boolean()),
+    sentSurveyEmailAt: v.optional(v.number()),
     notifiedFeedback: v.optional(v.boolean()),
     registeredAt: v.optional(v.number()),
     createdAt: v.optional(v.number()),
@@ -258,6 +259,7 @@ const schema = defineSchema({
     .index("by_eventId", ["eventId"])
     .index("by_userId", ["userId"])
     .index("by_isEligible", ["isEligible"])
+    .index("by_sentSurveyEmailAt", ["sentSurveyEmailAt"]) 
     .index("by_notifiedFeedback", ["notifiedFeedback"])
     .index("by_eventId_userId", ["eventId", "userId"]),
 

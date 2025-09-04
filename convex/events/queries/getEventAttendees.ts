@@ -33,7 +33,7 @@ export const getEventAttendeesHandler = async (
   }
 
   // Get all attendees for this event
-  let attendees = await ctx.db
+  const attendees = await ctx.db
     .query("eventAttendees")
     .withIndex("by_eventId", q => q.eq("eventId", event._id))
     .collect();
@@ -60,7 +60,7 @@ export const getEventAttendeesHandler = async (
       if (!attendee.user) return false;
 
       return (
-        attendee.user.username.toLowerCase().includes(searchLower) ||
+        attendee.user.username?.toLowerCase().includes(searchLower) ||
         (attendee.user.firstName && attendee.user.firstName.toLowerCase().includes(searchLower)) ||
         (attendee.user.lastName && attendee.user.lastName.toLowerCase().includes(searchLower)) ||
         (attendee.user.email && attendee.user.email.toLowerCase().includes(searchLower))
@@ -73,31 +73,31 @@ export const getEventAttendeesHandler = async (
   const sortOrder = args.sortOrder || "desc";
 
   attendeesWithUsers.sort((a, b) => {
-    let aValue: any;
-    let bValue: any;
+    let aValue: number | string;
+    let bValue: number | string;
 
     switch (sortBy) {
-      case "username":
-        aValue = a.user?.username || "";
-        bValue = b.user?.username || "";
-        break;
-      case "firstName":
-        aValue = a.user?.firstName || "";
-        bValue = b.user?.firstName || "";
-        break;
-      case "lastName":
-        aValue = a.user?.lastName || "";
-        bValue = b.user?.lastName || "";
-        break;
-      case "totalDuration":
-        aValue = a.totalDuration || 0;
-        bValue = b.totalDuration || 0;
-        break;
-      case "registeredAt":
-      default:
-        aValue = a.registeredAt || 0;
-        bValue = b.registeredAt || 0;
-        break;
+    case "username":
+      aValue = a.user?.username || "";
+      bValue = b.user?.username || "";
+      break;
+    case "firstName":
+      aValue = a.user?.firstName || "";
+      bValue = b.user?.firstName || "";
+      break;
+    case "lastName":
+      aValue = a.user?.lastName || "";
+      bValue = b.user?.lastName || "";
+      break;
+    case "totalDuration":
+      aValue = a.totalDuration || 0;
+      bValue = b.totalDuration || 0;
+      break;
+    case "registeredAt":
+    default:
+      aValue = a.registeredAt || 0;
+      bValue = b.registeredAt || 0;
+      break;
     }
 
     // Handle string sorting
@@ -118,16 +118,29 @@ export const getEventAttendeesHandler = async (
   const paginatedAttendees = attendeesWithUsers.slice(offset, offset + limit);
 
   // Get enriched attendee data
-  const enrichedAttendees = paginatedAttendees.map(attendee => {
-    // Calculate eligibility based on minimum attendance time
+  const enrichedAttendees = await Promise.all(paginatedAttendees.map(async (attendee) => {
+    // Sum session durations to compute totalDuration and eligibility
+    const sessions = await ctx.db
+      .query("eventSessions")
+      .withIndex("by_attendeeId", q => q.eq("attendeeId", attendee._id))
+      .collect();
+
+    let summedDuration = 0;
+    for (const s of sessions) {
+      const sStart = s.startedAt || 0;
+      const sEnd = s.endedAt || 0;
+      const sDuration = typeof s.duration === 'number' ? s.duration : (sEnd && sStart ? Math.max(0, sEnd - sStart) : 0);
+      summedDuration += sDuration;
+    }
+
     const minMinutes = event.minimumAttendanceMinutes || 0;
-    const isEligible = attendee.totalDuration ? attendee.totalDuration >= (minMinutes * 60 * 1000) : false;
+    const isEligible = summedDuration >= (minMinutes * 60 * 1000);
 
     return {
       id: attendee._id,
       eventId: attendee.eventId,
       userId: attendee.userId,
-      totalDuration: attendee.totalDuration,
+      totalDuration: summedDuration,
       isEligible,
       registeredAt: attendee.registeredAt,
       createdAt: attendee.createdAt,
@@ -140,7 +153,7 @@ export const getEventAttendeesHandler = async (
         imageUrl: attendee.user.imageUrl,
       } : null,
     };
-  });
+  }));
 
   const totalPages = Math.ceil(total / limit);
 

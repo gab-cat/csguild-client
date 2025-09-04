@@ -14,14 +14,17 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog'
 import { Separator } from '@/components/ui/separator'
-
 import { api, useMutation } from '@/lib/convex'
-import { EventDetailResponseDtoTypeEnum } from '../types'
+import { showSuccessToast } from '@/lib/toast'
+
+import type { EventDetailResponseDtoTypeEnum } from '../types'
 import { eventUtils } from '../utils'
 
 interface RegisterEventModalProps {
   isOpen: boolean
   onClose: () => void
+  isRegistered?: boolean
+  onRegistered?: () => void
   event: {
     id: string
     slug: string
@@ -40,15 +43,23 @@ interface RegisterEventModalProps {
   }
 }
 
-export function RegisterEventModal({ isOpen, onClose, event }: RegisterEventModalProps) {
+export function RegisterEventModal({ isOpen, onClose, isRegistered: isRegisteredProp = false, onRegistered, event }: RegisterEventModalProps) {
+  // @ts-ignore
   const registerForEvent = useMutation(api.events.registerForEvent)
   const [isLoading, setIsLoading] = React.useState(false)
+  const [isRegistered, setIsRegistered] = React.useState(isRegisteredProp)
+
+  React.useEffect(() => {
+    setIsRegistered(isRegisteredProp)
+  }, [isRegisteredProp])
 
   const handleRegister = async () => {
     setIsLoading(true)
     try {
       await registerForEvent({ slug: event.slug })
-      onClose()
+      setIsRegistered(true)
+      onRegistered?.()
+      showSuccessToast('Registration successful', 'You are now registered for this event.')
     } catch (error) {
       // Error is handled by the mutation
       console.error('Registration failed:', error)
@@ -58,8 +69,8 @@ export function RegisterEventModal({ isOpen, onClose, event }: RegisterEventModa
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md bg-gray-900 border-gray-800 text-white">
+    <Dialog open={isOpen} onOpenChange={(open) => { if (!open) onClose() }}>
+      <DialogContent className="max-w-md bg-gray-900 border-gray-800 text-white z-[100]">
         <DialogHeader className="space-y-4">
           <div className="flex items-center justify-between">
             <DialogTitle className="text-3xl tracking-tight font-bold">
@@ -72,6 +83,11 @@ export function RegisterEventModal({ isOpen, onClose, event }: RegisterEventModa
         </DialogHeader>
 
         <div className="space-y-4">
+          {isRegistered && (
+            <div className="rounded-md border border-green-700/40 bg-green-900/20 px-3 py-2 text-sm text-green-300">
+              You are already registered for this event.
+            </div>
+          )}
           {/* Event Summary */}
           <div className="space-y-3">
             <h3 className="font-semibold text-lg">{event.title}</h3>
@@ -150,10 +166,12 @@ export function RegisterEventModal({ isOpen, onClose, event }: RegisterEventModa
           </Button>
           <Button
             onClick={handleRegister}
-            disabled={isLoading}
+            disabled={isLoading || isRegistered}
             className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
           >
-            {isLoading ? (
+            {isRegistered ? (
+              'Already registered'
+            ) : isLoading ? (
               <div className="flex items-center gap-2">
                 <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                 Registering...

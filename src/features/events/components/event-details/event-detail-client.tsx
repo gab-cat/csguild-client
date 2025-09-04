@@ -7,6 +7,7 @@ import React from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 import { api, useQuery } from '@/lib/convex'
 
 import { toEventDetailFromConvex } from '../../types'
@@ -37,6 +38,13 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
 
   const [isBookmarked, setIsBookmarked] = React.useState(false)
   const [showRegisterModal, setShowRegisterModal] = React.useState(false)
+  const { user } = useCurrentUser()
+  const alreadyRegistered = React.useMemo(() => {
+    if (!attendeesData?.data || !user) return false
+    const username = user?.username as string | undefined
+    if (!username) return false
+    return attendeesData.data.some((a) => a.userId === username)
+  }, [attendeesData, user])
 
   const isLoading = event === undefined
   const isLoadingAttendees = attendeesData === undefined
@@ -69,7 +77,24 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
     eventDto.startDate,
     typeof eventDto.endDate === 'string' ? eventDto.endDate : undefined,
   )
+  // Only hide registration for truly completed events (past end date)
   const isCompleted = eventStatus === 'completed'
+  
+  // Debug: Log event status for troubleshooting
+  const endDateString = typeof eventDto.endDate === 'string' ? eventDto.endDate : undefined
+  console.log('Event status debug:', {
+    title: eventDto.title,
+    startDate: eventDto.startDate,
+    endDate: eventDto.endDate,
+    endDateString,
+    eventStatus,
+    isCompleted,
+    now: new Date().toISOString(),
+    startDateParsed: new Date(eventDto.startDate).toISOString(),
+    isUpcoming: eventUtils.isEventUpcoming(eventDto.startDate),
+    isOngoing: eventUtils.isEventOngoing(eventDto.startDate, endDateString),
+    isCompletedCheck: eventUtils.isEventCompleted(eventDto.startDate, endDateString)
+  })
 
   const handleShare = async () => {
     if (navigator.share) {
@@ -167,6 +192,10 @@ export function EventDetailClient({ slug }: EventDetailClientProps) {
         <RegisterEventModal
           isOpen={showRegisterModal}
           onClose={() => setShowRegisterModal(false)}
+          isRegistered={alreadyRegistered}
+          onRegistered={() => {
+            // Optimistically set local flag; attendees query will refresh on server update
+          }}
           event={{
             id: eventDto.id,
             slug: eventDto.slug,

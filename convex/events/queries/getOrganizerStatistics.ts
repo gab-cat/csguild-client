@@ -70,14 +70,25 @@ export const getOrganizerStatisticsHandler = async (
   const totalAttendees = attendeeStats.reduce((sum, stat) => sum + stat.attendeeCount, 0);
   const totalRatings = attendeeStats.reduce((sum, stat) => sum + stat.ratingCount, 0);
 
-  // Calculate overall average rating
-  const allRatings = attendeeStats
-    .filter(stat => stat.averageRating !== null)
-    .map(stat => stat.averageRating!);
-
-  const overallAverageRating = allRatings.length > 0
-    ? allRatings.reduce((sum, rating) => sum + rating, 0) / allRatings.length
+  // Calculate overall average rating and distribution
+  const allRatings = await Promise.all(
+    events.map(async (event) => {
+      const ratings = await ctx.db
+        .query("eventOrganizerRatings")
+        .withIndex("by_eventId", q => q.eq("eventId", event._id))
+        .collect();
+      return ratings.map(r => r.rating);
+    })
+  );
+  const flattenedRatings = allRatings.flat();
+  const overallAverageRating = flattenedRatings.length > 0
+    ? flattenedRatings.reduce((sum, rating) => sum + rating, 0) / flattenedRatings.length
     : null;
+  const ratingDistribution = flattenedRatings.reduce((acc: Record<string, number>, r) => {
+    const key = String(Math.round(r));
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {} as Record<string, number>);
 
   // Get recent events (last 10)
   const recentEvents = events
@@ -129,6 +140,8 @@ export const getOrganizerStatisticsHandler = async (
       username: organizer.username,
       firstName: organizer.firstName,
       lastName: organizer.lastName,
+      email: organizer.email,
+      course: organizer.course,
       imageUrl: organizer.imageUrl,
     },
     statistics: {
@@ -139,6 +152,9 @@ export const getOrganizerStatisticsHandler = async (
       totalAttendees,
       totalRatings,
       overallAverageRating,
+      averageRating: overallAverageRating,
+      totalEventsOrganized: totalEvents,
+      ratingDistribution,
     },
     eventsByType,
     eventsByMonth,

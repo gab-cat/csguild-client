@@ -102,13 +102,21 @@ export function MyEventsClient() {
     const data = attendedEventsResponse?.data ?? []
     return data.map((event) => {
       const attendedEvent = event as unknown as {
-        attendeeInfo?: unknown
+        myAttendance?: {
+          totalDuration: number
+          isEligible: boolean
+          registeredAt: number
+        }
         minimumAttendanceMinutes?: number
+        hasSubmittedFeedback?: boolean
+        hasRatedOrganizer?: boolean
       }
       return {
         ...toEventCard(event as EventInput),
-        attendeeInfo: attendedEvent.attendeeInfo,
+        myAttendance: attendedEvent.myAttendance,
         minimumAttendanceMinutes: attendedEvent.minimumAttendanceMinutes,
+        hasSubmittedFeedback: attendedEvent.hasSubmittedFeedback,
+        hasRatedOrganizer: attendedEvent.hasRatedOrganizer,
       }
     })
   }, [attendedEventsResponse])
