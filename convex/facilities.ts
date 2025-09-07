@@ -10,7 +10,7 @@ import {
   toggleFacilityAccessHandler,
   updateFacilityArgs,
   updateFacilityHandler,
-} from "./facilities/mutations";
+} from "./facilitiesDefinitions/mutations";
 import {
   getActiveSessionsArgs,
   getActiveSessionsHandler,
@@ -20,7 +20,7 @@ import {
   getFacilityByIdHandler,
   getFacilityUsageHistoryArgs,
   getFacilityUsageHistoryHandler,
-} from "./facilities/queries";
+} from "./facilitiesDefinitions/queries";
 
 // MUTATIONS
 
