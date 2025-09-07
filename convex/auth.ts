@@ -1,4 +1,4 @@
-import { mutation } from "./_generated/server";
+
 // import {
 //   forgotPasswordHandler,
 //   forgotPasswordArgs,
@@ -18,4 +18,4 @@ import { mutation } from "./_generated/server";
 // });
 
 // Re-export auth functions from index
-export { auth, signIn, signOut, store, isAuthenticated } from "./auth/index";
+export { auth, signIn, signOut, store, isAuthenticated } from "./authDefinitions/index";

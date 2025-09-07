@@ -37,7 +37,7 @@ const schema = defineSchema({
     signupMethod: v.optional(v.union(v.literal("GOOGLE"), v.literal("EMAIL"), v.literal("FACEBOOK"), v.literal("APPLE"))),
     currentFacilityId: v.optional(v.id("facilities")),
     roles: v.optional(v.array(v.union(v.literal("STUDENT"), v.literal("USER"), v.literal("STAFF"), v.literal("ADMIN")))),
-
+    bio: v.optional(v.string()),
     // Metadata
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
