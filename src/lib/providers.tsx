@@ -5,7 +5,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
-import { ReactNode, useState } from 'react'
+import { ReactNode, useState, Suspense } from 'react'
 
 import { AuthSyncProvider, EmailVerificationGuard } from '@/features/auth'
 
@@ -53,11 +53,13 @@ export function Providers({ children }: ProvidersProps) {
       <ConvexAuthProvider client={convex}>
         <ConvexQueryCacheProvider>
           <QueryClientProvider client={queryClient}>
-            <AuthSyncProvider>
-              <EmailVerificationGuard>
-                {children}
-              </EmailVerificationGuard>
-            </AuthSyncProvider>
+            <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
+              <AuthSyncProvider>
+                <EmailVerificationGuard>
+                  {children}
+                </EmailVerificationGuard>
+              </AuthSyncProvider>
+            </Suspense>
             <ReactQueryDevtools initialIsOpen={false} />
           </QueryClientProvider>
         </ConvexQueryCacheProvider>

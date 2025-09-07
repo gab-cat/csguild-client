@@ -192,3 +192,98 @@ export async function compressImageForEvent(file: File, quality: number = 1): Pr
     return await compressImage(file, 1200, quality);
   }
 }
+
+/**
+ * Compresses and crops an image file for blog covers to 1200x675px (16:9)
+ * Returns WebP when possible (via Canvas in browser), otherwise JPEG.
+ * Uses dynamic import to load Jimp only when needed
+ */
+export async function compressImageForBlogCover(file: File, quality: number = 0.9): Promise<Blob> {
+  // Validate file type
+  if (!file.type.startsWith('image/')) {
+    throw new Error('File must be an image');
+  }
+
+  try {
+    // Dynamically import Jimp only when needed
+    const { Jimp } = await import(/* webpackChunkName: "image-processing" */ 'jimp');
+
+    // Convert file to array buffer
+    const arrayBuffer = await file.arrayBuffer();
+
+    // Read image with Jimp
+    const image = await Jimp.read(arrayBuffer);
+
+    // Get original dimensions
+    const { width, height } = image.bitmap;
+
+    // Target aspect ratio (1200x675 = 16:9, close to 1.777:1)
+    const targetAspectRatio = 1200 / 675; // ≈ 1.777
+    const currentAspectRatio = width / height;
+
+    let cropWidth: number;
+    let cropHeight: number;
+    let cropX: number;
+    let cropY: number;
+
+    if (currentAspectRatio > targetAspectRatio) {
+      // Image is wider than target aspect ratio, crop width
+      cropHeight = height;
+      cropWidth = Math.floor(height * targetAspectRatio);
+      cropX = Math.floor((width - cropWidth) / 2);
+      cropY = 0;
+    } else {
+      // Image is taller than target aspect ratio, crop height
+      cropWidth = width;
+      cropHeight = Math.floor(width / targetAspectRatio);
+      cropX = 0;
+      cropY = Math.floor((height - cropHeight) / 2);
+    }
+
+    // Crop to target aspect ratio then resize to exact dimensions
+    const processedImage = image
+      .crop({ x: cropX, y: cropY, w: cropWidth, h: cropHeight })
+      .resize({ w: 1200, h: 675 });
+
+    // Get JPEG buffer from Jimp first
+    const jpegBuffer = await processedImage.getBuffer('image/jpeg');
+    const jpegBlob = new Blob([jpegBuffer as BlobPart], { type: 'image/jpeg' });
+
+    // If in a browser, transcode to WebP for better compression
+    if (typeof window !== 'undefined' && typeof document !== 'undefined') {
+      const webpBlob = await new Promise<Blob | null>((resolve) => {
+        const img = new Image();
+        const url = URL.createObjectURL(jpegBlob);
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          canvas.width = img.width;
+          canvas.height = img.height;
+          const ctx = canvas.getContext('2d');
+          ctx?.drawImage(img, 0, 0);
+          canvas.toBlob(
+            (blob) => {
+              URL.revokeObjectURL(url);
+              resolve(blob);
+            },
+            'image/webp',
+            quality
+          );
+        };
+        img.onerror = () => {
+          URL.revokeObjectURL(url);
+          resolve(null);
+        };
+        img.src = url;
+      });
+      if (webpBlob) return webpBlob;
+    }
+
+    // Fallback to JPEG if WebP not available
+    return jpegBlob;
+
+  } catch (error) {
+    console.error('Error compressing blog cover image:', error);
+    // Fallback to square thumbnail compressor if Jimp fails
+    return await compressImage(file, 675, quality);
+  }
+}
