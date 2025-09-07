@@ -30,7 +30,7 @@ import {
   // Image upload functions
   generateUploadUrl,
   saveEventImage,
-} from "./events/mutations";
+} from "./eventsDefinitions/mutations";
 import {
   // Query handlers and args
   getEventsHandler,
@@ -59,7 +59,7 @@ import {
   checkFeedbackStatusArgs,
   debugFeedbackFormsHandler,
   debugFeedbackFormsArgs,
-} from "./events/queries";
+} from "./eventsDefinitions/queries";
 
 // QUERIES
 
