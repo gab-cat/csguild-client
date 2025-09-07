@@ -18,7 +18,7 @@ import {
   saveProfilePictureArgs,
   saveProfilePictureHandler,
   generateUploadUrlHandler,
-} from "./users/mutations";
+} from "./usersDefinitions/mutations";
 import {
   getCurrentUserHandler,
   getCurrentUserArgs,
@@ -28,7 +28,7 @@ import {
   getUsersArgs,
   getUserVerificationStatusHandler,
   getUserVerificationStatusArgs,
-} from "./users/queries";
+} from "./usersDefinitions/queries";
 
 
 // Queries
