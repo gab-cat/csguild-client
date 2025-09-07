@@ -19,7 +19,7 @@ import {
   reactivateProjectMemberArgs,
   createRoleHandler,
   createRoleArgs,
-} from "./projects/mutations";
+} from "./projectsDefinitions/mutations";
 import {
   // Query handlers and args
   getProjectsHandler,
@@ -38,7 +38,7 @@ import {
   getRolesArgs,
   getRoleBySlugHandler,
   getRoleBySlugArgs,
-} from "./projects/queries";
+} from "./projectsDefinitions/queries";
 
 // QUERIES
 

@@ -23,7 +23,6 @@ export function FacilitiesClient() {
   const [scanMode] = useState<'rfid' | 'qr'>('rfid')
   const [lastScannedRfid, setLastScannedRfid] = useState<string | null>(null)
 
-  // @ts-ignore
   const facilitiesData = useQuery(api.facilities.getFacilities, {})
   const toggleMutation = useMutation(api.facilities.toggleFacilityAccess)
 
