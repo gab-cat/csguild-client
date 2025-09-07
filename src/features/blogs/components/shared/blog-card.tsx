@@ -10,10 +10,10 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardFooter } from '@/components/ui/card'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
 import { cn } from '@/lib/utils'
 import type { BlogSummaryResponseDto } from '@generated/api-client'
-
-import { useLikeBlog, useUnlikeBlog, useBookmarkBlog, useUnbookmarkBlog } from '../../hooks'
 
 interface BlogCardProps {
   blog: BlogSummaryResponseDto
@@ -32,6 +32,8 @@ export function BlogCard({
   const [isLiked, setIsLiked] = useState(blog.isLiked || false)
   const [isBookmarked, setIsBookmarked] = useState(blog.isBookmarked || false)
   const [likeCount, setLikeCount] = useState(blog.likeCount)
+
+  console.log('blog', blog)
   
   // Sync with props when they change (in case of real-time updates)
   useEffect(() => {
@@ -40,31 +42,25 @@ export function BlogCard({
     setLikeCount(blog.likeCount)
   }, [blog.isLiked, blog.isBookmarked, blog.likeCount])
   
-  const likeBlogMutation = useLikeBlog()
-  const unlikeBlogMutation = useUnlikeBlog()
-  const bookmarkBlogMutation = useBookmarkBlog()
-  const unbookmarkBlogMutation = useUnbookmarkBlog()
+  const likeBlogMutation = useMutation(api.blogs.likeBlog)
+  const bookmarkBlogMutation = useMutation(api.blogs.bookmarkBlog)
   
   const handleLike = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
-    const newLikedState = !isLiked
+
+    const originalLikedState = isLiked
     const originalLikeCount = likeCount
-    
-    // Optimistic update
-    setIsLiked(newLikedState)
-    setLikeCount(prev => newLikedState ? prev + 1 : prev - 1)
-    
+
     try {
-      if (newLikedState) {
-        await likeBlogMutation.mutateAsync(blog.slug)
-      } else {
-        await unlikeBlogMutation.mutateAsync(blog.slug)
-      }
+      const result = await likeBlogMutation({ slug: blog.slug })
+
+      // Update state based on the mutation result
+      setIsLiked(result.liked)
+      setLikeCount(result.likeCount)
     } catch (error) {
       // Revert on error
-      setIsLiked(blog.isLiked || false)
+      setIsLiked(originalLikedState)
       setLikeCount(originalLikeCount)
       console.error('Failed to toggle like:', error)
     }
@@ -73,21 +69,17 @@ export function BlogCard({
   const handleBookmark = async (e: React.MouseEvent) => {
     e.preventDefault()
     e.stopPropagation()
-    
-    const newBookmarkedState = !isBookmarked
-    
-    // Optimistic update
-    setIsBookmarked(newBookmarkedState)
-    
+
+    const originalBookmarkedState = isBookmarked
+
     try {
-      if (newBookmarkedState) {
-        await bookmarkBlogMutation.mutateAsync(blog.slug)
-      } else {
-        await unbookmarkBlogMutation.mutateAsync(blog.slug)
-      }
+      const result = await bookmarkBlogMutation({ slug: blog.slug })
+
+      // Update state based on the mutation result
+      setIsBookmarked(result.bookmarked)
     } catch (error) {
       // Revert on error
-      setIsBookmarked(blog.isBookmarked || false)
+      setIsBookmarked(originalBookmarkedState)
       console.error('Failed to toggle bookmark:', error)
     }
   }
@@ -113,9 +105,10 @@ export function BlogCard({
   }
 
   const coverImage = blog.coverImages?.[0]
-  const publishedDate = blog.publishedAt ? 
-    formatDistanceToNow(new Date(blog.publishedAt), { addSuffix: true }) : 
+  const publishedDate = blog.publishedAt ?
+    formatDistanceToNow(new Date(blog.publishedAt), { addSuffix: true }) :
     null
+
 
   if (variant === 'compact') {
     return (
@@ -128,17 +121,17 @@ export function BlogCard({
         )}>
           <CardContent className="p-4">
             <div className="flex gap-4">
-              {coverImage && (
+              {coverImage && coverImage.imageUrl && coverImage.imageUrl.trim() ? (
                 <div className="flex-shrink-0">
                   <Image
-                    src={coverImage.imageUrl || ''}
+                    src={coverImage.imageUrl}
                     alt={coverImage.altText || blog.title}
                     width={120}
                     height={80}
                     className="rounded-md object-cover"
                   />
                 </div>
-              )}
+              ) : null}
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2 mb-2">
                   <Avatar className="w-6 h-6">
@@ -202,10 +195,10 @@ export function BlogCard({
           {/* Background glow effect */}
           <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-pink-500/5 to-purple-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
           
-          {coverImage && (
+          {coverImage && coverImage.imageUrl && coverImage.imageUrl.trim() ? (
             <div className="relative aspect-video overflow-hidden rounded-t-lg">
               <Image
-                src={coverImage.imageUrl || ''}
+                src={coverImage.imageUrl}
                 alt={coverImage.altText || blog.title}
                 fill
                 className="object-cover group-hover:scale-105 transition-transform duration-300"
@@ -217,7 +210,7 @@ export function BlogCard({
               )}
               <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent" />
             </div>
-          )}
+          ) : null}
           
           <CardContent className="p-6 relative">
             <div className="flex items-center gap-3 mb-4">
@@ -339,91 +332,99 @@ export function BlogCard({
   return (
     <Link href={`/blogs/${blog.slug}`}>
       <Card className={cn(
-        'group hover:shadow-xl transition-all duration-300 cursor-pointer',
+        'group hover:shadow-xl transition-all duration-300 cursor-pointer py-0',
         'bg-gray-900/50 border-gray-800 hover:border-purple-500/30 hover:bg-gray-900/70',
         'backdrop-blur-sm relative overflow-hidden',
         className
       )}>
         {/* Background glow effect */}
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-transparent to-pink-500/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
-        
-        {coverImage && (
-          <div className="relative aspect-video overflow-hidden rounded-t-lg">
-            <Image
-              src={coverImage.imageUrl || ''}
-              alt={coverImage.altText || blog.title}
-              fill
-              className="object-cover group-hover:scale-105 transition-transform duration-300"
-            />
-            {blog.isFeatured && (
-              <Badge className="absolute top-3 left-3 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0">
-                Featured
-              </Badge>
-            )}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
-          </div>
-        )}
-        
+
         <CardContent className="p-4 relative">
-          <div className="flex items-center gap-2 mb-3">
-            <Avatar className="w-6 h-6 border border-purple-500/20">
-              <AvatarImage src={blog.author.imageUrl || undefined} />
-              <AvatarFallback className="text-xs bg-purple-500/20 text-purple-200">
-                {blog.author.firstName?.[0]}{blog.author.lastName?.[0]}
-              </AvatarFallback>
-            </Avatar>
-            <span className="text-sm text-gray-300">
-              {blog.author.firstName} {blog.author.lastName}
-            </span>
-            {publishedDate && (
-              <>
-                <span className="text-gray-600">·</span>
-                <span className="text-sm text-gray-400">{publishedDate}</span>
-              </>
-            )}
-          </div>
-          
-          <h3 className="font-semibold mb-2 line-clamp-2 text-white group-hover:text-purple-300 transition-colors">
-            {blog.title}
-          </h3>
-          
-          {blog.excerpt && (
-            <p className="text-sm text-gray-400 line-clamp-3 mb-3">
-              {blog.excerpt}
-            </p>
-          )}
-          
-          {(blog.tags?.length > 0 || blog.categories?.length > 0) && (
-            <div className="flex flex-wrap gap-2 mb-3">
-              {blog.categories?.slice(0, 1).map((category) => (
-                <Badge key={category.id} className="text-xs bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 border-purple-500/30">
-                  {category.name}
-                </Badge>
-              ))}
-              {blog.tags?.slice(0, 2).map((tag) => (
-                <Badge key={tag.id} variant="outline" className="text-xs border-gray-600 text-gray-300 hover:border-purple-500/50">
-                  {tag.name}
-                </Badge>
-              ))}
+          <div className="flex gap-4">
+            {/* Content on the left */}
+            <div className="flex-1 min-w-0">
+              <div className="flex items-center gap-2 mb-3">
+                <Avatar className="w-6 h-6 border border-purple-500/20">
+                  <AvatarImage src={blog.author.imageUrl || undefined} />
+                  <AvatarFallback className="text-xs bg-purple-500/20 text-purple-200">
+                    {blog.author.firstName?.[0]}{blog.author.lastName?.[0]}
+                  </AvatarFallback>
+                </Avatar>
+                <span className="text-sm text-gray-300">
+                  {blog.author.firstName} {blog.author.lastName}
+                </span>
+                {publishedDate && (
+                  <>
+                    <span className="text-gray-600">·</span>
+                    <span className="text-sm text-gray-400">{publishedDate}</span>
+                  </>
+                )}
+              </div>
+
+              <h3 className="font-semibold mb-2 line-clamp-2 text-white group-hover:text-purple-300 transition-colors">
+                {blog.title}
+              </h3>
+
+              {blog.excerpt && (
+                <p className="text-sm text-gray-400 line-clamp-3 mb-3">
+                  {blog.excerpt}
+                </p>
+              )}
+
+              {(blog.tags?.length > 0 || blog.categories?.length > 0) && (
+                <div className="flex flex-wrap gap-2 mb-3">
+                  {blog.categories?.slice(0, 1).map((category) => (
+                    <Badge key={category.id} className="text-xs bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 border-purple-500/30">
+                      {category.name}
+                    </Badge>
+                  ))}
+                  {blog.tags?.slice(0, 2).map((tag) => (
+                    <Badge key={tag.id} variant="outline" className="text-xs border-gray-600 text-gray-300 hover:border-purple-500/50">
+                      {tag.name}
+                    </Badge>
+                  ))}
+                </div>
+              )}
+
+              <div className="flex items-center gap-4 text-xs text-gray-500">
+                <div className="flex items-center gap-1">
+                  <Eye className="w-3 h-3" />
+                  <span>{blog.viewCount}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <Heart className="w-3 h-3" />
+                  <span>{likeCount}</span>
+                </div>
+                <div className="flex items-center gap-1">
+                  <MessageCircle className="w-3 h-3" />
+                  <span>{blog.commentCount}</span>
+                </div>
+                {blog.readingTime && (
+                  <span>{blog.readingTime} min read</span>
+                )}
+              </div>
             </div>
-          )}
-          
-          <div className="flex items-center gap-4 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <Eye className="w-3 h-3" />
-              <span>{blog.viewCount}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Heart className="w-3 h-3" />
-              <span>{likeCount}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <MessageCircle className="w-3 h-3" />
-              <span>{blog.commentCount}</span>
-            </div>
-            {blog.readingTime && (
-              <span>{blog.readingTime} min read</span>
-            )}
+
+            {/* Image on the right */}
+            {coverImage && coverImage.imageUrl && coverImage.imageUrl.trim() ? (
+              <div className="flex-shrink-0 relative">
+                <div className="relative w-32 h-24 overflow-hidden rounded-lg">
+                  <Image
+                    src={coverImage.imageUrl}
+                    alt={coverImage.altText || blog.title}
+                    fill
+                    className="object-cover group-hover:scale-105 transition-transform duration-300"
+                  />
+                  {blog.isFeatured && (
+                    <Badge className="absolute top-2 left-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white border-0 text-xs">
+                      Featured
+                    </Badge>
+                  )}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/10 to-transparent" />
+                </div>
+              </div>
+            ) : null}
           </div>
         </CardContent>
         

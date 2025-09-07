@@ -27,9 +27,10 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { useQuery, useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
 
 import MarkdownEditor from '../components/markdown-editor'
-import { useBlog, useUpdateBlog, useDeleteBlog } from '../hooks'
 import { simpleBlogSchema, type SimpleBlogFormData } from '../schemas/simple-blog'
 
 interface BlogEditPageProps {
@@ -43,9 +44,14 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   const [customTag, setCustomTag] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
 
-  const { data: blog, isLoading, error } = useBlog(slug)
-  const updateBlogMutation = useUpdateBlog()
-  const deleteBlogMutation = useDeleteBlog()
+  const blogData = useQuery(api.blogs.getBlogBySlug, { slug, includeDrafts: true })
+  const isLoading = blogData === undefined
+  const error = null // Convex handles errors differently
+  const blog = blogData
+  const updateBlogMutation = useMutation(api.blogs.updateBlog)
+  const deleteBlogMutation = useMutation(api.blogs.deleteBlog)
+  const isUpdating = false // Convex mutations don't have loading state
+  const isDeleting = false // Convex mutations don't have loading state
 
   const form = useForm<SimpleBlogFormData>({
     resolver: zodResolver(simpleBlogSchema),
@@ -63,17 +69,20 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   // Pre-populate form when blog data is loaded
   useEffect(() => {
     if (blog) {
+      // Extract tag names and ensure they're valid strings
+      const tagNames = blog.tags?.map((tag) => tag?.name || '').filter(name => name.trim() !== '') || []
+
       form.reset({
         title: blog.title || '',
         subtitle: blog.subtitle || '',
         content: blog.content || '',
         excerpt: blog.excerpt || '',
         metaDescription: blog.metaDescription || '',
-        tagNames: blog.tags?.map(tag => tag.name) || [],
+        tagNames: tagNames,
       })
-      
-      setSelectedTags(blog.tags?.map(tag => tag.name).filter((name): name is string => Boolean(name)) || [])
-      
+
+      setSelectedTags(tagNames)
+
       // Set cover image if available
       if (blog.coverImages && blog.coverImages.length > 0 && blog.coverImages[0].imageUrl) {
         setCoverImagePreview(blog.coverImages[0].imageUrl)
@@ -112,7 +121,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
     if (tagName && !selectedTags.includes(tagName) && selectedTags.length < 10) {
       const newTags = [...selectedTags, tagName]
       setSelectedTags(newTags)
-      form.setValue('tagNames', newTags)
+      form.setValue('tagNames', newTags, { shouldDirty: true })
       setHasUnsavedChanges(true)
     }
   }, [selectedTags, form])
@@ -120,7 +129,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   const removeTag = useCallback((tagName: string) => {
     const newTags = selectedTags.filter(tag => tag !== tagName)
     setSelectedTags(newTags)
-    form.setValue('tagNames', newTags)
+    form.setValue('tagNames', newTags, { shouldDirty: true })
     setHasUnsavedChanges(true)
   }, [selectedTags, form])
 
@@ -134,25 +143,42 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   // Form submission
   const onSubmit = async (data: SimpleBlogFormData) => {
     try {
-      // Convert to the API format
+      if (!blog) return
+
+      // Generate new slug if title changed
+      const newSlug = data.title !== blog.title
+        ? data.title
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim()
+        : blog.slug
+
+      // Convert to the Convex format
       const blogData = {
-        ...data,
-        tagNames: selectedTags,
-        categoryNames: [],
+        slug: blog.slug,
+        title: data.title,
+        newSlug: newSlug,
+        subtitle: data.subtitle || undefined,
+        content: data.content,
+        excerpt: data.excerpt || undefined,
+        metaDescription: data.metaDescription || undefined,
+        status: blog.status,
         allowComments: true,
         allowBookmarks: true,
         allowLikes: true,
         allowShares: true,
+        // Send tag names directly - backend will resolve them to IDs
+        categories: [],
+        tags: (data.tagNames || []).filter(tag => tag.trim() !== ''), // Filter out empty tags
         metaKeywords: [],
       }
-      
-      await updateBlogMutation.mutateAsync({
-        slug,
-        data: blogData
-      })
-      
+
+      await updateBlogMutation(blogData)
+
       setHasUnsavedChanges(false)
-      router.push(`/blogs/${slug}`)
+      router.push(`/blogs/${newSlug}`)
     } catch (error) {
       console.error('Failed to update blog:', error)
     }
@@ -161,21 +187,27 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   const saveDraft = async () => {
     const data = form.getValues()
     try {
+      if (!blog) return
+
       const blogData = {
-        ...data,
-        tagNames: selectedTags,
-        categoryNames: [],
+        slug: blog.slug,
+        title: data.title,
+        newSlug: blog.slug, // Keep the same slug for draft saves
+        subtitle: data.subtitle || undefined,
+        content: data.content,
+        excerpt: data.excerpt || undefined,
+        metaDescription: data.metaDescription || undefined,
+        status: 'DRAFT' as const,
         allowComments: true,
         allowBookmarks: true,
         allowLikes: true,
         allowShares: true,
+        categories: [],
+        tags: (data.tagNames || []).filter(tag => tag.trim() !== ''), // Filter out empty tags
         metaKeywords: [],
       }
-      
-      await updateBlogMutation.mutateAsync({
-        slug,
-        data: blogData
-      })
+
+      await updateBlogMutation(blogData)
       
       setHasUnsavedChanges(false)
     } catch (error) {
@@ -185,8 +217,10 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
 
   const handleDelete = async () => {
     try {
-      await deleteBlogMutation.mutateAsync(slug)
-      router.push('/blogs/my-blogs')
+      if (blog?.slug) {
+        await deleteBlogMutation({ slug: blog.slug })
+        router.push('/blogs/my-blogs')
+      }
     } catch (error) {
       console.error('Failed to delete blog:', error)
     }
@@ -255,7 +289,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
                 <h1 className="text-xl font-semibold text-white">Edit Blog</h1>
                 <div className="flex items-center gap-2 text-sm text-gray-400">
                   <Clock className="w-4 h-4" />
-                  Last updated: {formatDate(blog.updatedAt)}
+                  Last updated: {formatDate((blog.updatedAt || Date.now()).toString())}
                 </div>
               </div>
             </div>
@@ -284,18 +318,18 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
                     <Button
                       onClick={handleDelete}
                       className="bg-red-600 hover:bg-red-700"
-                      disabled={deleteBlogMutation.isPending}
+                      disabled={isDeleting}
                     >
-                      {deleteBlogMutation.isPending ? 'Deleting...' : 'Delete'}
+                      {isDeleting ? 'Deleting...' : 'Delete'}
                     </Button>
                   </DialogFooter>
                 </DialogContent>
               </Dialog>
               
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={saveDraft}
-                disabled={updateBlogMutation.isPending || !hasUnsavedChanges}
+                disabled={isUpdating || !hasUnsavedChanges}
                 className="border-gray-700 text-gray-400 hover:border-purple-500 hover:text-purple-400"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -563,10 +597,10 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
             <div className="flex items-center justify-end gap-4">
               <Button
                 type="submit"
-                disabled={!form.formState.isValid || updateBlogMutation.isPending}
+                disabled={!form.formState.isValid || isUpdating}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8"
               >
-                {updateBlogMutation.isPending ? (
+                {isUpdating ? (
                   <>
                     <motion.div
                       animate={{ rotate: 360 }}

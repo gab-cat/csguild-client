@@ -2,11 +2,12 @@ import Link from 'next/link'
 
 import { Badge } from '@/components/ui/badge'
 import { cn } from '@/lib/utils'
-import type { BlogSummaryResponseDtoTagsInner } from '@generated/api-client'
+
+import type { BlogTag, BlogCategory } from '../../types'
 
 interface BlogTagsProps {
-  tags?: BlogSummaryResponseDtoTagsInner[]
-  categories?: BlogSummaryResponseDtoTagsInner[]
+  tags?: BlogTag[]
+  categories?: BlogCategory[]
   maxTags?: number
   maxCategories?: number
   showCategories?: boolean
@@ -55,7 +56,7 @@ export function BlogTags({
       {displayCategories.map((category) => {
         const content = (
           <Badge
-            key={category.id}
+            key={category._id}
             variant={categoryVariant}
             className={cn(
               sizeClasses[size],
@@ -69,8 +70,8 @@ export function BlogTags({
 
         return clickable ? (
           <Link
-            key={category.id}
-            href={`/blogs?category=${category.name}`}
+            key={category._id}
+            href={`/blogs?category=${category.slug}`}
             className="no-underline"
           >
             {content}
@@ -84,7 +85,7 @@ export function BlogTags({
       {displayTags.map((tag) => {
         const content = (
           <Badge
-            key={tag.id}
+            key={tag._id}
             variant={tagVariant}
             className={cn(
               sizeClasses[size],
@@ -98,8 +99,8 @@ export function BlogTags({
 
         return clickable ? (
           <Link
-            key={tag.id}
-            href={`/blogs?tag=${tag.name}`}
+            key={tag._id}
+            href={`/blogs?tag=${tag.slug}`}
             className="no-underline"
           >
             {content}

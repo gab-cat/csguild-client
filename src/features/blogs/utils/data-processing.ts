@@ -11,11 +11,23 @@ import { toBlogCard } from '../types'
 
 // Process different response types into unified BlogCardType array
 export function processBlogData(
-  data: unknown, 
+  data: unknown,
   type: 'all' | 'featured' | 'trending' | 'popular'
 ): { blogs: BlogCardType[]; total: number } {
   if (!data) {
     return { blogs: [], total: 0 }
+  }
+
+  // Handle Convex response structure: { page: [], isDone: boolean, continueCursor: string | null }
+  if (typeof data === 'object' && data !== null && 'page' in data) {
+    const convexResponse = data as { page: unknown[]; isDone: boolean; continueCursor: string | null }
+    if (Array.isArray(convexResponse.page)) {
+      const blogs = convexResponse.page.map((blog: any) => toBlogCard(blog))
+      return {
+        blogs,
+        total: blogs.length // Convex doesn't provide total count, so we use current page length
+      }
+    }
   }
 
   switch (type) {
@@ -25,12 +37,12 @@ export function processBlogData(
       if ('data' in data && Array.isArray((data as Record<string, unknown>).data)) {
         const response = data as TrendingBlogsResponse
         const blogs = response.data.map((blog: TrendingBlogResponseDto) => toBlogCard(blog))
-        return { 
-          blogs, 
-          total: response.pagination?.total || blogs.length 
+        return {
+          blogs,
+          total: response.pagination?.total || blogs.length
         }
       }
-      
+
       // Handle direct array response
       if (Array.isArray(data)) {
         const blogs = data.map((blog) => toBlogCard(blog as TrendingBlogResponseDto))
@@ -46,12 +58,12 @@ export function processBlogData(
       if ('data' in data && Array.isArray((data as Record<string, unknown>).data)) {
         const response = data as PopularBlogsResponse
         const blogs = response.data.map((blog: PopularBlogResponseDto) => toBlogCard(blog))
-        return { 
-          blogs, 
-          total: response.pagination?.total || blogs.length 
+        return {
+          blogs,
+          total: response.pagination?.total || blogs.length
         }
       }
-      
+
       // Handle direct array response
       if (Array.isArray(data)) {
         const blogs = data.map((blog) => toBlogCard(blog as PopularBlogResponseDto))
@@ -67,12 +79,12 @@ export function processBlogData(
       if ('blogs' in data && Array.isArray((data as Record<string, unknown>).blogs)) {
         const response = data as FeaturedBlogsResponse
         const blogs = response.blogs.map(blog => toBlogCard(blog))
-        return { 
-          blogs, 
-          total: response.meta?.total || blogs.length 
+        return {
+          blogs,
+          total: response.meta?.total || blogs.length
         }
       }
-      
+
       // Handle direct array response
       if (Array.isArray(data)) {
         const blogs = data.map(blog => toBlogCard(blog as BlogSummaryResponseDto))
@@ -89,12 +101,12 @@ export function processBlogData(
       if ('blogs' in data && Array.isArray((data as Record<string, unknown>).blogs)) {
         const response = data as { blogs: BlogSummaryResponseDto[]; meta?: { total?: number } }
         const blogs = response.blogs.map(blog => toBlogCard(blog))
-        return { 
-          blogs, 
-          total: response.meta?.total || blogs.length 
+        return {
+          blogs,
+          total: response.meta?.total || blogs.length
         }
       }
-      
+
       // Handle direct array response
       if (Array.isArray(data)) {
         const blogs = data.map(blog => toBlogCard(blog as BlogSummaryResponseDto))
@@ -117,7 +129,17 @@ export function processTagsData(data: unknown): Array<{
 }> {
   if (!data) return []
 
-  // Handle structured response with tags array
+  // Handle Convex direct array response (most common case)
+  if (Array.isArray(data)) {
+    return data.map((tag: Record<string, unknown>) => ({
+      id: (tag._id || tag.id || tag.slug || tag.name) as string,
+      name: (tag.name || '') as string,
+      slug: (tag.slug || '') as string,
+      color: tag.color as string | undefined,
+    }))
+  }
+
+  // Handle structured response with tags array (legacy support)
   if (typeof data === 'object' && data !== null && 'tags' in data) {
     const response = data as { tags: Array<Record<string, unknown>> }
     if (Array.isArray(response.tags)) {
@@ -128,16 +150,6 @@ export function processTagsData(data: unknown): Array<{
         color: tag.color as string | undefined,
       }))
     }
-  }
-  
-  // Handle direct array response
-  if (Array.isArray(data)) {
-    return data.map((tag: Record<string, unknown>) => ({
-      id: (tag.id || tag.slug || tag.name) as string,
-      name: (tag.name || '') as string,
-      slug: (tag.slug || '') as string,
-      color: tag.color as string | undefined,
-    }))
   }
 
   return []

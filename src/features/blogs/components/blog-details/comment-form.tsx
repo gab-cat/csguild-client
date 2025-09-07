@@ -6,10 +6,10 @@ import { useState } from 'react'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { Textarea } from '@/components/ui/textarea'
-import { useAuthStore } from '@/features/auth/stores/auth-store'
+import { useCurrentUser } from '@/features/auth'
+import { Id, useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
 import { showErrorToast } from '@/lib/toast'
-
-import { useCreateComment } from '../../hooks'
 
 interface CommentFormProps {
   blogSlug: string
@@ -30,9 +30,10 @@ export function CommentForm({
 }: CommentFormProps) {
   const [content, setContent] = useState('')
   const [isFocused, setIsFocused] = useState(false)
+  const [isLoading, setIsLoading] = useState(false)
 
-  const { user, isAuthenticated } = useAuthStore()
-  const createCommentMutation = useCreateComment()
+  const { user, isAuthenticated } = useCurrentUser()
+  const createCommentMutation = useMutation(api.blogs.createComment)
 
   // Don't show form if user is not authenticated
   if (!isAuthenticated || !user) {
@@ -65,10 +66,11 @@ export function CommentForm({
     }
 
     try {
-      await createCommentMutation.mutateAsync({
+      setIsLoading(true)
+      await createCommentMutation({
         blogSlug,
         content: content.trim(),
-        parentId
+        parentId: parentId as Id<"blogComments">
       })
 
       setContent('')
@@ -77,6 +79,8 @@ export function CommentForm({
     } catch (error) {
       console.error('Failed to create comment:', error)
       // Error is already handled by the mutation hook
+    } finally {
+      setIsLoading(false)
     }
   }
 
@@ -85,8 +89,6 @@ export function CommentForm({
     setIsFocused(false)
     onCancel?.()
   }
-
-  const isLoading = createCommentMutation.isPending
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">

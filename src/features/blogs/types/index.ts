@@ -1,22 +1,55 @@
-// Blog types based on API documentation
-import type {
-  BlogDetailResponseDto,
-  BlogListResponseDto,
-  BlogSummaryResponseDto,
-  CreateBlogDto,
-  UpdateBlogDto,
-  BlogActionResponseDto,
-  FlagBlogDto,
-  ShareBlogDto,
-  ModerateBlogDto,
-  CreateCommentDto,
-  UpdateCommentDto,
-  BlogSummaryResponseDtoAuthor,
-  BlogSummaryResponseDtoCoverImagesInner,
-  BlogSummaryResponseDtoTagsInner,
-  BlogListResponseDtoMeta,
-  CommentResponseDto,  
-} from '@generated/api-client'
+// Blog types based on Convex schema
+import type { Doc, Id } from "../../../../convex/_generated/dataModel";
+
+// Convex-based types extending Doc
+export type BlogTag = Doc<"blogTags"> & {
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  isOfficial?: boolean;
+  blogCount?: number;
+  createdAt?: number;
+  updatedAt?: number;
+};
+
+export type BlogCategory = Doc<"blogCategories"> & {
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  parentId?: Id<"blogCategories">;
+  blogCount?: number;
+  order?: number;
+  isActive?: boolean;
+  createdAt?: number;
+  updatedAt?: number;
+  parent?: {
+    _id: Id<"blogCategories">;
+    name: string;
+    slug: string;
+  } | null;
+};
+
+// Legacy API types for backward compatibility (will be removed)
+export interface LegacyBlogTag {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  isActive?: boolean;
+}
+
+export interface LegacyBlogCategory {
+  id: string;
+  name: string;
+  slug: string;
+  description?: string;
+  color?: string;
+  isActive?: boolean;
+}
 
 // Wrapper type for API responses that include status, message, and data
 export interface ApiResponseWrapper<T> {
@@ -26,28 +59,121 @@ export interface ApiResponseWrapper<T> {
   data?: T  // For other responses
 }
 
-// Specific wrapper for blog detail response
-export interface BlogDetailApiResponse extends ApiResponseWrapper<BlogDetailResponseDto> {
-  blog: BlogDetailResponseDto
+// Blog detail response type matching Convex query return structure
+export interface BlogDetailResponseDto extends BlogDetail {
+  author: {
+    username: string | undefined
+    firstName?: string
+    lastName?: string
+    imageUrl?: string
+    bio?: string
+  }
+  categories: Array<{
+    id: Id<"blogCategories">
+    name: string
+    slug: string
+    description?: string
+    color?: string
+    icon?: string
+  }>
+  tags: Array<{
+    id: Id<"blogTags">
+    name: string
+    slug: string
+    description?: string
+    color?: string
+  }>
+  coverImages: Array<{
+    id: Id<"blogCoverImages">
+    imageUrl: string | null
+    altText?: string | null
+    caption?: string
+    credits?: string
+    order?: number
+    isMain?: boolean
+  }>
 }
 
-// Re-export API types for convenience
-export type {
-  BlogDetailResponseDto,
-  BlogListResponseDto,
-  BlogSummaryResponseDto,
-  CreateBlogDto,
-  UpdateBlogDto,
-  BlogActionResponseDto,
-  FlagBlogDto,
-  ShareBlogDto,
-  ModerateBlogDto,
-  CreateCommentDto,
-  UpdateCommentDto,
-  BlogSummaryResponseDtoAuthor,
-  BlogSummaryResponseDtoCoverImagesInner,
-  BlogSummaryResponseDtoTagsInner,
-  BlogListResponseDtoMeta
+// Specific wrapper for blog detail response
+export interface BlogDetailApiResponse extends ApiResponseWrapper<BlogDetail> {
+  blog: BlogDetail & {
+    author: {
+      username: string
+      firstName?: string
+      lastName?: string
+      imageUrl?: string
+      bio?: string
+    }
+  }
+}
+
+// Convex-based types for blog operations
+export interface BlogDetail {
+  _id: Id<"blogs">
+  _creationTime: number
+  title: string
+  slug: string
+  subtitle?: string
+  content: string
+  excerpt?: string
+  readingTime?: number
+  wordCount?: number
+  status: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED' | 'DELETED'
+  publishedAt?: number
+  scheduledFor?: number
+  lastEditedAt?: number
+  metaDescription?: string
+  metaKeywords?: string[]
+  canonicalUrl?: string
+  viewCount?: number
+  likeCount?: number
+  commentCount?: number
+  shareCount?: number
+  bookmarkCount?: number
+  moderationStatus?: 'PENDING' | 'APPROVED' | 'REJECTED' | 'FLAGGED' | 'UNDER_REVIEW'
+  moderatedAt?: number
+  moderatedBy?: string
+  moderationNotes?: string
+  flagCount?: number
+  authorSlug: string
+  allowComments?: boolean
+  allowBookmarks?: boolean
+  allowLikes?: boolean
+  allowShares?: boolean
+  isPinned?: boolean
+  isFeatured?: boolean
+  createdAt?: number
+  updatedAt?: number
+}
+
+export interface CreateBlogData {
+  title: string
+  slug: string
+  subtitle?: string
+  content: string
+  excerpt?: string
+  readingTime?: number
+  wordCount?: number
+  status: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED'
+  publishedAt?: number
+  scheduledFor?: number
+  metaDescription?: string
+  metaKeywords?: string[]
+  canonicalUrl?: string
+  authorSlug: string
+  allowComments?: boolean
+  allowBookmarks?: boolean
+  allowLikes?: boolean
+  allowShares?: boolean
+  isPinned?: boolean
+  isFeatured?: boolean
+  categories?: string[]
+  tags?: string[]
+  coverImages?: File[]
+}
+
+export interface UpdateBlogData extends Partial<CreateBlogData> {
+  _id: Id<"blogs">
 }
 
 // Blog status enum 
@@ -98,29 +224,29 @@ export interface BlogCardType {
   shareCount: number
   isPinned: boolean
   isFeatured: boolean
-  author: BlogSummaryResponseDtoAuthor
-  coverImages: BlogSummaryResponseDtoCoverImagesInner[]
-  tags: BlogSummaryResponseDtoTagsInner[]
-  categories: BlogSummaryResponseDtoTagsInner[]
+  author: {
+    username: string
+    firstName: string
+    lastName: string
+    imageUrl?: string
+  }
+  coverImages: Array<{
+    id: string
+    imageUrl: string
+    altText?: string
+    caption?: string
+    credits?: string
+    isMain?: boolean
+  }>
+  tags: BlogTag[]
+  categories: BlogCategory[]
   createdAt: string
   updatedAt: string
   isLiked: boolean
   isBookmarked: boolean
 }
 
-// Extended blog creation data
-export interface CreateBlogData extends Omit<CreateBlogDto, 'coverImages'> {
-  categories?: string[]
-  tags?: string[]
-  coverImages?: File[]
-}
-
-// Extended blog update data  
-export interface UpdateBlogData extends Omit<UpdateBlogDto, 'coverImages'> {
-  categories?: string[]
-  tags?: string[]
-  coverImages?: File[]
-}
+// These are now defined above with CreateBlogData and UpdateBlogData
 
 // Comment data with user info
 export interface BlogCommentType {
@@ -265,8 +391,13 @@ export interface PopularBlogResponseDto extends Omit<TrendingBlogResponseDto, 't
 
 // Featured blog response wrapper
 export interface FeaturedBlogsResponse {
-  blogs: BlogSummaryResponseDto[]
-  meta?: BlogListResponseDtoMeta
+  blogs: BlogCardType[]
+  meta?: {
+    total: number
+    page: number
+    limit: number
+    pages: number
+  }
 }
 
 // Trending blogs response wrapper
@@ -293,75 +424,172 @@ export interface PopularBlogsResponse {
   timeframe: string
 }
 
-// Utility functions to convert API responses to our types
-export function toBlogCard(blog: BlogSummaryResponseDto | TrendingBlogResponseDto | PopularBlogResponseDto): BlogCardType {
-  // Handle BlogSummaryResponseDto
-  if ('status' in blog && 'createdAt' in blog) {
-    const summaryBlog = blog as BlogSummaryResponseDto
-    return {
-      id: summaryBlog.id,
-      title: summaryBlog.title,
-      slug: summaryBlog.slug,
-      subtitle: summaryBlog.subtitle || undefined,
-      excerpt: summaryBlog.excerpt || undefined,
-      readingTime: summaryBlog.readingTime || undefined,
-      status: summaryBlog.status,
-      publishedAt: summaryBlog.publishedAt || undefined,
-      viewCount: summaryBlog.viewCount,
-      likeCount: summaryBlog.likeCount,
-      commentCount: summaryBlog.commentCount,
-      bookmarkCount: summaryBlog.bookmarkCount,
-      shareCount: 0, // Not available in summary response
-      isPinned: summaryBlog.isPinned,
-      isFeatured: summaryBlog.isFeatured,
-      author: summaryBlog.author,
-      coverImages: summaryBlog.coverImages,
-      tags: summaryBlog.tags,
-      categories: summaryBlog.categories,
-      createdAt: summaryBlog.createdAt,
-      updatedAt: summaryBlog.updatedAt,
-      isLiked: summaryBlog.isLiked || false,
-      isBookmarked: summaryBlog.isBookmarked || false,
+// Utility functions to convert data to our types
+// Types for data returned by Convex functions
+interface ConvexCoverImage {
+  id: string;
+  imageUrl: string;
+  altText?: string;
+  isMain?: boolean;
+}
+
+interface ConvexAuthor {
+  username: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+}
+
+interface ConvexTag {
+  id?: string;
+  name: string;
+  slug: string;
+  color?: string;
+}
+
+interface ConvexCategory {
+  id?: string;
+  name: string;
+  slug: string;
+  color?: string;
+}
+
+export function toBlogCard(blog: BlogDetail & {
+  coverImages?: ConvexCoverImage[];
+  tags?: ConvexTag[];
+  categories?: ConvexCategory[];
+  author?: ConvexAuthor;
+  isLiked?: boolean;
+  isBookmarked?: boolean;
+}): BlogCardType {
+
+  // Helper function to safely convert timestamp to ISO string
+  const safeDateToISOString = (timestamp: number | undefined): string => {
+    if (typeof timestamp === 'number' && timestamp > 0 && !isNaN(timestamp)) {
+      try {
+        return new Date(timestamp).toISOString();
+      } catch {
+        console.warn('Invalid timestamp provided:', timestamp);
+      }
     }
-  }
-  
-  // Handle TrendingBlogResponseDto or PopularBlogResponseDto
-  const trendingBlog = blog as TrendingBlogResponseDto
+    // Fallback to current time if timestamp is invalid
+    return new Date().toISOString();
+  };
+
+  // Get creation timestamp - prefer _creationTime, fall back to createdAt
+  const creationTimestamp = blog._creationTime || blog.createdAt;
+
   return {
-    id: trendingBlog.id,
-    title: trendingBlog.title,
-    slug: trendingBlog.slug,
-    subtitle: undefined,
-    excerpt: trendingBlog.excerpt || undefined,
-    readingTime: trendingBlog.readingTime || undefined,
-    status: 'PUBLISHED', // Trending blogs are always published
-    publishedAt: trendingBlog.publishedAt || undefined,
-    viewCount: trendingBlog.viewCount,
-    likeCount: trendingBlog.likeCount,
-    commentCount: trendingBlog.commentCount,
-    bookmarkCount: trendingBlog.bookmarkCount,
-    shareCount: trendingBlog.shareCount || 0,
-    isPinned: trendingBlog.isPinned,
-    isFeatured: trendingBlog.isFeatured,
-    author: {
-      username: trendingBlog.author.username,
-      firstName: trendingBlog.author.firstName,
-      lastName: trendingBlog.author.lastName,
-      imageUrl: trendingBlog.author.imageUrl,
+    id: blog._id,
+    title: blog.title,
+    slug: blog.slug,
+    subtitle: blog.subtitle || undefined,
+    excerpt: blog.excerpt || undefined,
+    readingTime: blog.readingTime || undefined,
+    status: blog.status,
+    publishedAt: blog.publishedAt ? safeDateToISOString(blog.publishedAt) : undefined,
+    viewCount: blog.viewCount || 0,
+    likeCount: blog.likeCount || 0,
+    commentCount: blog.commentCount || 0,
+    bookmarkCount: blog.bookmarkCount || 0,
+    shareCount: blog.shareCount || 0,
+    isPinned: blog.isPinned || false,
+    isFeatured: blog.isFeatured || false,
+    author: blog.author ? {
+      username: blog.author.username || blog.authorSlug,
+      firstName: blog.author.firstName || '',
+      lastName: blog.author.lastName || '',
+      imageUrl: blog.author.imageUrl,
+    } : {
+      username: blog.authorSlug,
+      firstName: '',
+      lastName: '',
+      imageUrl: undefined,
     },
-    coverImages: trendingBlog.coverImage ? [{
+    coverImages: (blog.coverImages || []).map(img => ({
+      id: img.id,
+      imageUrl: img.imageUrl,
+      altText: img.altText,
+      caption: undefined,
+      credits: undefined,
+      isMain: img.isMain,
+    })),
+    tags: (blog.tags || []).map(tag => ({
+      _id: tag.id || tag.name,
+      _creationTime: Date.now(),
+      name: tag.name,
+      slug: tag.slug,
+      description: undefined,
+      color: tag.color,
+      isOfficial: false,
+      blogCount: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
+    })) as BlogTag[],
+    categories: (blog.categories || []).map(cat => ({
+      _id: cat.id || cat.name,
+      _creationTime: Date.now(),
+      name: cat.name,
+      slug: cat.slug,
+      description: undefined,
+      color: cat.color,
+      icon: undefined,
+      parentId: undefined,
+      blogCount: undefined,
+      order: undefined,
+      isActive: true,
+      createdAt: undefined,
+      updatedAt: undefined,
+      parent: null,
+    })) as BlogCategory[],
+    createdAt: safeDateToISOString(creationTimestamp),
+    updatedAt: safeDateToISOString(blog.updatedAt || creationTimestamp),
+    isLiked: blog.isLiked || false, // Use server-provided value if available
+    isBookmarked: blog.isBookmarked || false, // Use server-provided value if available
+  }
+}
+
+// Legacy utility function for backward compatibility (will be removed)
+export function toBlogCardLegacy(blog: TrendingBlogResponseDto | PopularBlogResponseDto): BlogCardType {
+  return {
+    id: blog.id,
+    title: blog.title,
+    slug: blog.slug,
+    subtitle: undefined,
+    excerpt: blog.excerpt || undefined,
+    readingTime: blog.readingTime || undefined,
+    status: 'PUBLISHED', // Trending blogs are always published
+    publishedAt: blog.publishedAt || undefined,
+    viewCount: blog.viewCount,
+    likeCount: blog.likeCount,
+    commentCount: blog.commentCount,
+    bookmarkCount: blog.bookmarkCount,
+    shareCount: blog.shareCount || 0,
+    isPinned: blog.isPinned,
+    isFeatured: blog.isFeatured,
+    author: {
+      username: blog.author.username,
+      firstName: blog.author.firstName,
+      lastName: blog.author.lastName,
+      imageUrl: blog.author.imageUrl,
+    },
+    coverImages: blog.coverImage ? [{
       id: '1',
-      imageUrl: trendingBlog.coverImage,
-      altText: trendingBlog.title,
+      imageUrl: blog.coverImage,
+      altText: blog.title,
       isMain: true,
     }] : [],
-    tags: trendingBlog.tags.map(tag => ({
-      id: tag.slug,
+    tags: blog.tags.map(tag => ({
+      _id: tag.slug as Id<"blogTags">,
+      _creationTime: Date.now(),
       name: tag.name,
       slug: tag.slug,
       description: undefined,
       color: tag.color || undefined,
-      isActive: true,
+      isOfficial: true,
+      blogCount: undefined,
+      createdAt: undefined,
+      updatedAt: undefined,
     })),
     categories: [],
     createdAt: new Date().toISOString(), // Fallback
@@ -371,62 +599,146 @@ export function toBlogCard(blog: BlogSummaryResponseDto | TrendingBlogResponseDt
   }
 }
 
-export function toBlogCardFromDetail(blog: BlogDetailResponseDto): BlogCardType {
+// Enhanced version of toBlogCard that includes related data
+export function toBlogCardWithRelations(
+  blog: BlogDetail,
+  tags: BlogTag[] = [],
+  categories: BlogCategory[] = [],
+  coverImages: Array<{id: string, imageUrl: string, altText?: string, isMain?: boolean}> = [],
+  author?: {username: string, firstName: string, lastName: string, imageUrl?: string},
+  isLiked: boolean = false,
+  isBookmarked: boolean = false
+): BlogCardType {
+  // Helper function to safely convert timestamp to ISO string
+  const safeDateToISOString = (timestamp: number | undefined): string => {
+    if (typeof timestamp === 'number' && timestamp > 0 && !isNaN(timestamp)) {
+      try {
+        return new Date(timestamp).toISOString();
+      } catch {
+        console.warn('Invalid timestamp provided:', timestamp);
+      }
+    }
+    // Fallback to current time if timestamp is invalid
+    return new Date().toISOString();
+  };
+
+  // Get creation timestamp - prefer _creationTime, fall back to createdAt
+  const creationTimestamp = blog._creationTime || blog.createdAt;
+
   return {
-    id: blog.id,
+    id: blog._id,
     title: blog.title,
     slug: blog.slug,
     subtitle: blog.subtitle || undefined,
     excerpt: blog.excerpt || undefined,
     readingTime: blog.readingTime || undefined,
     status: blog.status,
-    publishedAt: blog.publishedAt || undefined,
-    viewCount: blog.viewCount,
-    likeCount: blog.likeCount,
-    commentCount: blog.commentCount,
-    bookmarkCount: blog.bookmarkCount,
-    shareCount: blog.shareCount,
-    isPinned: blog.isPinned,
-    isFeatured: blog.isFeatured,
-    author: blog.author,
-    coverImages: blog.coverImages,
-    tags: blog.tags,
-    categories: blog.categories,
-    createdAt: blog.createdAt,
-    updatedAt: blog.updatedAt,
-    isLiked: blog.isLiked || false,
-    isBookmarked: blog.isBookmarked || false,
+    publishedAt: blog.publishedAt ? safeDateToISOString(blog.publishedAt) : undefined,
+    viewCount: blog.viewCount || 0,
+    likeCount: blog.likeCount || 0,
+    commentCount: blog.commentCount || 0,
+    bookmarkCount: blog.bookmarkCount || 0,
+    shareCount: blog.shareCount || 0,
+    isPinned: blog.isPinned || false,
+    isFeatured: blog.isFeatured || false,
+    author: author || {
+      username: blog.authorSlug,
+      firstName: '',
+      lastName: '',
+      imageUrl: undefined,
+    },
+    coverImages,
+    tags,
+    categories,
+    createdAt: safeDateToISOString(creationTimestamp),
+    updatedAt: safeDateToISOString(blog.updatedAt || creationTimestamp),
+    isLiked,
+    isBookmarked,
   }
 }
 
-// Convert API comment response to our internal comment type
-export function toCommentType(comment: CommentResponseDto): BlogCommentType {
+// Convert Convex comment data to our internal comment type
+export type BlogComment = Doc<"blogComments"> & {
+  blogId: Id<"blogs">
+  authorSlug: string
+  content: string
+  parentId?: Id<"blogComments">
+  status?: 'PUBLISHED' | 'HIDDEN' | 'DELETED' | 'UNDER_REVIEW'
+  moderatedAt?: number
+  moderatedBy?: string
+  moderationNotes?: string
+  likeCount?: number
+  flagCount?: number
+  createdAt?: number
+  updatedAt?: number
+}
+
+// Interface for enriched comment data from Convex queries
+interface EnrichedCommentAuthor {
+  username: string
+  firstName?: string
+  lastName?: string
+  imageUrl?: string
+}
+
+interface EnrichedBlogComment extends BlogComment {
+  author?: EnrichedCommentAuthor
+  replies?: EnrichedBlogComment[]
+}
+
+export function toCommentType(comment: BlogComment | EnrichedBlogComment): BlogCommentType {
   if (!comment) {
     throw new Error('Comment data is required')
   }
-  
+
+  // Helper function to safely convert timestamp to ISO string
+  const safeDateToISOString = (timestamp: number | undefined): string => {
+    if (typeof timestamp === 'number' && timestamp > 0 && !isNaN(timestamp)) {
+      try {
+        return new Date(timestamp).toISOString();
+      } catch {
+        console.warn('Invalid timestamp provided:', timestamp);
+      }
+    }
+    // Fallback to current time if timestamp is invalid
+    return new Date().toISOString();
+  };
+
+  // Get creation timestamp - prefer _creationTime, fall back to createdAt
+  const creationTimestamp = comment._creationTime || comment.createdAt;
+
+  // Check if this is enriched comment data from getCommentsForBlog query
+  const enrichedComment = comment as EnrichedBlogComment;
+  const hasEnrichedAuthor = enrichedComment.author && typeof enrichedComment.author === 'object' && enrichedComment.author.username;
+
   return {
-    id: comment.id || '',
+    id: comment._id,
     content: comment.content || '',
-    authorId: comment.author?.username || '', // Use username as fallback for authorId
-    author: {
-      id: comment.author?.username || '',
-      username: comment.author?.username || '',
-      firstName: comment.author?.firstName || '',
-      lastName: comment.author?.lastName || '',
-      imageUrl: comment.author?.imageUrl,
+    authorId: comment.authorSlug || enrichedComment.author?.username || '',
+    author: hasEnrichedAuthor ? {
+      id: enrichedComment.author!.username,
+      username: enrichedComment.author!.username,
+      firstName: enrichedComment.author!.firstName || '',
+      lastName: enrichedComment.author!.lastName || '',
+      imageUrl: enrichedComment.author!.imageUrl,
+    } : {
+      id: comment.authorSlug || '',
+      username: comment.authorSlug || '',
+      firstName: '', // Would need to be fetched separately from users table
+      lastName: '', // Would need to be fetched separately from users table
+      imageUrl: undefined, // Would need to be fetched separately from users table
     },
-    blogId: '', // Not available in API response, would need to be passed separately
+    blogId: comment.blogId,
     parentId: comment.parentId || undefined,
-    replies: null, // Replies are fetched separately using the replyCount
-    replyCount: comment.replyCount || 0,
-    createdAt: comment.createdAt || new Date().toISOString(),
-    updatedAt: comment.updatedAt || new Date().toISOString(),
+    replies: null, // Replies are fetched separately
+    replyCount: enrichedComment.replies?.length || 0,
+    createdAt: safeDateToISOString(creationTimestamp),
+    updatedAt: safeDateToISOString(comment.updatedAt || creationTimestamp),
     isEdited: comment.createdAt !== comment.updatedAt,
     likeCount: comment.likeCount || 0,
-    flagCount: 0, // Not available in current API response
-    status: 'active', // Not available in current API response
-    isLiked: comment.isLiked || false,
+    flagCount: comment.flagCount || 0,
+    status: comment.status || 'PUBLISHED',
+    isLiked: false, // Would need to be fetched separately from blogCommentLikes table
   }
 }
 
@@ -446,13 +758,13 @@ export function isValidModerationStatus(status: string): status is ModerationSta
   return ['PENDING', 'APPROVED', 'REJECTED', 'FLAGGED'].includes(status)
 }
 
-export function hasBlogContent(blog: unknown): blog is BlogDetailResponseDto & { content: string } {
-  return typeof blog === 'object' && blog !== null && 
+export function hasBlogContent(blog: unknown): blog is BlogDetail & { content: string } {
+  return typeof blog === 'object' && blog !== null &&
     'content' in blog && typeof blog.content === 'string' && blog.content.length > 0
 }
 
-export function hasAuthorInfo(blog: unknown): blog is BlogCardType & { author: BlogSummaryResponseDtoAuthor } {
-  return typeof blog === 'object' && blog !== null && 
+export function hasAuthorInfo(blog: unknown): blog is BlogCardType & { author: { username: string; firstName: string; lastName: string; imageUrl?: string } } {
+  return typeof blog === 'object' && blog !== null &&
     'author' in blog && typeof blog.author === 'object' && blog.author !== null
 }
 

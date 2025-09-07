@@ -1,16 +1,17 @@
 'use client'
 
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useMemo, useCallback } from 'react'
 
 import { useDebounce } from '@/hooks/use-debounce'
+import { api } from '@/lib/convex'
 
 import {
   BlogHeaderWithNavigation,
   BlogListingContent,
   BlogSidebar,
 } from '../components/listing'
-import { useBlogs, useTags, useFeaturedBlogs, useTrendingBlogs, usePopularBlogs } from '../hooks'
 import type { BlogFiltersType, BlogCardType } from '../types'
 import { processBlogData, processTagsData, extractErrorMessage } from '../utils/data-processing'
 
@@ -82,45 +83,69 @@ export default function BlogsListingPageRefactored() {
       baseFilters.sortBy = 'likeCount'
       baseFilters.sortOrder = 'desc'
       break
+    default:
+      baseFilters.sortBy = 'publishedAt'
+      baseFilters.sortOrder = 'desc'
+      break
     }
 
     return baseFilters
   }, [currentPage, itemsPerPage, debouncedSearchQuery, filters])
 
   // Query hooks based on active tab
-  const {
-    data: blogsResponse,
-    isLoading: isBlogsLoading,
-    isError: isBlogsError,
-    error: blogsError
-  } = useBlogs(activeTab === 'all' ? apiFilters : {})
+  const blogsResponse = useQuery(api.blogs.getBlogs, activeTab === 'all' ? {
+    paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
+    search: apiFilters.search,
+    status: apiFilters.status,
+    categorySlug: apiFilters.categories?.[0],
+    tagSlug: apiFilters.tags?.[0],
+    sortBy: apiFilters.sortBy,
+    sortOrder: apiFilters.sortOrder,
+  } : "skip")
 
-  const {
-    data: featuredResponse,
-    isLoading: isFeaturedLoading,
-    isError: isFeaturedError,
-    error: featuredError
-  } = useFeaturedBlogs(activeTab === 'featured' ? { limit: itemsPerPage, page: currentPage } : {})
+  const featuredResponse = useQuery(api.blogs.getFeaturedBlogs, activeTab === 'featured' ? {
+    paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
+  } : "skip")
 
-  const {
-    data: trendingResponse,
-    isLoading: isTrendingLoading,
-    isError: isTrendingError,
-    error: trendingError
-  } = useTrendingBlogs(activeTab === 'trending' ? { limit: itemsPerPage, timeframe: 'week' } : {})
+  // Note: Trending and Popular queries don't exist in Convex, so we'll use the main blogs query with appropriate filters
+  const trendingResponse = useQuery(api.blogs.getBlogs, activeTab === 'trending' ? {
+    paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
+    sortBy: 'likeCount',
+    sortOrder: 'desc',
+  } : "skip")
 
-  const {
-    data: popularResponse,
-    isLoading: isPopularLoading,
-    isError: isPopularError,
-    error: popularError
-  } = usePopularBlogs(activeTab === 'popular' ? { limit: itemsPerPage, timeframe: 'month' } : {})
+  const popularResponse = useQuery(api.blogs.getBlogs, activeTab === 'popular' ? {
+    paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
+    sortBy: 'viewCount',
+    sortOrder: 'desc',
+  } : "skip")
 
   // Get staff picks (featured blogs for sidebar)
-  const { data: staffPicksResponse, isLoading: isStaffPicksLoading } = useFeaturedBlogs({ limit: 6 })
+  const staffPicksResponse = useQuery(api.blogs.getFeaturedBlogs, {
+    paginationOpts: { numItems: 6, cursor: '0' },
+  })
 
   // Categories and tags for recommendations
-  const { data: tagsResponse, isLoading: isTagsLoading } = useTags({ onlyActive: true, limit: 20 })
+  const tagsResponse = useQuery(api.blogs.getTags, {})
+
+  // Loading and error states (Convex useQuery doesn't provide these directly)
+  const isBlogsLoading = blogsResponse === undefined
+  const isFeaturedLoading = featuredResponse === undefined
+  const isTrendingLoading = trendingResponse === undefined
+  const isPopularLoading = popularResponse === undefined
+  const isStaffPicksLoading = staffPicksResponse === undefined
+  const isTagsLoading = tagsResponse === undefined
+
+  // Error states (Convex handles errors through thrown exceptions)
+  const isBlogsError = false // Convex queries throw on error
+  const isFeaturedError = false
+  const isTrendingError = false
+  const isPopularError = false
+
+  const blogsError = null
+  const featuredError = null
+  const trendingError = null
+  const popularError = null
 
   // Process data based on active tab
   const { blogs, total: totalItems } = useMemo(() => {
@@ -156,7 +181,7 @@ export default function BlogsListingPageRefactored() {
     default:
       return isBlogsLoading
     }
-  }, [activeTab, isBlogsLoading, isFeaturedLoading, isTrendingLoading, isPopularLoading])
+  }, [activeTab, isBlogsLoading, isFeaturedLoading, isPopularLoading, isTrendingLoading])
 
   const isError = useMemo(() => {
     switch (activeTab) {

@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from "convex-helpers/react/cache/hooks";
 import { formatDistanceToNow } from 'date-fns'
 import { 
   Heart, 
@@ -10,7 +11,6 @@ import {
   Trash2, 
   ChevronDown,
   ChevronUp,
-  MessageSquare
 } from 'lucide-react'
 import React, { useState } from 'react'
 
@@ -23,22 +23,18 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
+import { useMutation } from '@/lib/convex'
+import { api, Id } from '@/lib/convex'
 import { cn } from '@/lib/utils'
-import type { CommentResponseDto } from '@generated/api-client'
 
-import { 
-  useLikeComment, 
-  useUnlikeComment, 
-  useDeleteComment,
-  useFlagComment,
-  useCommentReplies
-} from '../../hooks'
+import type { BlogCommentType, BlogComment } from '../../types'
+import { toCommentType } from '../../types'
 import { Pagination } from '../shared/pagination'
 
 import { CommentForm } from './comment-form'
 
 interface CommentItemProps {
-  comment: CommentResponseDto
+  comment: BlogCommentType
   blogSlug: string
   depth?: number
   onReply?: () => void
@@ -50,51 +46,44 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
   const [showReplyForm, setShowReplyForm] = useState(false)
   const [showReplies, setShowReplies] = useState(false)
 
-  const likeCommentMutation = useLikeComment()
-  const unlikeCommentMutation = useUnlikeComment()
-  const deleteCommentMutation = useDeleteComment()
-  const flagCommentMutation = useFlagComment()
+  const likeCommentMutation = useMutation(api.blogs.likeComment)
+  const deleteCommentMutation = useMutation(api.blogs.deleteComment)
+  const flagCommentMutation = useMutation(api.blogs.flagComment)
 
   // Fetch replies when needed (only if comment has replies and user wants to see them)
-  const {
-    data: repliesData,
-    isLoading: repliesLoading,
-    isError: repliesError
-  } = useCommentReplies(
-    blogSlug,
-    comment.id,
-    { limit: '10', sort: 'createdAt:asc' },
-    showReplies && comment.replyCount > 0
+  const repliesQuery = useQuery(
+    api.blogs.getCommentReplies,
+    showReplies && (comment.replyCount || 0) > 0 ? { parentCommentId: comment.id as Id<"blogComments"> } : "skip"
   )
 
+  // Transform Convex reply data to BlogCommentType format
+  const transformReply = (reply: unknown): BlogCommentType => {
+    return toCommentType(reply as BlogComment)
+  }
+
   // Get the replies to display
-  const displayReplies = repliesData?.data || []
-  const hasReplies = comment.replyCount > 0
+  const displayReplies = repliesQuery ? repliesQuery.map(transformReply) : []
+  const hasReplies = (comment.replyCount || 0) > 0
+  const repliesLoading = !repliesQuery && showReplies && (comment.replyCount || 0) > 0
+  const repliesError = false // Convex queries don't throw errors in the same way
 
   // Determine if we should show the "Show replies" button
   const shouldShowRepliesButton = hasReplies
 
   const handleLike = async () => {
-    const newLikedState = !isLiked
-    setIsLiked(newLikedState)
-    setLikeCount(prev => newLikedState ? prev + 1 : prev - 1)
+    const originalLikedState = isLiked
+    const originalLikeCount = likeCount
 
     try {
-      if (newLikedState) {
-        await likeCommentMutation.mutateAsync({
-          commentId: comment.id,
-          blogSlug
-        })
-      } else {
-        await unlikeCommentMutation.mutateAsync({
-          commentId: comment.id,
-          blogSlug
-        })
-      }
+      const result = await likeCommentMutation({ commentId: comment.id as Id<"blogComments"> })
+
+      // Update state based on the mutation result
+      setIsLiked(result.liked)
+      setLikeCount(result.likeCount)
     } catch (error) {
       // Revert on error
-      setIsLiked(comment.isLiked || false)
-      setLikeCount(comment.likeCount)
+      setIsLiked(originalLikedState)
+      setLikeCount(originalLikeCount)
       console.error('Failed to toggle comment like:', error)
     }
   }
@@ -105,10 +94,7 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
     }
 
     try {
-      await deleteCommentMutation.mutateAsync({
-        commentId: comment.id,
-        blogSlug
-      })
+      await deleteCommentMutation({ commentId: comment.id as Id<"blogComments"> })
     } catch (error) {
       console.error('Failed to delete comment:', error)
     }
@@ -116,13 +102,10 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
 
   const handleFlag = async () => {
     try {
-      await flagCommentMutation.mutateAsync({
-        commentId: comment.id,
-        blogSlug,
-        data: {
-          reason: 'INAPPROPRIATE_CONTENT', // Using proper enum value
-          description: 'Flagged for review'
-        }
+      await flagCommentMutation({
+        commentId: comment.id as Id<"blogComments">,
+        reason: 'INAPPROPRIATE_CONTENT',
+        description: 'Flagged for review'
       })
     } catch (error) {
       console.error('Failed to flag comment:', error)
@@ -138,10 +121,7 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
     setShowReplyForm(false)
   }
 
-  const isLoading = likeCommentMutation.isPending || 
-                   unlikeCommentMutation.isPending || 
-                   deleteCommentMutation.isPending || 
-                   flagCommentMutation.isPending
+  const isLoading = false // Convex mutations don't expose pending state in the same way
 
   const maxDepth = 3 // Limit nesting depth
 
@@ -235,8 +215,8 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
               disabled={isLoading}
               className={cn(
                 'h-8 px-2 gap-1 text-xs hover:bg-gray-800',
-                isLiked 
-                  ? 'text-pink-400 hover:text-pink-300' 
+                isLiked
+                  ? 'text-pink-400 hover:text-pink-300'
                   : 'text-gray-400 hover:text-white'
               )}
             >
@@ -256,42 +236,39 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
                 Reply
               </Button>
             )}
-          </div>
 
-          {/* Show replies button - made more prominent */}
-          {shouldShowRepliesButton && (
-            <div className="mt-3">
+            {/* Show replies button - made subtle and inline */}
+            {shouldShowRepliesButton && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
                 onClick={() => setShowReplies(!showReplies)}
                 disabled={isLoading || repliesLoading}
                 className={cn(
-                  "h-8 px-3 gap-2 text-xs border transition-all duration-200 font-medium",
-                  showReplies 
-                    ? "border-purple-500/50 bg-purple-500/10 text-purple-300 hover:bg-purple-500/20 hover:border-purple-400" 
-                    : "border-gray-600 bg-gray-800/50 text-gray-300 hover:bg-gray-700 hover:border-gray-500 hover:text-white"
+                  "h-8 px-2 gap-1 text-xs transition-all duration-200 border",
+                  showReplies
+                    ? "text-purple-300 hover:text-purple-200 hover:bg-purple-500/10"
+                    : "text-gray-400 hover:text-gray-200 hover:bg-gray-800 border-gray-700"
                 )}
               >
-                <MessageSquare className="w-3 h-3" />
                 {showReplies ? (
                   <>
                     <ChevronUp className="w-3 h-3" />
-                    Hide replies
+                    <span className="hidden sm:inline">Hide</span>
                   </>
                 ) : (
                   <>
                     <ChevronDown className="w-3 h-3" />
                     {repliesLoading ? (
-                      'Loading replies...'
+                      <span className="hidden sm:inline">Loading...</span>
                     ) : (
-                      `View ${comment.replyCount} ${comment.replyCount === 1 ? 'reply' : 'replies'}`
+                      <span className="hidden sm:inline">{comment.replyCount} replies</span>
                     )}
                   </>
                 )}
               </Button>
-            </div>
-          )}
+            )}
+          </div>
         </div>
       </div>
 
@@ -367,7 +344,7 @@ function CommentItem({ comment, blogSlug, depth = 0, onReply }: CommentItemProps
 }
 
 interface CommentListProps {
-  comments: CommentResponseDto[]
+  comments: BlogCommentType[]
   blogSlug: string
   currentPage: number
   totalPages: number

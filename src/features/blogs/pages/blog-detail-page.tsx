@@ -1,12 +1,19 @@
 'use client'
 
+import { useMutation } from "convex/react";
+import { useQuery } from "convex/react";
 import { motion } from 'framer-motion'
 import { ArrowLeft, MessageCircle } from 'lucide-react'
 import Link from 'next/link'
+import { useEffect } from 'react'
 
+import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
+import { useBlogViews } from '@/hooks/use-blog-views'
+import { api } from '@/lib/convex'
+import { useAuthStore } from '@/stores/auth-store'
 
-import { 
+import {
   BlogActions,
   BlogAuthorCard,
   BlogCommentsSection,
@@ -16,24 +23,131 @@ import {
   BlogRelatedSection,
   BlogSocialShare
 } from '../components/blog-details'
-import { useBlog, useRelatedBlogs } from '../hooks'
 
 interface BlogDetailPageProps {
   slug: string
 }
 
 export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
-  const { 
-    data: blog, 
-    isLoading, 
-    isError, 
-    error 
-  } = useBlog(slug)
+  const blog = useQuery(api.blogs.getBlogBySlug, { slug })
+  const viewBlogMutation = useMutation(api.blogs.viewBlog)
+  const { hasViewed, markAsViewed } = useBlogViews()
+  const { user } = useAuthStore()
 
-  const {
-    data: relatedBlogs,
-    isLoading: isRelatedLoading
-  } = useRelatedBlogs(slug, 4, !!blog)
+  // Get user's interaction state with the blog
+  const userInteraction = useQuery(api.blogs.getUserBlogInteraction, !!blog ? {
+    blogId: blog._id,
+    userSlug: user?.username || undefined,
+  } : "skip")
+
+  console.log('blog', blog)
+  const isLoading = blog === undefined
+  const isError = !blog && blog !== undefined
+
+  // Track blog view when blog loads
+  useEffect(() => {
+    if (blog && blog._id && !hasViewed(slug)) {
+      // Get user information if available
+      const userSlug = blog.author?.username || null
+
+      // Track the view
+      viewBlogMutation({
+        blogId: blog._id,
+        userSlug: userSlug || undefined,
+        ipAddress: undefined, // Client-side IP detection not reliable
+        userAgent: navigator.userAgent,
+        referrer: document.referrer || undefined,
+      })
+        .then((result) => {
+          if (result.success) {
+            console.log('Blog view tracked successfully', result.viewCountIncremented)
+            // Mark as viewed in local storage
+            markAsViewed(slug)
+          }
+        })
+        .catch((error) => {
+          console.error('Failed to track blog view:', error)
+        })
+    }
+  }, [blog, slug, hasViewed, markAsViewed, viewBlogMutation])
+
+  // Ensure blog has required properties with defaults
+  const blogWithDefaults = blog ? {
+    ...blog,
+    likeCount: blog.likeCount || 0,
+    commentCount: blog.commentCount || 0,
+    status: blog.status || 'DRAFT' as const,
+    _creationTime: Date.now(), // Add default creation time
+    // Transform coverImages to match BlogCoverImage component expectations
+    coverImages: blog.coverImages?.map(img => ({
+      id: img._id,
+      imageUrl: img.imageUrl || null,
+      altText: img.altText || null,
+    })) || [],
+    // Include tags and categories with proper structure
+    tags: blog.tags?.filter(tag => tag != null).map(tag => ({
+      id: tag._id,
+      name: tag.name,
+      slug: tag.slug,
+      color: tag.color,
+    })) || [],
+    categories: blog.categories?.filter(cat => cat != null).map(cat => ({
+      id: cat._id,
+      name: cat.name,
+      slug: cat.slug,
+      color: cat.color,
+    })) || []
+  } : null
+
+  const relatedBlogsData = useQuery(api.blogs.getRelatedBlogs, !!blog ? {
+    currentBlogSlug: slug,
+    limit: 4,
+  } : "skip")
+
+  console.log('relatedBlogsData', relatedBlogsData)
+
+  // Transform related blogs data to match BlogSummaryResponseDto structure
+  const relatedBlogs = Array.isArray(relatedBlogsData) ? relatedBlogsData.map(blog => ({
+    id: blog.id,
+    title: blog.title,
+    slug: blog.slug,
+    subtitle: blog.subtitle,
+    excerpt: blog.excerpt,
+    readingTime: blog.readingTime,
+    status: blog.status,
+    publishedAt: blog.publishedAt,
+    viewCount: blog.viewCount,
+    likeCount: blog.likeCount,
+    commentCount: blog.commentCount,
+    bookmarkCount: blog.bookmarkCount || 0,
+    isPinned: blog.isPinned,
+    isFeatured: blog.isFeatured,
+    author: blog.author,
+    coverImages: blog.coverImages?.map(img => ({
+      id: img.id,
+      imageUrl: img.imageUrl,
+      altText: img.altText,
+    })) || [],
+    tags: blog.tags?.filter(tag => tag != null).map(tag => ({
+      id: tag.id || tag.name,
+      name: tag.name,
+      slug: tag.slug,
+      color: tag.color,
+    })) || [],
+    categories: blog.categories?.filter(cat => cat != null).map(cat => ({
+      id: cat.id || cat.name,
+      name: cat.name,
+      slug: cat.slug,
+      color: cat.color,
+    })) || [],
+    shareCount: 0,
+    createdAt: blog.createdAt,
+    updatedAt: blog.updatedAt,
+    isLiked: blog.isLiked,
+    isBookmarked: blog.isBookmarked,
+  })) : []
+
+  const isRelatedLoading = relatedBlogsData === undefined
 
   const handleLike = (liked: boolean) => {
     // Like state is now handled by BlogActions component
@@ -46,11 +160,11 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
   }
 
   const handleShare = async () => {
-    if (!blog) return
+    if (!blogWithDefaults) return
 
     const url = `${window.location.origin}/blogs/${slug}`
-    const title = blog.title
-    const text = blog.excerpt || blog.title || ''
+    const title = blogWithDefaults.title
+    const text = blogWithDefaults.excerpt || blogWithDefaults.title || ''
 
     if (navigator.share) {
       try {
@@ -86,7 +200,7 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
     )
   }
 
-  if (isError || !blog) {
+  if (isError || !blogWithDefaults) {
     return (
       <div className="min-h-screen bg-black">
         <div className="max-w-4xl mx-auto px-4 py-8">
@@ -97,11 +211,11 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
               </div>
               <h3 className="text-lg font-semibold text-red-400">Blog not found</h3>
               <p className="text-gray-400">
-                {error?.message || 'The blog you are looking for does not exist or has been removed.'}
+                The blog you are looking for does not exist or has been removed.
               </p>
               <Link href="/blogs">
-                <Button 
-                  variant="outline" 
+                <Button
+                  variant="outline"
                   className="border-purple-500/20 text-purple-400 hover:bg-purple-500/10"
                 >
                   <ArrowLeft className="w-4 h-4 mr-2" />
@@ -117,30 +231,6 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
 
   return (
     <div className="min-h-screen bg-black">
-      {/* Header */}
-      <header className="border-b border-gray-800 bg-black/95 backdrop-blur-sm sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <Link href="/blogs">
-              <Button variant="ghost" className="text-gray-400 hover:text-white">
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back to Blogs
-              </Button>
-            </Link>
-            
-            <BlogActions
-              blogSlug={slug}
-              initialLikeCount={blog.likeCount}
-              initialIsLiked={blog.isLiked || false}
-              initialIsBookmarked={blog.isBookmarked || false}
-              onLike={handleLike}
-              onBookmark={handleBookmark}
-              onShare={handleShare}
-            />
-          </div>
-        </div>
-      </header>
-
       {/* Main content */}
       <main className="max-w-4xl mx-auto px-4 py-8">
         <motion.article
@@ -149,29 +239,91 @@ export default function BlogDetailPage({ slug }: BlogDetailPageProps) {
           transition={{ duration: 0.6 }}
           className="space-y-8"
         >
+          {/* Back to Blogs button at top */}
+          <div className="mb-4">
+            <Link href="/blogs">
+              <Button variant="ghost" className="text-gray-300 hover:text-white border-gray-600 border mb-8">
+                <ArrowLeft className="w-4 h-4 mr-2" />
+                Back to Blogs
+              </Button>
+            </Link>
+          </div>
+
           {/* Hero section */}
-          <BlogHeader blog={blog} />
+          <BlogHeader blog={blogWithDefaults} />
 
           {/* Cover image */}
-          <BlogCoverImage coverImages={blog.coverImages} title={blog.title} />
+          <BlogCoverImage coverImages={blogWithDefaults.coverImages} title={blogWithDefaults.title} />
+
+          {/* Tags and Categories below image */}
+          {(blogWithDefaults.categories?.length > 0 || blogWithDefaults.tags?.length > 0) && (
+            <div className="flex flex-wrap gap-2 mb-4">
+              {blogWithDefaults.categories?.map((category) => (
+                <Link key={category.id} href={`/blogs/category/${category.slug}`}>
+                  <Badge className="bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 border-purple-500/30/50">
+                    {category.name}
+                  </Badge>
+                </Link>
+              ))}
+              {blogWithDefaults.tags?.map((tag) => (
+                <Link key={tag.id} href={`/blogs/tag/${tag.slug}`}>
+                  <Badge variant="outline" className="border-gray-600/50 text-gray-300 hover:border-purple-500/50">
+                    {tag.name}
+                  </Badge>
+                </Link>
+              ))}
+            </div>
+          )}
+
+          {/* Actions below photo */}
+          <div className="flex justify-start py-2">
+            <BlogActions
+              blogSlug={slug}
+              initialLikeCount={blogWithDefaults.likeCount}
+              initialIsLiked={userInteraction?.isLiked || false}
+              initialIsBookmarked={userInteraction?.isBookmarked || false}
+              onLike={handleLike}
+              onBookmark={handleBookmark}
+              onShare={handleShare}
+            />
+          </div>
 
           {/* Content */}
-          <BlogContent content={blog.content || ''} />
+          <BlogContent content={blogWithDefaults.content || ''} />
+
+          {/* Actions after article */}
+          <div className="flex justify-start py-2 border-t border-gray-800">
+            <BlogActions
+              blogSlug={slug}
+              initialLikeCount={blogWithDefaults.likeCount}
+              initialIsLiked={userInteraction?.isLiked || false}
+              initialIsBookmarked={userInteraction?.isBookmarked || false}
+              onLike={handleLike}
+              onBookmark={handleBookmark}
+              onShare={handleShare}
+            />
+          </div>
 
           {/* Social sharing */}
           <BlogSocialShare
             slug={slug}
-            title={blog.title}
-            excerpt={blog.excerpt}
-            likeCount={blog.likeCount}
-            commentCount={blog.commentCount}
+            title={blogWithDefaults.title}
+            excerpt={blogWithDefaults.excerpt}
+            likeCount={blogWithDefaults.likeCount}
+            commentCount={blogWithDefaults.commentCount}
           />
 
           {/* Author info */}
-          <BlogAuthorCard author={blog.author} />
+          <BlogAuthorCard author={{
+            username: blogWithDefaults.author?.username || '',
+            firstName: blogWithDefaults.author?.firstName || '',
+            lastName: blogWithDefaults.author?.lastName || '',
+            imageUrl: blogWithDefaults.author?.imageUrl || '',
+            bio: blogWithDefaults.author?.bio || '',
+          }} />
 
           {/* Comments section */}
-          <BlogCommentsSection blog={blog} />
+          <BlogCommentsSection blog={blogWithDefaults} />
         </motion.article>
 
         {/* Related blogs */}

@@ -1,11 +1,10 @@
 'use client'
 
 import { formatDistanceToNow } from 'date-fns'
-import { 
-  Calendar, 
-  Clock, 
-  Eye, 
-  Tag 
+import {
+  Calendar,
+  Clock,
+  Eye
 } from 'lucide-react'
 import Link from 'next/link'
 
@@ -24,27 +23,6 @@ export function BlogHeader({ blog }: BlogHeaderProps) {
 
   return (
     <div className="space-y-6">
-      {/* Categories and tags */}
-      {(blog.categories?.length > 0 || blog.tags?.length > 0) && (
-        <div className="flex flex-wrap gap-2">
-          {blog.categories?.map((category) => (
-            <Link key={category.id} href={`/blogs/category/${category.slug}`}>
-              <Badge className="bg-purple-500/20 text-purple-200 hover:bg-purple-500/30 border-purple-500/30">
-                {category.name}
-              </Badge>
-            </Link>
-          ))}
-          {blog.tags?.map((tag) => (
-            <Link key={tag.id} href={`/blogs/tag/${tag.slug}`}>
-              <Badge variant="outline" className="border-gray-600 text-gray-300 hover:border-purple-500/50">
-                <Tag className="w-3 h-3 mr-1" />
-                {tag.name}
-              </Badge>
-            </Link>
-          ))}
-        </div>
-      )}
-
       {/* Title */}
       <h1 className="text-4xl md:text-5xl font-bold text-white leading-tight">
         {blog.title}

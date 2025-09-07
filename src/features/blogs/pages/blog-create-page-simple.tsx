@@ -18,18 +18,25 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import { useMutation } from '@/lib/convex'
+import { api } from '@/lib/convex'
+import { compressImageForBlogCover, validateImageFile } from '@/lib/image-utils'
+import { showErrorToast, showInfoToast } from '@/lib/toast'
 
 import MarkdownEditor from '../components/markdown-editor'
-import { useCreateBlog } from '../hooks'
 import { simpleBlogSchema, type SimpleBlogFormData } from '../schemas/simple-blog'
 
 export default function BlogCreatePage() {
   const router = useRouter()
   const [coverImagePreview, setCoverImagePreview] = useState<string>('')
+  const [coverImageFile, setCoverImageFile] = useState<File | null>(null)
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [customTag, setCustomTag] = useState('')
 
-  const createBlogMutation = useCreateBlog()
+  const createBlogMutation = useMutation(api.blogs.createBlog)
+  const generateBlogCoverUploadUrl = useMutation(api.blogs.generateBlogCoverUploadUrl)
+  const saveBlogCoverImage = useMutation(api.blogs.saveBlogCoverImage)
+  const [isCreating, setIsCreating] = useState(false)
 
   const form = useForm<SimpleBlogFormData>({
     resolver: zodResolver(simpleBlogSchema),
@@ -48,6 +55,17 @@ export default function BlogCreatePage() {
   const handleCoverImageChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (file) {
+      // Validate file
+      const validation = validateImageFile(file)
+      if (!validation.valid) {
+        showErrorToast('Invalid File', validation.error || 'Please select a valid image file.')
+        return
+      }
+
+      // Store the file for later upload
+      setCoverImageFile(file)
+
+      // Create preview
       const reader = new FileReader()
       reader.onload = () => {
         setCoverImagePreview(reader.result as string)
@@ -58,6 +76,7 @@ export default function BlogCreatePage() {
 
   const removeCoverImage = useCallback(() => {
     setCoverImagePreview('')
+    setCoverImageFile(null)
   }, [])
 
   // Handle tag management
@@ -84,22 +103,89 @@ export default function BlogCreatePage() {
 
   // Form submission
   const onSubmit = async (data: SimpleBlogFormData) => {
+    setIsCreating(true)
     try {
-      // Convert to the API format
+      // Generate slug from title
+      const slug = data.title
+        .toLowerCase()
+        .replace(/[^a-z0-9\s-]/g, '')
+        .replace(/\s+/g, '-')
+        .replace(/-+/g, '-')
+        .trim()
+
+      // Convert to the Convex format
       const blogData = {
-        ...data,
-        tagNames: selectedTags,
-        categoryNames: [],
+        title: data.title,
+        slug,
+        subtitle: data.subtitle || undefined,
+        content: data.content,
+        excerpt: data.excerpt || undefined,
+        metaDescription: data.metaDescription || undefined,
+        status: 'DRAFT' as const,
         allowComments: true,
         allowBookmarks: true,
         allowLikes: true,
         allowShares: true,
+        // Note: categories and tags would need to be resolved to IDs
+        // This is simplified for now
+        categories: [],
+        tags: [],
         metaKeywords: [],
       }
-      await createBlogMutation.mutateAsync(blogData)
+
+      // Create the blog first
+      const blogId = await createBlogMutation(blogData)
+
+      // Handle cover image upload if present
+      if (coverImageFile && blogId) {
+        try {
+          showInfoToast('Processing cover image...', 'Compressing and uploading your cover image.')
+
+          // Compress the image for blog cover (16:9 aspect ratio)
+          const compressedBlob = await compressImageForBlogCover(coverImageFile, 0.9)
+
+          // Get upload URL from Convex
+          const uploadUrl = await generateBlogCoverUploadUrl({})
+
+          // Upload the compressed image
+          const uploadResponse = await fetch(uploadUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': compressedBlob.type },
+            body: compressedBlob,
+          })
+
+          if (!uploadResponse.ok) {
+            throw new Error(`Upload failed: ${uploadResponse.statusText}`)
+          }
+
+          const { storageId } = await uploadResponse.json()
+
+          // Save the cover image association
+          await saveBlogCoverImage({
+            storageId,
+            blogId,
+            altText: `${data.title} cover image`,
+          })
+
+          showInfoToast('Cover image uploaded!', 'Your blog cover image has been successfully processed and uploaded.')
+        } catch (coverError) {
+          console.error('Failed to upload cover image:', coverError)
+          showErrorToast(
+            'Cover Image Upload Failed',
+            'The blog was created but the cover image could not be uploaded. You can add it later.'
+          )
+        }
+      }
+
       router.push('/blogs')
     } catch (error) {
       console.error('Failed to create blog:', error)
+      showErrorToast(
+        'Blog Creation Failed',
+        error instanceof Error ? error.message : 'Failed to create blog. Please try again.'
+      )
+    } finally {
+      setIsCreating(false)
     }
   }
 
@@ -127,10 +213,10 @@ export default function BlogCreatePage() {
             </div>
 
             <div className="flex items-center gap-3">
-              <Button 
-                variant="outline" 
+              <Button
+                variant="outline"
                 onClick={saveDraft}
-                disabled={createBlogMutation.isPending}
+                disabled={isCreating}
                 className="border-gray-700 text-gray-400 hover:border-purple-500 hover:text-purple-400"
               >
                 <Save className="w-4 h-4 mr-2" />
@@ -419,10 +505,10 @@ Happy writing! 🚀"
             <div className="flex items-center justify-end gap-4">
               <Button
                 type="submit"
-                disabled={!form.formState.isValid || createBlogMutation.isPending}
+                disabled={!form.formState.isValid || isCreating}
                 className="bg-purple-600 hover:bg-purple-700 text-white px-8"
               >
-                {createBlogMutation.isPending ? (
+                {isCreating ? (
                   <>
                     <motion.div
                       animate={{ rotate: 360 }}

@@ -1,12 +1,7 @@
-// Re-export all blog API utilities
-export * from './blogs-api-utils'
-export * from './blogs-actions-api-utils'
-export * from './blogs-extended-api-utils'
-export * from './comments-api-utils'
-export * from './blog-management-api-utils'
-export * from './blog-moderation-api-utils'
+// Blog API utilities have been replaced with direct Convex calls
+// Only non-API utilities are exported now
 
-// Re-export all blog utilities  
+// Re-export all blog utilities
 export * from './blog-utils'
 export * from './data-processing'
 
