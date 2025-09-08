@@ -133,6 +133,7 @@ const schema = defineSchema({
     tags: v.optional(v.array(v.string())),
     dueDate: v.optional(v.number()),
     status: v.optional(v.union(v.literal("OPEN"), v.literal("IN_PROGRESS"), v.literal("COMPLETED"), v.literal("CANCELLED"))),
+    isFeatured: v.optional(v.boolean()),
     ownerSlug: v.string(), // Reference to user username
     createdAt: v.optional(v.number()),
     updatedAt: v.optional(v.number()),
@@ -140,7 +141,8 @@ const schema = defineSchema({
     .index("by_slug", ["slug"])
     .index("by_ownerSlug", ["ownerSlug"])
     .index("by_status", ["status"])
-    .index("by_dueDate", ["dueDate"]),
+    .index("by_dueDate", ["dueDate"])
+    .index("by_isFeatured", ["isFeatured"]),
 
   projectRoles: defineTable({
     projectSlug: v.string(),
@@ -313,7 +315,7 @@ const schema = defineSchema({
     excerpt: v.optional(v.string()),
     readingTime: v.optional(v.number()),
     wordCount: v.optional(v.number()),
-    status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("SCHEDULED"), v.literal("ARCHIVED"), v.literal("DELETED"))),
+    status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("PENDING"), v.literal("ARCHIVED"), v.literal("DELETED"))),
     publishedAt: v.optional(v.number()),
     scheduledFor: v.optional(v.number()),
     lastEditedAt: v.optional(v.number()),
@@ -530,6 +532,33 @@ const schema = defineSchema({
     .index("by_version", ["version"])
     .index("by_createdAt", ["createdAt"])
     .index("by_blogId_version", ["blogId", "version"]),
+
+  // Calendar events for dashboard
+  calendarEvents: defineTable({
+    title: v.string(),
+    description: v.optional(v.string()),
+    startDate: v.number(), // Unix timestamp
+    endDate: v.optional(v.number()), // Unix timestamp for end date (if different from start)
+    startTime: v.optional(v.string()), // Time in HH:MM format
+    endTime: v.optional(v.string()), // Time in HH:MM format  
+    isAllDay: v.optional(v.boolean()),
+    color: v.optional(v.string()), // Hex color for calendar display
+    location: v.optional(v.string()),
+    category: v.optional(v.union(v.literal("MEETING"), v.literal("DEADLINE"), v.literal("EVENT"), v.literal("REMINDER"), v.literal("OTHER"))),
+    priority: v.optional(v.union(v.literal("LOW"), v.literal("MEDIUM"), v.literal("HIGH"), v.literal("URGENT"))),
+    createdBy: v.string(), // User username
+    attendees: v.optional(v.array(v.string())), // Array of user usernames
+    status: v.optional(v.union(v.literal("SCHEDULED"), v.literal("CANCELLED"), v.literal("COMPLETED"), v.literal("POSTPONED"))),
+    createdAt: v.optional(v.number()),
+    updatedAt: v.optional(v.number()),
+  })
+    .index("by_startDate", ["startDate"])
+    .index("by_endDate", ["endDate"])
+    .index("by_createdBy", ["createdBy"])
+    .index("by_category", ["category"])
+    .index("by_priority", ["priority"])
+    .index("by_status", ["status"])
+    .index("by_startDate_endDate", ["startDate", "endDate"]),
 });
  
 export default schema;

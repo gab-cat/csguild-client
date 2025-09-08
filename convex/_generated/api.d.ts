@@ -19,6 +19,7 @@ import type * as auth from "../auth.js";
 import type * as authDefinitions_index from "../authDefinitions/index.js";
 import type * as blogs from "../blogs.js";
 import type * as blogsDefinitions_index from "../blogsDefinitions/index.js";
+import type * as blogsDefinitions_mutations_archiveBlog from "../blogsDefinitions/mutations/archiveBlog.js";
 import type * as blogsDefinitions_mutations_bookmarkBlog from "../blogsDefinitions/mutations/bookmarkBlog.js";
 import type * as blogsDefinitions_mutations_createBlog from "../blogsDefinitions/mutations/createBlog.js";
 import type * as blogsDefinitions_mutations_createComment from "../blogsDefinitions/mutations/createComment.js";
@@ -33,13 +34,17 @@ import type * as blogsDefinitions_mutations_likeComment from "../blogsDefinition
 import type * as blogsDefinitions_mutations_moderateBlog from "../blogsDefinitions/mutations/moderateBlog.js";
 import type * as blogsDefinitions_mutations_pinBlog from "../blogsDefinitions/mutations/pinBlog.js";
 import type * as blogsDefinitions_mutations_publishBlog from "../blogsDefinitions/mutations/publishBlog.js";
+import type * as blogsDefinitions_mutations_reviewFlag from "../blogsDefinitions/mutations/reviewFlag.js";
 import type * as blogsDefinitions_mutations_shareBlog from "../blogsDefinitions/mutations/shareBlog.js";
 import type * as blogsDefinitions_mutations_unbookmarkBlog from "../blogsDefinitions/mutations/unbookmarkBlog.js";
 import type * as blogsDefinitions_mutations_unlikeBlog from "../blogsDefinitions/mutations/unlikeBlog.js";
+import type * as blogsDefinitions_mutations_unpublishBlog from "../blogsDefinitions/mutations/unpublishBlog.js";
 import type * as blogsDefinitions_mutations_updateBlog from "../blogsDefinitions/mutations/updateBlog.js";
 import type * as blogsDefinitions_mutations_uploadBlogCover from "../blogsDefinitions/mutations/uploadBlogCover.js";
 import type * as blogsDefinitions_mutations_viewBlog from "../blogsDefinitions/mutations/viewBlog.js";
 import type * as blogsDefinitions_queries_getBlogBySlug from "../blogsDefinitions/queries/getBlogBySlug.js";
+import type * as blogsDefinitions_queries_getBlogFlags from "../blogsDefinitions/queries/getBlogFlags.js";
+import type * as blogsDefinitions_queries_getBlogOverallStats from "../blogsDefinitions/queries/getBlogOverallStats.js";
 import type * as blogsDefinitions_queries_getBlogStats from "../blogsDefinitions/queries/getBlogStats.js";
 import type * as blogsDefinitions_queries_getBlogs from "../blogsDefinitions/queries/getBlogs.js";
 import type * as blogsDefinitions_queries_getCategories from "../blogsDefinitions/queries/getCategories.js";
@@ -53,6 +58,7 @@ import type * as blogsDefinitions_queries_getTags from "../blogsDefinitions/quer
 import type * as blogsDefinitions_queries_getUserBlogInteraction from "../blogsDefinitions/queries/getUserBlogInteraction.js";
 import type * as blogsDefinitions_queries_index from "../blogsDefinitions/queries/index.js";
 import type * as crons from "../crons.js";
+import type * as dashboard from "../dashboard.js";
 import type * as email from "../email.js";
 import type * as emailDirect from "../emailDirect.js";
 import type * as events from "../events.js";
@@ -112,12 +118,14 @@ import type * as projectsDefinitions_mutations_reactivateProjectMember from "../
 import type * as projectsDefinitions_mutations_removeProjectMember from "../projectsDefinitions/mutations/removeProjectMember.js";
 import type * as projectsDefinitions_mutations_reviewApplication from "../projectsDefinitions/mutations/reviewApplication.js";
 import type * as projectsDefinitions_mutations_saveProject from "../projectsDefinitions/mutations/saveProject.js";
+import type * as projectsDefinitions_mutations_toggleProjectFeatured from "../projectsDefinitions/mutations/toggleProjectFeatured.js";
 import type * as projectsDefinitions_mutations_unsaveProject from "../projectsDefinitions/mutations/unsaveProject.js";
 import type * as projectsDefinitions_mutations_updateProject from "../projectsDefinitions/mutations/updateProject.js";
 import type * as projectsDefinitions_notifications from "../projectsDefinitions/notifications.js";
 import type * as projectsDefinitions_notifications_actions from "../projectsDefinitions/notifications_actions.js";
 import type * as projectsDefinitions_notifications_mutations from "../projectsDefinitions/notifications_mutations.js";
 import type * as projectsDefinitions_notifications_queries from "../projectsDefinitions/notifications_queries.js";
+import type * as projectsDefinitions_queries_getFeaturedProjects from "../projectsDefinitions/queries/getFeaturedProjects.js";
 import type * as projectsDefinitions_queries_getMyApplications from "../projectsDefinitions/queries/getMyApplications.js";
 import type * as projectsDefinitions_queries_getMyProjects from "../projectsDefinitions/queries/getMyProjects.js";
 import type * as projectsDefinitions_queries_getPinnedProjects from "../projectsDefinitions/queries/getPinnedProjects.js";
@@ -129,6 +137,8 @@ import type * as projectsDefinitions_queries_getSavedProjects from "../projectsD
 import type * as projectsDefinitions_queries_index from "../projectsDefinitions/queries/index.js";
 import type * as users from "../users.js";
 import type * as usersDefinitions_index from "../usersDefinitions/index.js";
+import type * as usersDefinitions_mutations_adminRegisterRfidCard from "../usersDefinitions/mutations/adminRegisterRfidCard.js";
+import type * as usersDefinitions_mutations_adminUpdateUser from "../usersDefinitions/mutations/adminUpdateUser.js";
 import type * as usersDefinitions_mutations_createUser from "../usersDefinitions/mutations/createUser.js";
 import type * as usersDefinitions_mutations_index from "../usersDefinitions/mutations/index.js";
 import type * as usersDefinitions_mutations_registerRfidCard from "../usersDefinitions/mutations/registerRfidCard.js";
@@ -142,6 +152,7 @@ import type * as usersDefinitions_queries_getCurrentUser from "../usersDefinitio
 import type * as usersDefinitions_queries_getUserById from "../usersDefinitions/queries/getUserById.js";
 import type * as usersDefinitions_queries_getUserVerificationStatus from "../usersDefinitions/queries/getUserVerificationStatus.js";
 import type * as usersDefinitions_queries_getUsers from "../usersDefinitions/queries/getUsers.js";
+import type * as usersDefinitions_queries_getUsersPaginated from "../usersDefinitions/queries/getUsersPaginated.js";
 import type * as usersDefinitions_queries_index from "../usersDefinitions/queries/index.js";
 
 /**
@@ -159,6 +170,7 @@ declare const fullApi: ApiFromModules<{
   "authDefinitions/index": typeof authDefinitions_index;
   blogs: typeof blogs;
   "blogsDefinitions/index": typeof blogsDefinitions_index;
+  "blogsDefinitions/mutations/archiveBlog": typeof blogsDefinitions_mutations_archiveBlog;
   "blogsDefinitions/mutations/bookmarkBlog": typeof blogsDefinitions_mutations_bookmarkBlog;
   "blogsDefinitions/mutations/createBlog": typeof blogsDefinitions_mutations_createBlog;
   "blogsDefinitions/mutations/createComment": typeof blogsDefinitions_mutations_createComment;
@@ -173,13 +185,17 @@ declare const fullApi: ApiFromModules<{
   "blogsDefinitions/mutations/moderateBlog": typeof blogsDefinitions_mutations_moderateBlog;
   "blogsDefinitions/mutations/pinBlog": typeof blogsDefinitions_mutations_pinBlog;
   "blogsDefinitions/mutations/publishBlog": typeof blogsDefinitions_mutations_publishBlog;
+  "blogsDefinitions/mutations/reviewFlag": typeof blogsDefinitions_mutations_reviewFlag;
   "blogsDefinitions/mutations/shareBlog": typeof blogsDefinitions_mutations_shareBlog;
   "blogsDefinitions/mutations/unbookmarkBlog": typeof blogsDefinitions_mutations_unbookmarkBlog;
   "blogsDefinitions/mutations/unlikeBlog": typeof blogsDefinitions_mutations_unlikeBlog;
+  "blogsDefinitions/mutations/unpublishBlog": typeof blogsDefinitions_mutations_unpublishBlog;
   "blogsDefinitions/mutations/updateBlog": typeof blogsDefinitions_mutations_updateBlog;
   "blogsDefinitions/mutations/uploadBlogCover": typeof blogsDefinitions_mutations_uploadBlogCover;
   "blogsDefinitions/mutations/viewBlog": typeof blogsDefinitions_mutations_viewBlog;
   "blogsDefinitions/queries/getBlogBySlug": typeof blogsDefinitions_queries_getBlogBySlug;
+  "blogsDefinitions/queries/getBlogFlags": typeof blogsDefinitions_queries_getBlogFlags;
+  "blogsDefinitions/queries/getBlogOverallStats": typeof blogsDefinitions_queries_getBlogOverallStats;
   "blogsDefinitions/queries/getBlogStats": typeof blogsDefinitions_queries_getBlogStats;
   "blogsDefinitions/queries/getBlogs": typeof blogsDefinitions_queries_getBlogs;
   "blogsDefinitions/queries/getCategories": typeof blogsDefinitions_queries_getCategories;
@@ -193,6 +209,7 @@ declare const fullApi: ApiFromModules<{
   "blogsDefinitions/queries/getUserBlogInteraction": typeof blogsDefinitions_queries_getUserBlogInteraction;
   "blogsDefinitions/queries/index": typeof blogsDefinitions_queries_index;
   crons: typeof crons;
+  dashboard: typeof dashboard;
   email: typeof email;
   emailDirect: typeof emailDirect;
   events: typeof events;
@@ -252,12 +269,14 @@ declare const fullApi: ApiFromModules<{
   "projectsDefinitions/mutations/removeProjectMember": typeof projectsDefinitions_mutations_removeProjectMember;
   "projectsDefinitions/mutations/reviewApplication": typeof projectsDefinitions_mutations_reviewApplication;
   "projectsDefinitions/mutations/saveProject": typeof projectsDefinitions_mutations_saveProject;
+  "projectsDefinitions/mutations/toggleProjectFeatured": typeof projectsDefinitions_mutations_toggleProjectFeatured;
   "projectsDefinitions/mutations/unsaveProject": typeof projectsDefinitions_mutations_unsaveProject;
   "projectsDefinitions/mutations/updateProject": typeof projectsDefinitions_mutations_updateProject;
   "projectsDefinitions/notifications": typeof projectsDefinitions_notifications;
   "projectsDefinitions/notifications_actions": typeof projectsDefinitions_notifications_actions;
   "projectsDefinitions/notifications_mutations": typeof projectsDefinitions_notifications_mutations;
   "projectsDefinitions/notifications_queries": typeof projectsDefinitions_notifications_queries;
+  "projectsDefinitions/queries/getFeaturedProjects": typeof projectsDefinitions_queries_getFeaturedProjects;
   "projectsDefinitions/queries/getMyApplications": typeof projectsDefinitions_queries_getMyApplications;
   "projectsDefinitions/queries/getMyProjects": typeof projectsDefinitions_queries_getMyProjects;
   "projectsDefinitions/queries/getPinnedProjects": typeof projectsDefinitions_queries_getPinnedProjects;
@@ -269,6 +288,8 @@ declare const fullApi: ApiFromModules<{
   "projectsDefinitions/queries/index": typeof projectsDefinitions_queries_index;
   users: typeof users;
   "usersDefinitions/index": typeof usersDefinitions_index;
+  "usersDefinitions/mutations/adminRegisterRfidCard": typeof usersDefinitions_mutations_adminRegisterRfidCard;
+  "usersDefinitions/mutations/adminUpdateUser": typeof usersDefinitions_mutations_adminUpdateUser;
   "usersDefinitions/mutations/createUser": typeof usersDefinitions_mutations_createUser;
   "usersDefinitions/mutations/index": typeof usersDefinitions_mutations_index;
   "usersDefinitions/mutations/registerRfidCard": typeof usersDefinitions_mutations_registerRfidCard;
@@ -282,6 +303,7 @@ declare const fullApi: ApiFromModules<{
   "usersDefinitions/queries/getUserById": typeof usersDefinitions_queries_getUserById;
   "usersDefinitions/queries/getUserVerificationStatus": typeof usersDefinitions_queries_getUserVerificationStatus;
   "usersDefinitions/queries/getUsers": typeof usersDefinitions_queries_getUsers;
+  "usersDefinitions/queries/getUsersPaginated": typeof usersDefinitions_queries_getUsersPaginated;
   "usersDefinitions/queries/index": typeof usersDefinitions_queries_index;
 }>;
 export declare const api: FilterApi<
