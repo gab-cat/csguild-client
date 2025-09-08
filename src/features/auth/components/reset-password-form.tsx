@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Eye, EyeOff, Lock, ArrowRight, Loader2, ArrowLeft, Shield } from 'lucide-react'
@@ -11,7 +12,6 @@ import { useForm } from 'react-hook-form'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
-import { useAuthActions } from '@convex-dev/auth/react'
 
 import { resetPasswordSchema, type ResetPasswordFormData } from '../schemas'
 import { useAuthStore } from '../stores/auth-store'

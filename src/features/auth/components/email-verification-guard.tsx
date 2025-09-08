@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useRouter, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
@@ -51,19 +51,19 @@ export function EmailVerificationGuard({ children }: EmailVerificationGuardProps
     }
   }, [verificationStatus, router, pathname])
   
-  // Show loading state while checking verification status
-  if (verificationStatus === undefined) {
-    return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
-          <p className="text-gray-300 font-space-mono text-sm">
-            {"// Checking verification status..."}
-          </p>
-        </div>
-      </div>
-    )
-  }
+  // // Show loading state while checking verification status
+  // if (verificationStatus === undefined) {
+  //   return (
+  //     <div className="min-h-screen bg-black flex items-center justify-center">
+  //       <div className="text-center space-y-4">
+  //         <div className="w-8 h-8 border-2 border-pink-500 border-t-transparent rounded-full animate-spin mx-auto" />
+  //         <p className="text-gray-300 font-space-mono text-sm">
+  //           {"// Checking verification status..."}
+  //         </p>
+  //       </div>
+  //     </div>
+  //   )
+  // }
   
   // Don't render children if user needs verification and is on a protected route
   const isProtectedRoute = !pathname.startsWith('/login') &&
@@ -84,7 +84,7 @@ export function EmailVerificationGuard({ children }: EmailVerificationGuardProps
     !pathname.startsWith('/blogs') &&
     !pathname.startsWith('/facilities')
   
-  if (isProtectedRoute && verificationStatus.needsVerification) {
+  if (isProtectedRoute && verificationStatus?.needsVerification) {
     return null
   }
   

@@ -9,7 +9,7 @@ import type { UserRole } from '../types'
 interface ProtectedRouteProps {
   children: ReactNode
   redirectTo?: string
-  requiredRoles?: UserRole[]
+  requiredRoles?: Array<UserRole | string>
 }
 
 export function ProtectedRoute({ 
@@ -45,8 +45,9 @@ export function ProtectedRoute({
 
     // Check role requirements if specified
     if (requiredRoles.length > 0) {
+      const userRoles = Array.isArray(user.roles) ? user.roles : []
       const hasRequiredRole = requiredRoles.some(role => 
-        user.roles.includes(role)
+        userRoles.includes(role as "STUDENT" | "STAFF" | "ADMIN" | "USER")
       )
       
       if (!hasRequiredRole) {
@@ -97,8 +98,9 @@ export function ProtectedRoute({
 
   // Check role requirements
   if (requiredRoles.length > 0) {
+    const userRoles = Array.isArray(user.roles) ? user.roles : []
     const hasRequiredRole = requiredRoles.some(role => 
-      user.roles.includes(role)
+      userRoles.includes(role as "STUDENT" | "STAFF" | "ADMIN" | "USER")
     )
     
     if (!hasRequiredRole) {
