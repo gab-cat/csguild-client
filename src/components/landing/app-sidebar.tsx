@@ -12,6 +12,7 @@ import {
   Info,
   Heart,
 } from "lucide-react"
+import Link from "next/link"
 
 import {
   Sidebar,
@@ -83,10 +84,10 @@ export function AppSidebar() {
                 {section.items.map((item) => (
                   <SidebarMenuItem key={item.title}>
                     <SidebarMenuButton asChild>
-                      <a href={item.url} className="font-space-grotesk text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200">
+                      <Link href={item.url} className="font-space-grotesk text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200">
                         <item.icon className="h-4 w-4" />
                         <span>{item.title}</span>
-                      </a>
+                      </Link>
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}

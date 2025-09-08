@@ -2,13 +2,26 @@
 
 import { motion, useInView } from "framer-motion"
 import { Brain, Rocket, Target, Heart } from "lucide-react"
-import { useRef } from "react"
+import { useRef, useState, useEffect } from "react"
 
+import Counter from "@/components/Counter"
 import { Card, CardContent } from "@/components/ui/card"
+import { LayoutGrid } from "@/components/ui/layout-grid"
 
 export function AboutSection() {
   const ref = useRef(null)
   const isInView = useInView(ref, { once: true, margin: "-100px" })
+  const [counterValue, setCounterValue] = useState(0)
+
+  // Trigger counter animation when section comes into view
+  useEffect(() => {
+    if (isInView) {
+      const timer = setTimeout(() => {
+        setCounterValue(100)
+      }, 300) // Small delay to ensure smooth animation
+      return () => clearTimeout(timer)
+    }
+  }, [isInView])
 
   const values = [
     {
@@ -83,16 +96,31 @@ export function AboutSection() {
               <span className="font-space-mono text-sm text-pink-300">{'// Your journey starts here'}</span>
             </div>
           </motion.div>
-          <motion.h2 
+          <motion.h2
             className="text-4xl md:text-5xl font-bold mb-6 text-white tracking-tighter"
             initial={{ opacity: 0, y: 20 }}
             animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 20 }}
             transition={{ duration: 0.8, delay: 0.4 }}
           >
-            Why{" "}
-            <span className="bg-gradient-to-r from-pink-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
-              100+
-            </span>{" "}
+            <div className="bg-gradient-to-r flex mx-auto justify-center items-center from-pink-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">
+              <Counter
+                value={counterValue}
+                textColor="#f472b6"
+                fontWeight="bold"
+                places={[100, 10, 1]}
+                gap={2}
+                horizontalPadding={0}
+                gradientHeight={20}
+                gradientFrom="rgba(0,0,0,0.8)"
+                gradientTo="transparent"
+                containerStyle={{}}
+                counterStyle={{}}
+                digitStyle={{}}
+                topGradientStyle={{}}
+                bottomGradientStyle={{}}
+              />
+              <span className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-pink-400 via-violet-400 to-purple-400 bg-clip-text text-transparent">+</span>
+            </div>
             Students Choose CS Guild
           </motion.h2>
           <motion.p 

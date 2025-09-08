@@ -260,7 +260,7 @@ const NavBar = () => {
                 {/* My Blogs */}
                 <DropdownMenuItem asChild>
                   <Link 
-                    href="/blogs?author=me" 
+                    href="/my-blogs" 
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-pink-400 hover:bg-pink-500/10"
                   >
                     <BookOpen className="h-4 w-4" />
