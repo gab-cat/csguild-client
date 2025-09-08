@@ -1,6 +1,9 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-
+/*
+      ---break---
+  */
+@custom-variant dark (&:is(.dark *));
 
 @layer base {
   :root {
@@ -85,7 +88,6 @@
     scroll-snap-align: center;
   }
 }
-
 
 body {
   /*
@@ -223,4 +225,247 @@ Button {
 
 .hover\:scrollbar-thumb-gray-500:hover::-webkit-scrollbar-thumb {
   background: rgb(107 114 128);
+}
+
+/*
+      ---break---
+  */
+
+:root {
+  --sidebar: hsl(0 0% 98%);
+  --sidebar-foreground: hsl(240 5.3% 26.1%);
+  --sidebar-primary: hsl(240 5.9% 10%);
+  --sidebar-primary-foreground: hsl(0 0% 98%);
+  --sidebar-accent: hsl(240 4.8% 95.9%);
+  --sidebar-accent-foreground: hsl(240 5.9% 10%);
+  --sidebar-border: hsl(220 13% 91%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/*
+      ---break---
+  */
+
+.dark {
+  --sidebar: hsl(240 5.9% 10%);
+  --sidebar-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-primary: hsl(224.3 76.3% 48%);
+  --sidebar-primary-foreground: hsl(0 0% 100%);
+  --sidebar-accent: hsl(240 3.7% 15.9%);
+  --sidebar-accent-foreground: hsl(240 4.8% 95.9%);
+  --sidebar-border: hsl(240 3.7% 15.9%);
+  --sidebar-ring: hsl(217.2 91.2% 59.8%);
+}
+
+/*
+      ---break---
+  */
+
+@theme inline {
+  --color-sidebar: var(--sidebar);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-ring: var(--sidebar-ring);
+}
+
+/* Custom Calendar View Styles */
+
+.rbc-calendar {
+  @apply bg-gray-900/50 border border-gray-700 rounded-lg;
+}
+
+.rbc-header {
+  @apply bg-gray-800 text-white border-b border-gray-700 p-3 font-medium;
+}
+
+.rbc-month-view {
+  @apply bg-gray-900/30;
+}
+
+.rbc-date-cell {
+  @apply text-gray-300 hover:bg-gray-800/50 transition-colors;
+}
+
+.rbc-off-range-bg {
+  @apply bg-gray-900/20;
+}
+
+.rbc-today {
+  @apply bg-pink-500/20 text-pink-300;
+}
+
+.rbc-event {
+  @apply rounded text-white text-xs font-medium shadow-sm;
+}
+
+.rbc-event:focus {
+  @apply ring-2 ring-pink-400 ring-offset-2 ring-offset-gray-900;
+}
+
+.rbc-selected {
+  @apply bg-pink-600/90;
+}
+
+.rbc-slot-selection {
+  @apply bg-pink-500/30 border border-pink-400;
+}
+
+.rbc-day-slot .rbc-time-slot {
+  @apply border-gray-700;
+}
+
+.rbc-time-view .rbc-time-header {
+  @apply border-b border-gray-700;
+}
+
+.rbc-time-content {
+  @apply border-l border-gray-700;
+}
+
+.rbc-time-header-content {
+  @apply border-l border-gray-700;
+}
+
+.rbc-allday-cell {
+  @apply border-b border-gray-700;
+}
+
+.rbc-time-slot {
+  @apply border-b border-gray-800/50;
+}
+
+.rbc-timeslot-group {
+  @apply border-b border-gray-700;
+}
+
+.rbc-current-time-indicator {
+  @apply bg-pink-500;
+}
+
+.rbc-toolbar {
+  @apply mb-4 p-4 bg-gray-800/50 rounded-lg border border-gray-700;
+}
+
+.rbc-toolbar button {
+  @apply bg-gray-700 hover:bg-gray-600 text-white border border-gray-600 px-4 py-2 rounded transition-colors;
+}
+
+.rbc-toolbar button:active,
+.rbc-toolbar button.rbc-active {
+  @apply bg-pink-600 hover:bg-pink-700 border-pink-500;
+}
+
+.rbc-toolbar-label {
+  @apply text-white font-semibold text-lg;
+}
+
+.rbc-btn-group {
+  @apply flex space-x-1;
+}
+
+.rbc-btn-group button:first-child {
+  @apply rounded-l;
+}
+
+.rbc-btn-group button:last-child {
+  @apply rounded-r;
+}
+
+.rbc-btn-group button:not(:first-child):not(:last-child) {
+  @apply rounded-none;
+}
+
+/* Event priority styles */
+.rbc-event.priority-low {
+  @apply bg-green-600;
+}
+
+.rbc-event.priority-medium {
+  @apply bg-blue-600;
+}
+
+.rbc-event.priority-high {
+  @apply bg-orange-600;
+}
+
+.rbc-event.priority-urgent {
+  @apply bg-red-600;
+}
+
+/* Event category styles */
+.rbc-event.category-meeting {
+  @apply bg-blue-600;
+}
+
+.rbc-event.category-deadline {
+  @apply bg-red-600;
+}
+
+.rbc-event.category-event {
+  @apply bg-green-600;
+}
+
+.rbc-event.category-reminder {
+  @apply bg-yellow-600;
+}
+
+.rbc-event.category-other {
+  @apply bg-gray-600;
+}
+
+/* Event status styles */
+.rbc-event.status-completed {
+  @apply bg-green-700 opacity-75;
+}
+
+.rbc-event.status-cancelled {
+  @apply bg-red-700 opacity-50 line-through;
+}
+
+.rbc-event.status-postponed {
+  @apply bg-yellow-700 opacity-75;
+}
+
+/* Custom responsive adjustments */
+@media (max-width: 768px) {
+  .rbc-toolbar {
+    @apply flex-col space-y-2;
+  }
+  
+  .rbc-toolbar .rbc-btn-group {
+    @apply justify-center;
+  }
+  
+  .rbc-calendar {
+    @apply text-sm;
+  }
+  
+  .rbc-event {
+    @apply text-xs px-1 py-0.5;
+  }
+}
+
+/* Dark theme scrollbar */
+.rbc-time-content::-webkit-scrollbar,
+.rbc-time-view::-webkit-scrollbar {
+  @apply w-2;
+}
+
+.rbc-time-content::-webkit-scrollbar-track,
+.rbc-time-view::-webkit-scrollbar-track {
+  @apply bg-gray-800;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb,
+.rbc-time-view::-webkit-scrollbar-thumb {
+  @apply bg-gray-600 rounded;
+}
+
+.rbc-time-content::-webkit-scrollbar-thumb:hover,
+.rbc-time-view::-webkit-scrollbar-thumb:hover {
+  @apply bg-gray-500;
 }

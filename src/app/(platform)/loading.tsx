@@ -1,5 +1,5 @@
-import LoadingComponent from "@/components/shared/loading"
+import PageLoading from "@/components/shared/page-loading"
 
 export default function Loading() {
-  return <LoadingComponent />
+  return <PageLoading />
 }
