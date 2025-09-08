@@ -7,7 +7,7 @@ import { ConvexProvider, ConvexReactClient } from "convex/react";
 import { ConvexQueryCacheProvider } from "convex-helpers/react/cache/provider";
 import { ReactNode, useState, Suspense } from 'react'
 
-import { AuthSyncProvider, EmailVerificationGuard } from '@/features/auth'
+import { AuthSyncProvider } from '@/features/auth'
 
 const convex = new ConvexReactClient(process.env.NEXT_PUBLIC_CONVEX_URL!);
 
@@ -55,9 +55,7 @@ export function Providers({ children }: ProvidersProps) {
           <QueryClientProvider client={queryClient}>
             <Suspense fallback={<div className="min-h-screen bg-black flex items-center justify-center"><div className="text-white">Loading...</div></div>}>
               <AuthSyncProvider>
-                <EmailVerificationGuard>
-                  {children}
-                </EmailVerificationGuard>
+                {children}
               </AuthSyncProvider>
             </Suspense>
             <ReactQueryDevtools initialIsOpen={false} />
