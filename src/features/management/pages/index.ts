@@ -1,0 +1,6 @@
+export { CalendarManagementPage } from './calendar-management-page'
+export { FacilitiesManagementPage } from './facilities-management-page'
+export { UsersManagementPage } from './users-management-page'
+export { ProjectsManagementPage } from './projects-management-page'
+export { EventsManagementPage } from './events-management-page'
+export { BlogsManagementPage } from './blogs-management-page'
