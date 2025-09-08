@@ -313,7 +313,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
   // Handle missing token or userId
   if (!token || !userId) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -370,7 +370,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div 
             className="flex items-center justify-center py-20"
@@ -401,7 +401,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
   
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -459,7 +459,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
   // Handle case where user has already submitted feedback
   if (hasSubmitted) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -525,7 +525,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
   // Handle case where no feedback form exists
   if (!feedbackForm) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -581,7 +581,7 @@ export function PublicEventFeedbackClient({ eventSlug }: PublicEventFeedbackClie
   }
   
   return (
-    <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         {/* Header with security badge */}
         <motion.div

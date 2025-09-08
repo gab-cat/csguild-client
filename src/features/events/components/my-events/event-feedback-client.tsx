@@ -288,7 +288,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div 
             className="flex items-center justify-center py-20"
@@ -319,7 +319,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   
   if (error || !event) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -377,7 +377,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   // Handle case where user has already submitted feedback
   if (feedbackStatus?.hasSubmittedFeedback) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -443,7 +443,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   // Handle case where no feedback form exists
   if (!feedbackForm) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-4xl mx-auto">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -499,7 +499,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
   }
   
   return (
-    <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-4xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
