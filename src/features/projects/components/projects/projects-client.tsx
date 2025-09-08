@@ -17,6 +17,7 @@ import { api } from '@/lib/convex'
 import { isValidProjectCard, Project } from '../../types'
 import { CreateProjectModal } from '../create-project-modal'
 
+import { FeaturedProjectsSection } from './featured-projects-section'
 import { PinnedProjectsSection } from './pinned-projects-section'
 import { ProjectCard } from './project-card'
 import { ProjectFiltersComponent } from './project-filters'
@@ -31,10 +32,12 @@ type ProjectFilters = {
   search?: string
   status?: 'OPEN' | 'IN_PROGRESS' | 'COMPLETED' | 'CANCELLED'
   tags?: string // Convex expects string, will be split by comma in query
+  includeFeatured?: boolean
 }
 
 type RegularProjectFilters = ProjectFilters & {
   pinned: boolean
+  includeFeatured: boolean
 }
 
 export function ProjectsClient() {
@@ -93,10 +96,11 @@ export function ProjectsClient() {
     return filters
   }, [searchParams])
 
-  // Get regular projects (excluding pinned ones)
+  // Get regular projects (excluding pinned and featured ones)
   const regularFilters = useMemo((): RegularProjectFilters => ({
     ...filters,
     pinned: false, // Explicitly exclude pinned projects
+    includeFeatured: false, // Explicitly exclude featured projects
   }), [filters])
 
   // Use Convex queries directly
@@ -132,6 +136,9 @@ export function ProjectsClient() {
   return (
     <div className="relative min-h-screen">
       <div className="container mx-auto px-4 py-8 space-y-8">
+
+        {/* Featured Projects Section */}
+        <FeaturedProjectsSection />
 
         {/* Pinned Projects Section */}
         <PinnedProjectsSection />

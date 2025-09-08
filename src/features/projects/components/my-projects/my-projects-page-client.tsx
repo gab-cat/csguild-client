@@ -96,7 +96,7 @@ export function MyProjectsPageClient() {
   // Early loading return
   if (isLoading || (activeTab === 'saved' && isSavedLoading)) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="mb-8">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -139,7 +139,7 @@ export function MyProjectsPageClient() {
   // Error state
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
             <div className="text-red-400 mb-4">
@@ -166,7 +166,7 @@ export function MyProjectsPageClient() {
   // No data state
   if (!myProjectsData) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
             <FolderOpen className="w-16 h-16 text-gray-600 mb-4" />
@@ -194,7 +194,7 @@ export function MyProjectsPageClient() {
   const totalSavedProjects = savedProjectsData?.meta?.total || 0
 
   return (
-    <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <motion.div

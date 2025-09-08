@@ -10,7 +10,7 @@ interface ApplicationsErrorProps {
 
 export function ApplicationsError({ error }: ApplicationsErrorProps) {
   return (
-    <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         <div className="flex flex-col items-center justify-center min-h-[50vh] text-center">
           <div className="relative mb-6">

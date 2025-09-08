@@ -85,7 +85,7 @@ export function MyApplicationsPageClient() {
   // No data state
   if (!applicationsData?.all || applicationsData.all.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+      <div className="min-h-screen p-4 sm:p-6">
         <div className="max-w-7xl mx-auto">
           <ApplicationsHeader 
             pendingCount={0}
@@ -108,7 +108,7 @@ export function MyApplicationsPageClient() {
   const rejectedCount = applicationsData.rejected.filter((app: { status: string }) => app.status === 'REJECTED').length;
 
   return (
-    <div className="min-h-screen bg-gray-950 p-4 sm:p-6">
+    <div className="min-h-screen p-4 sm:p-6">
       <div className="max-w-7xl mx-auto">
         {/* Header */}
         <ApplicationsHeader 

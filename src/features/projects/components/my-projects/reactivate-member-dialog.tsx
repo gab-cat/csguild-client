@@ -1,5 +1,6 @@
 'use client'
 
+import { useMutation } from 'convex/react'
 import { UserPlus, AlertTriangle } from 'lucide-react'
 import Image from 'next/image'
 import { useState } from 'react'
@@ -13,10 +14,9 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog'
-
-import { useMutation } from 'convex/react'
-import { api } from '../../../../../convex/_generated/api'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
+
+import { api } from '../../../../../convex/_generated/api'
 import type { ProjectMemberDto } from '../../types'
 
 // Define local member type that matches the expected structure
