@@ -6,3 +6,5 @@ export * from "./sendInitialEmailVerification";
 export * from "./registerRfidCard";
 export * from "./rfidLogin";
 export * from "./uploadProfilePicture";
+export * from "./adminUpdateUser";
+export * from "./adminRegisterRfidCard";

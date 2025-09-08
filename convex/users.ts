@@ -6,6 +6,10 @@ import {
   updateCurrentUserArgs,
   createUserHandler,
   createUserArgs,
+  adminUpdateUserArgs,
+  adminUpdateUserHandler,
+  adminRegisterRfidCardArgs,
+  adminRegisterRfidCardHandler,
   verifyEmailHandler,
   verifyEmailArgs,
   resendEmailVerificationHandler,
@@ -26,6 +30,8 @@ import {
   getUserByIdArgs,
   getUsersHandler,
   getUsersArgs,
+  getUsersPaginatedHandler,
+  getUsersPaginatedArgs,
   getUserVerificationStatusHandler,
   getUserVerificationStatusArgs,
 } from "./usersDefinitions/queries";
@@ -45,6 +51,11 @@ export const getUserById = query({
 export const getUsers = query({
   args: getUsersArgs,
   handler: getUsersHandler,
+});
+
+export const getUsersPaginated = query({
+  args: getUsersPaginatedArgs,
+  handler: getUsersPaginatedHandler,
 });
 
 export const getUserVerificationStatus = query({
@@ -92,4 +103,14 @@ export const generateUploadUrl = mutation({
 export const saveProfilePicture = mutation({
   args: saveProfilePictureArgs,
   handler: saveProfilePictureHandler
+})
+
+export const adminUpdateUser = mutation({
+  args: adminUpdateUserArgs,
+  handler: adminUpdateUserHandler,
+})
+
+export const adminRegisterRfidCard = mutation({
+  args: adminRegisterRfidCardArgs,
+  handler: adminRegisterRfidCardHandler,
 })
