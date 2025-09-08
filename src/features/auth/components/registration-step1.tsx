@@ -1,5 +1,6 @@
 'use client'
 
+import { useAuthActions } from '@convex-dev/auth/react'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { format } from 'date-fns'
 import { motion } from 'framer-motion'
@@ -42,6 +43,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
   const [birthdateOpen, setBirthdateOpen] = useState(false)
   const [selectedBirthdate, setSelectedBirthdate] = useState<Date | undefined>()
+  const { signIn } = useAuthActions()
 
   const {
     register,
@@ -131,11 +133,19 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
     onNext(data)
   }
 
-  const handleGoogleSignup = () => {
-    setIsGoogleLoading(true)
-    // Use the existing Google login from auth API
-    const googleOAuthUrl = `${process.env.NEXT_PUBLIC_API_URL}/api/auth/google`
-    window.location.href = googleOAuthUrl
+  const handleGoogleSignup = async () => {
+    try {
+      setIsGoogleLoading(true)
+
+      // Use Convex's built-in Google OAuth
+      await signIn('google')
+
+      // Note: No manual redirect here - Google OAuth will handle the redirect flow
+      // The success toast and dashboard redirect will be handled by the OAuth callback
+    } catch (error) {
+      console.error('Google signup failed:', error)
+      setIsGoogleLoading(false)
+    }
   }
 
   return (
