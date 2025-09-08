@@ -72,7 +72,7 @@ export const blogFiltersSchema = z.object({
   tags: z.array(z.string()).optional(),
   categories: z.array(z.string()).optional(),
   authorSlug: z.string().optional(),
-  status: z.enum(['DRAFT', 'PUBLISHED', 'SCHEDULED', 'ARCHIVED']).optional(),
+  status: z.enum(['DRAFT', 'PUBLISHED', 'PENDING', 'ARCHIVED']).optional(),
   pinned: z.boolean().optional(),
   featured: z.boolean().optional(),
   dateFrom: z.string().optional(),

@@ -22,7 +22,7 @@ interface BlogFilter {
   categories: string[]
   tags: string[]
   sortBy: 'newest' | 'oldest' | 'popular' | 'trending'
-  status: 'all' | 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED'
+  status: 'all' | 'DRAFT' | 'PUBLISHED' | 'PENDING' | 'ARCHIVED'
 }
 
 export default function BlogsListingPageRefactored() {
@@ -95,7 +95,7 @@ export default function BlogsListingPageRefactored() {
   const blogsResponse = useQuery(api.blogs.getBlogs, activeTab === 'all' ? {
     paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
     search: apiFilters.search,
-    status: apiFilters.status,
+    status: 'PUBLISHED',
     categorySlug: apiFilters.categories?.[0],
     tagSlug: apiFilters.tags?.[0],
     sortBy: apiFilters.sortBy,
@@ -117,6 +117,7 @@ export default function BlogsListingPageRefactored() {
   // Note: Trending and Popular queries don't exist in Convex, so we'll use the main blogs query with appropriate filters
   const trendingResponse = useQuery(api.blogs.getBlogs, activeTab === 'trending' ? {
     paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
+    status: 'PUBLISHED',
     sortBy: 'likeCount',
     sortOrder: 'desc',
     userSlug: user?.username, // Pass user slug for interaction state
@@ -127,6 +128,7 @@ export default function BlogsListingPageRefactored() {
 
   const popularResponse = useQuery(api.blogs.getBlogs, activeTab === 'popular' ? {
     paginationOpts: { numItems: itemsPerPage, cursor: ((currentPage - 1) * itemsPerPage).toString() },
+    status: 'PUBLISHED',
     sortBy: 'viewCount',
     sortOrder: 'desc',
     userSlug: user?.username, // Pass user slug for interaction state

@@ -118,7 +118,7 @@ export interface BlogDetail {
   excerpt?: string
   readingTime?: number
   wordCount?: number
-  status: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED' | 'DELETED'
+  status: 'DRAFT' | 'PUBLISHED' | 'PENDING' | 'ARCHIVED' | 'DELETED'
   publishedAt?: number
   scheduledFor?: number
   lastEditedAt?: number
@@ -154,7 +154,7 @@ export interface CreateBlogData {
   excerpt?: string
   readingTime?: number
   wordCount?: number
-  status: 'DRAFT' | 'PUBLISHED' | 'SCHEDULED'
+  status: 'DRAFT' | 'PUBLISHED' | 'PENDING'
   publishedAt?: number
   scheduledFor?: number
   metaDescription?: string
@@ -177,7 +177,7 @@ export interface UpdateBlogData extends Partial<CreateBlogData> {
 }
 
 // Blog status enum 
-export type BlogStatus = 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED'
+export type BlogStatus = 'DRAFT' | 'PUBLISHED' | 'PENDING' | 'ARCHIVED'
 
 // Moderation status enum
 export type ModerationStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'FLAGGED'
@@ -751,7 +751,7 @@ export interface BlogApiError {
 
 // Type guards
 export function isValidBlogStatus(status: string): status is BlogStatus {
-  return ['DRAFT', 'PUBLISHED', 'SCHEDULED', 'ARCHIVED'].includes(status)
+  return ['DRAFT', 'PUBLISHED', 'PENDING', 'ARCHIVED'].includes(status)
 }
 
 export function isValidModerationStatus(status: string): status is ModerationStatus {

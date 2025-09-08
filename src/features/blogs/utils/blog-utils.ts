@@ -41,7 +41,7 @@ export const blogUtils = {
       return 'Draft'
     case 'PUBLISHED':
       return 'Published'
-    case 'SCHEDULED':
+    case 'PENDING':
       return 'Scheduled'
     case 'ARCHIVED':
       return 'Archived'
@@ -73,7 +73,7 @@ export const blogUtils = {
       return 'gray'
     case 'PUBLISHED':
       return 'green'
-    case 'SCHEDULED':
+    case 'PENDING':
       return 'blue'
     case 'ARCHIVED':
       return 'red'
@@ -102,7 +102,7 @@ export const blogUtils = {
   canEditBlog(blog: BlogDetailResponseDto, currentUserId?: string): boolean {
     if (!currentUserId) return false
     return blog.author.username === currentUserId && 
-           ['DRAFT', 'SCHEDULED'].includes(blog.status.toUpperCase())
+           ['DRAFT', 'PENDING'].includes(blog.status.toUpperCase())
   },
 
   // Check if blog can be published
@@ -116,7 +116,7 @@ export const blogUtils = {
   canDeleteBlog(blog: BlogDetailResponseDto, currentUserId?: string, isAdmin = false): boolean {
     if (!currentUserId) return false
     return isAdmin || (blog.author.username === currentUserId && 
-                      ['DRAFT', 'SCHEDULED'].includes(blog.status.toUpperCase()))
+                      ['DRAFT', 'PENDING'].includes(blog.status.toUpperCase()))
   },
 
   // Format view count for display

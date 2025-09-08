@@ -179,7 +179,7 @@ export function BlogItem({
           size="sm"
           onClick={handleLike}
           className={cn(
-            'border-gray-600 hover:bg-purple-500/20 hover:border-purple-500/50 transition-all duration-200',
+            'border-gray-800 text-gray-400 hover:bg-purple-500/20 hover:border-purple-500/50 transition-all duration-200',
             isLiked && 'text-pink-400 hover:text-pink-300 border-pink-500/50'
           )}
         >
@@ -192,7 +192,7 @@ export function BlogItem({
           size="sm"
           onClick={handleBookmark}
           className={cn(
-            'border-gray-600 hover:bg-purple-500/20 hover:border-purple-500/50 transition-all duration-200',
+            'border-gray-800 text-gray-400 hover:bg-purple-500/20 hover:border-purple-500/50 transition-all duration-200',
             isBookmarked && 'text-purple-400 hover:text-purple-300 border-purple-500/50'
           )}
         >
@@ -204,7 +204,7 @@ export function BlogItem({
           variant="outline"
           size="sm"
           onClick={handleShare}
-          className="border-gray-600 text-gray-400 hover:text-purple-400 hover:border-purple-500 hover:bg-purple-500/10 transition-all duration-200"
+          className="border-gray-800 text-gray-400 hover:text-purple-400 hover:border-purple-500 hover:bg-purple-500/10 transition-all duration-200"
         >
           <Share className="w-3 h-3 mr-1" />
           Share

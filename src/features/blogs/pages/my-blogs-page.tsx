@@ -1,13 +1,13 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { 
-  Plus, 
-  Search, 
-  Edit, 
-  Trash2, 
-  Eye, 
-  EyeOff, 
+import {
+  Plus,
+  Search,
+  Edit,
+  Trash2,
+  Eye,
+  EyeOff,
   Calendar,
   BarChart3,
   BookOpen,
@@ -20,7 +20,7 @@ import {
   Award
 } from 'lucide-react'
 import Link from 'next/link'
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
@@ -41,6 +41,18 @@ import {
   SelectTrigger, 
   SelectValue 
 } from '@/components/ui/select'
+import {
+  pageVariants,
+  headerVariants,
+  statsGridVariants,
+  statsItemVariants,
+  cardVariants,
+  listItemVariants,
+  staggerContainerVariants,
+  buttonVariants,
+  formFieldVariants,
+  useReducedMotion
+} from '@/lib/animation-variants'
 import { useQuery, useMutation } from '@/lib/convex'
 import { api } from '@/lib/convex'
 
@@ -87,6 +99,15 @@ export default function MyBlogsPage() {
     sortBy: 'updatedAt',
     sortOrder: 'desc'
   })
+
+  const [isLoaded, setIsLoaded] = useState(false)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    // Trigger animations after component mounts
+    const timer = setTimeout(() => setIsLoaded(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   const blogsData = useQuery(api.blogs.getMyBlogs, {
     paginationOpts: { numItems: 12, cursor: '0' },
@@ -183,7 +204,7 @@ export default function MyBlogsPage() {
     switch (status) {
     case 'PUBLISHED': return 'bg-green-500/20 text-green-400 border-green-500/30'
     case 'DRAFT': return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
-    case 'SCHEDULED': return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
+    case 'PENDING': return 'bg-blue-500/20 text-blue-400 border-blue-500/30'
     case 'ARCHIVED': return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30'
     default: return 'bg-gray-500/20 text-gray-400 border-gray-500/30'
     }
@@ -224,32 +245,60 @@ export default function MyBlogsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <motion.div
+      className="min-h-screen"
+      initial="hidden"
+      animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+      variants={pageVariants}
+    >
       {/* Compact Header */}
-      <header className="border-b border-gray-800 bg-black/95 backdrop-blur-sm sticky top-0 z-50">
+      <motion.header
+        className="border-b border-gray-800 bg-transparent rounded-t-xl backdrop-blur-sm sticky top-0 z-50"
+        variants={headerVariants}
+        initial="hidden"
+        animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+      >
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
-            <div>
+            <motion.div
+              variants={cardVariants}
+              initial="hidden"
+              animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+            >
               <h1 className="text-2xl font-bold text-white">My Blogs</h1>
               <p className="text-sm text-gray-400">
                 {blogs.length} blogs • {publishedBlogs} published • {draftBlogs} drafts
               </p>
-            </div>
-            <Link href="/blogs/create">
-              <Button className="bg-purple-600 hover:bg-purple-700 text-white">
-                <Plus className="w-4 h-4 mr-2" />
-                New Blog
-              </Button>
-            </Link>
+            </motion.div>
+            <motion.div
+              variants={buttonVariants}
+              initial="hidden"
+              animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+            >
+              <Link href="/my-blogs/create">
+                <Button className="bg-purple-600 hover:bg-purple-700 text-white">
+                  <Plus className="w-4 h-4 mr-2" />
+                  New Blog
+                </Button>
+              </Link>
+            </motion.div>
           </div>
         </div>
-      </header>
+      </motion.header>
 
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* Enhanced Stats Overview */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8">
+        <motion.div
+          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 mb-8"
+          variants={statsGridVariants}
+          initial="hidden"
+          animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+        >
           {/* Primary Stats */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
+            variants={statsItemVariants}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Total Blogs</p>
@@ -257,9 +306,12 @@ export default function MyBlogsPage() {
               </div>
               <BookOpen className="w-5 h-5 text-purple-400" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
+            variants={statsItemVariants}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Published</p>
@@ -267,9 +319,12 @@ export default function MyBlogsPage() {
               </div>
               <Eye className="w-5 h-5 text-green-400" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
+            variants={statsItemVariants}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Drafts</p>
@@ -277,10 +332,13 @@ export default function MyBlogsPage() {
               </div>
               <EyeOff className="w-5 h-5 text-gray-400" />
             </div>
-          </div>
+          </motion.div>
 
           {/* Engagement Stats */}
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
+            variants={statsItemVariants}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Total Views</p>
@@ -288,9 +346,12 @@ export default function MyBlogsPage() {
               </div>
               <TrendingUp className="w-5 h-5 text-blue-400" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
+            variants={statsItemVariants}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Total Likes</p>
@@ -298,9 +359,12 @@ export default function MyBlogsPage() {
               </div>
               <Heart className="w-5 h-5 text-red-400" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-4"
+            variants={statsItemVariants}
+          >
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-xs text-gray-400 uppercase tracking-wide">Engagement</p>
@@ -310,72 +374,101 @@ export default function MyBlogsPage() {
               </div>
               <Target className="w-5 h-5 text-yellow-400" />
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Quick Actions & Analytics Summary */}
-        <div className="flex flex-col lg:flex-row gap-6 mb-8">
+        <motion.div
+          className="flex flex-col lg:flex-row gap-6 mb-8"
+          variants={staggerContainerVariants}
+          initial="hidden"
+          animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+        >
           {/* Quick Actions */}
-          <div className="lg:w-1/3">
+          <motion.div
+            className="lg:w-1/3"
+            variants={cardVariants}
+          >
             <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Award className="w-5 h-5 text-purple-400" />
                 Quick Actions
               </h3>
-              <div className="space-y-3">
-                <Link href="/blogs/create" className="block">
-                  <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
-                    <Plus className="w-4 h-4 mr-2" />
-                    Create New Blog
-                  </Button>
-                </Link>
-                <Link href="/blogs/analytics" className="block">
-                  <Button variant="outline" className="w-full border-gray-700 text-gray-300 hover:border-blue-500 hover:text-blue-400">
-                    <BarChart3 className="w-4 h-4 mr-2" />
-                    View Analytics
-                  </Button>
-                </Link>
-              </div>
+              <motion.div
+                className="space-y-3"
+                variants={staggerContainerVariants}
+              >
+                <motion.div variants={buttonVariants}>
+                  <Link href="/my-blogs/create" className="block">
+                    <Button className="w-full bg-purple-600 hover:bg-purple-700 text-white">
+                      <Plus className="w-4 h-4 mr-2" />
+                      Create New Blog
+                    </Button>
+                  </Link>
+                </motion.div>
+                <motion.div variants={buttonVariants}>
+                  <Link href="/blogs/analytics" className="block">
+                    <Button variant="outline" className="w-full border-gray-700 text-gray-300 hover:border-blue-500 hover:text-blue-400">
+                      <BarChart3 className="w-4 h-4 mr-2" />
+                      View Analytics
+                    </Button>
+                  </Link>
+                </motion.div>
+              </motion.div>
             </div>
-          </div>
+          </motion.div>
 
           {/* Performance Summary */}
-          <div className="lg:w-2/3">
+          <motion.div
+            className="lg:w-2/3"
+            variants={cardVariants}
+          >
             <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-6">
               <h3 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
                 <Users className="w-5 h-5 text-blue-400" />
                 Performance Overview
               </h3>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
+              <motion.div
+                className="grid grid-cols-2 md:grid-cols-4 gap-4"
+                variants={staggerContainerVariants}
+              >
+                <motion.div className="text-center" variants={statsItemVariants}>
                   <p className="text-2xl font-bold text-white">{totalComments}</p>
                   <p className="text-xs text-gray-400">Comments</p>
-                </div>
-                <div className="text-center">
+                </motion.div>
+                <motion.div className="text-center" variants={statsItemVariants}>
                   <p className="text-2xl font-bold text-white">{totalBookmarks}</p>
                   <p className="text-xs text-gray-400">Bookmarks</p>
-                </div>
-                <div className="text-center">
+                </motion.div>
+                <motion.div className="text-center" variants={statsItemVariants}>
                   <p className="text-2xl font-bold text-white">
                     {blogs.length > 0 ? Math.round(totalViews / blogs.length) : 0}
                   </p>
                   <p className="text-xs text-gray-400">Avg Views</p>
-                </div>
-                <div className="text-center">
+                </motion.div>
+                <motion.div className="text-center" variants={statsItemVariants}>
                   <p className="text-2xl font-bold text-white">
                     {blogs.length}
                   </p>
                   <p className="text-xs text-gray-400">All Time</p>
-                </div>
-              </div>
+                </motion.div>
+              </motion.div>
             </div>
-          </div>
-        </div>
+          </motion.div>
+        </motion.div>
 
         {/* Compact Filters */}
-        <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 mb-6">
+        <motion.div
+          className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 mb-6"
+          variants={cardVariants}
+          initial="hidden"
+          animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+        >
           <div className="flex flex-col md:flex-row gap-4 items-start md:items-center">
-            <div className="flex items-center gap-2 flex-1">
+            <motion.div
+              className="flex items-center gap-2 flex-1"
+              variants={formFieldVariants}
+            >
               <Search className="w-4 h-4 text-gray-400" />
               <Input
                 placeholder="Search your blogs..."
@@ -383,89 +476,113 @@ export default function MyBlogsPage() {
                 onChange={(e) => setFilters(prev => ({ ...prev, search: e.target.value }))}
                 className="border-0 bg-transparent text-white placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-purple-500"
               />
-            </div>
-            
-            <div className="flex gap-3">
-              <Select
-                value={filters.status || 'all'}
-                onValueChange={(value) => 
-                  setFilters(prev => ({ 
-                    ...prev, 
-                    status: value === 'all' ? undefined : value as BlogStatus 
-                  }))
-                }
-              >
-                <SelectTrigger className="w-[130px] border-gray-700 bg-gray-800">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="all">All Status</SelectItem>
-                  <SelectItem value="PUBLISHED">Published</SelectItem>
-                  <SelectItem value="DRAFT">Draft</SelectItem>
-                  <SelectItem value="SCHEDULED">Scheduled</SelectItem>
-                  <SelectItem value="ARCHIVED">Archived</SelectItem>
-                </SelectContent>
-              </Select>
+            </motion.div>
 
-              <Select
-                value={`${filters.sortBy}-${filters.sortOrder}`}
-                onValueChange={(value) => {
-                  const [sortBy, sortOrder] = value.split('-') as [typeof filters.sortBy, typeof filters.sortOrder]
-                  setFilters(prev => ({ ...prev, sortBy, sortOrder }))
-                }}
-              >
-                <SelectTrigger className="w-[140px] border-gray-700 bg-gray-800">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent className="bg-gray-800 border-gray-700">
-                  <SelectItem value="updatedAt-desc">Latest First</SelectItem>
-                  <SelectItem value="updatedAt-asc">Oldest First</SelectItem>
-                  <SelectItem value="viewCount-desc">Most Views</SelectItem>
-                  <SelectItem value="likeCount-desc">Most Liked</SelectItem>
-                  <SelectItem value="title-asc">A-Z</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+            <motion.div
+              className="flex gap-3"
+              variants={staggerContainerVariants}
+            >
+              <motion.div variants={formFieldVariants}>
+                <Select
+                  value={filters.status || 'all'}
+                  onValueChange={(value) =>
+                    setFilters(prev => ({
+                      ...prev,
+                      status: value === 'all' ? undefined : value as BlogStatus
+                    }))
+                  }
+                >
+                  <SelectTrigger className="w-[130px] border-gray-700 bg-gray-800">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="all">All Status</SelectItem>
+                    <SelectItem value="PUBLISHED">Published</SelectItem>
+                    <SelectItem value="DRAFT">Draft</SelectItem>
+                    <SelectItem value="PENDING">Pending</SelectItem>
+                    <SelectItem value="ARCHIVED">Archived</SelectItem>
+                  </SelectContent>
+                </Select>
+              </motion.div>
+
+              <motion.div variants={formFieldVariants}>
+                <Select
+                  value={`${filters.sortBy}-${filters.sortOrder}`}
+                  onValueChange={(value) => {
+                    const [sortBy, sortOrder] = value.split('-') as [typeof filters.sortBy, typeof filters.sortOrder]
+                    setFilters(prev => ({ ...prev, sortBy, sortOrder }))
+                  }}
+                >
+                  <SelectTrigger className="w-[140px] border-gray-700 bg-gray-800">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-gray-800 border-gray-700">
+                    <SelectItem value="updatedAt-desc">Latest First</SelectItem>
+                    <SelectItem value="updatedAt-asc">Oldest First</SelectItem>
+                    <SelectItem value="viewCount-desc">Most Views</SelectItem>
+                    <SelectItem value="likeCount-desc">Most Liked</SelectItem>
+                    <SelectItem value="title-asc">A-Z</SelectItem>
+                  </SelectContent>
+                </Select>
+              </motion.div>
+            </motion.div>
           </div>
-        </div>
+        </motion.div>
 
         {/* Compact Blog List */}
         {isLoading ? (
-          <div className="space-y-3">
+          <motion.div
+            className="space-y-3"
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+          >
             {[...Array(6)].map((_, i) => (
-              <div key={i} className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 animate-pulse">
+              <motion.div
+                key={i}
+                className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 animate-pulse"
+                variants={listItemVariants}
+              >
                 <div className="h-4 bg-gray-700 rounded w-3/4 mb-2"></div>
                 <div className="h-3 bg-gray-700 rounded w-1/2"></div>
-              </div>
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
         ) : filteredBlogs.length === 0 ? (
-          <div className="bg-gray-900/50 border border-gray-800 rounded-lg p-12 text-center">
+          <motion.div
+            className="bg-gray-900/50 border border-gray-800 rounded-lg p-12 text-center"
+            variants={cardVariants}
+            initial="hidden"
+            animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+          >
             <BookOpen className="w-12 h-12 text-gray-600 mx-auto mb-4" />
             <h3 className="text-lg font-semibold text-white mb-2">
               No blogs found
             </h3>
             <p className="text-gray-400 mb-6">
-              {filters.search || filters.status 
+              {filters.search || filters.status
                 ? 'No blogs match your current filters'
                 : 'You haven\'t created any blogs yet'
               }
             </p>
-            <Link href="/blogs/create">
+            <Link href="/my-blogs/create">
               <Button className="bg-purple-600 hover:bg-purple-700">
                 <Plus className="w-4 h-4 mr-2" />
                 Create Your First Blog
               </Button>
             </Link>
-          </div>
+          </motion.div>
         ) : (
-          <div className="space-y-3">
-            {filteredBlogs.map((blog: EnrichedBlog, index: number) => (
+          <motion.div
+            className="space-y-3"
+            variants={staggerContainerVariants}
+            initial="hidden"
+            animate={isLoaded && !reducedMotion ? "visible" : "hidden"}
+          >
+            {filteredBlogs.map((blog: EnrichedBlog) => (
               <motion.div
                 key={blog._id}
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: index * 0.05 }}
+                variants={listItemVariants}
                 className="bg-gray-900/50 border border-gray-800 rounded-lg p-4 hover:border-gray-700 transition-colors group"
               >
                 <div className="flex items-center justify-between gap-4">
@@ -540,7 +657,7 @@ export default function MyBlogsPage() {
 
                   {/* Actions - Right Side */}
                   <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                    <Link href={`/blogs/${blog.slug}/edit`}>
+                    <Link href={`/my-blogs/${blog.slug}/edit`}>
                       <Button 
                         variant="ghost" 
                         size="sm"
@@ -612,9 +729,9 @@ export default function MyBlogsPage() {
                 </div>
               </motion.div>
             ))}
-          </div>
+          </motion.div>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

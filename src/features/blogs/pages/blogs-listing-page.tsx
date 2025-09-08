@@ -21,7 +21,7 @@ interface BlogFilter {
   categories: string[]
   tags: string[]
   sortBy: 'newest' | 'oldest' | 'popular' | 'trending'
-  status: 'all' | 'DRAFT' | 'PUBLISHED' | 'SCHEDULED' | 'ARCHIVED'
+  status: 'all' | 'DRAFT' | 'PUBLISHED' | 'PENDING' | 'ARCHIVED'
 }
 
 export default function BlogsListingPageRefactored() {

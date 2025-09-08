@@ -6,7 +6,7 @@ import { Save, Send, ArrowLeft, Upload, X, Plus, Hash, Edit3, Settings, Clock } 
 import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
-import { useState, useCallback, useEffect } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useForm } from 'react-hook-form'
 
 import { Badge } from '@/components/ui/badge'
@@ -27,6 +27,17 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
+import {
+  pageVariants,
+  headerVariants,
+  cardVariants,
+  formSectionVariants,
+  formFieldVariants,
+  buttonVariants,
+  tabVariants,
+  staggerContainerVariants,
+  useReducedMotion
+} from '@/lib/animation-variants'
 import { useQuery, useMutation } from '@/lib/convex'
 import { api } from '@/lib/convex'
 
@@ -43,6 +54,14 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [customTag, setCustomTag] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
+  const [isLoaded, setIsLoaded] = useState(false)
+  const reducedMotion = useReducedMotion()
+
+  useEffect(() => {
+    // Trigger animations after component mounts
+    const timer = setTimeout(() => setIsLoaded(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
 
   const blogData = useQuery(api.blogs.getBlogBySlug, { slug, includeDrafts: true })
   const isLoading = blogData === undefined
@@ -219,7 +238,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
     try {
       if (blog?.slug) {
         await deleteBlogMutation({ slug: blog.slug })
-        router.push('/blogs/my-blogs')
+        router.push('/my-blogs')
       }
     } catch (error) {
       console.error('Failed to delete blog:', error)
@@ -238,7 +257,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <motion.div
             animate={{ rotate: 360 }}
@@ -253,7 +272,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
 
   if (error || !blog) {
     return (
-      <div className="min-h-screen bg-black flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <h2 className="text-xl font-semibold text-white mb-2">
             Blog not found
@@ -261,7 +280,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
           <p className="text-gray-400 mb-6">
             The blog you&apos;re looking for doesn&apos;t exist or you don&apos;t have permission to edit it.
           </p>
-          <Link href="/blogs/my-blogs">
+          <Link href="/my-blogs">
             <Button className="bg-purple-600 hover:bg-purple-700">
               Back to My Blogs
             </Button>
@@ -272,13 +291,13 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   }
 
   return (
-    <div className="min-h-screen bg-black">
+    <div className="min-h-screen">
       {/* Header */}
-      <header className="border-b border-gray-800 bg-black/95 backdrop-blur-sm sticky top-0 z-50">
+      <header className="border-b border-gray-800 bg-black/95 rounded-t-xl backdrop-blur-sm sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
-              <Link href="/blogs/my-blogs">
+              <Link href="/my-blogs">
                 <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
                   <ArrowLeft className="w-4 h-4 mr-2" />
                   Back to my blogs
