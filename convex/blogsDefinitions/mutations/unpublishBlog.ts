@@ -4,18 +4,16 @@ import { v } from "convex/values";
 import { Doc, Id } from "../../_generated/dataModel";
 import { MutationCtx } from "../../_generated/server";
 
-export const featureBlogArgs = {
+export const unpublishBlogArgs = {
   blogId: v.id("blogs"),
 };
 
-export const featureBlogHandler = async (
+export const unpublishBlogHandler = async (
   ctx: MutationCtx,
   args: {
     blogId: Id<"blogs">;
   }
-): Promise<{
-  featured: boolean;
-}> => {
+) => {
   const userId = await getAuthUserId(ctx);
   if (!userId) {
     throw new Error("Unauthorized");
@@ -28,32 +26,27 @@ export const featureBlogHandler = async (
   }
 
   // TODO: Add admin/moderator role check here
-  // This should typically only be allowed for admins/moderators
-  // For now, allowing the author to feature their own blogs
+  // For now, allowing the author to unpublish their own blogs
   // In production, this should check for admin/moderator permissions
 
-  // Check if blog exists
+  // Get the blog by id
   const blog = await ctx.db.get(args.blogId) as Doc<"blogs"> | null;
+
   if (!blog) {
     throw new Error("Blog not found");
   }
 
-  // Only allow featuring if user is author or admin
-  const isAdmin = Array.isArray(user.roles) && user.roles.includes("ADMIN");
-  const isAuthor = user.username === blog.authorSlug;
-  if (!isAdmin && !isAuthor) {
-    throw new Error("You can only feature your own blogs or must be an admin");
+  // Only allow unpublishing if user is author or admin
+  if (user.username !== blog.authorSlug) {
+    throw new Error("You can only unpublish your own blogs or must be an admin");
   }
 
-  // Toggle featured status
-  const newFeaturedStatus = !blog.isFeatured;
-
-  await ctx.db.patch(args.blogId, {
-    isFeatured: newFeaturedStatus,
+  // Update blog status to DRAFT and remove publishedAt
+  await ctx.db.patch(blog._id, {
+    status: "DRAFT",
+    publishedAt: undefined,
     updatedAt: Date.now(),
   });
 
-  return {
-    featured: newFeaturedStatus,
-  };
+  return null;
 };

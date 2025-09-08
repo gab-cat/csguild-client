@@ -16,7 +16,7 @@ export const updateBlogArgs = {
   canonicalUrl: v.optional(v.string()),
   categories: v.optional(v.array(v.string())), // Category names
   tags: v.optional(v.array(v.string())), // Tag names
-  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("SCHEDULED"), v.literal("ARCHIVED"), v.literal("DELETED"))),
+  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("PENDING"), v.literal("ARCHIVED"), v.literal("DELETED"))),
   scheduledFor: v.optional(v.number()),
   allowComments: v.optional(v.boolean()),
   allowBookmarks: v.optional(v.boolean()),
@@ -123,7 +123,7 @@ export const updateBlogHandler = async (
     canonicalUrl?: string;
     categories?: string[]; // Category names
     tags?: string[]; // Tag names
-    status?: "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED" | "DELETED";
+    status?: "DRAFT" | "PUBLISHED" | "PENDING" | "ARCHIVED" | "DELETED";
     scheduledFor?: number;
     allowComments?: boolean;
     allowBookmarks?: boolean;

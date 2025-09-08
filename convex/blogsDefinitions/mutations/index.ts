@@ -14,9 +14,12 @@ export { bookmarkBlogHandler, bookmarkBlogArgs } from "./bookmarkBlog";
 export { unbookmarkBlogHandler, unbookmarkBlogArgs } from "./unbookmarkBlog";
 export { shareBlogHandler, shareBlogArgs } from "./shareBlog";
 export { flagBlogHandler, flagBlogArgs } from "./flagBlog";
+export { reviewFlagHandler, reviewFlagArgs } from "./reviewFlag";
 
 // Admin mutations
+export { archiveBlogHandler, archiveBlogArgs } from "./archiveBlog";
 export { publishBlogHandler, publishBlogArgs } from "./publishBlog";
+export { unpublishBlogHandler, unpublishBlogArgs } from "./unpublishBlog";
 export { pinBlogHandler, pinBlogArgs } from "./pinBlog";
 export { featureBlogHandler, featureBlogArgs } from "./featureBlog";
 export { moderateBlogHandler, moderateBlogArgs } from "./moderateBlog";

@@ -1,5 +1,7 @@
 import { query, mutation } from "./_generated/server";
 import {
+  archiveBlogHandler,
+  archiveBlogArgs,
   createBlogHandler,
   createBlogArgs,
   updateBlogHandler,
@@ -22,8 +24,12 @@ import {
   shareBlogArgs,
   flagBlogHandler,
   flagBlogArgs,
+  reviewFlagHandler,
+  reviewFlagArgs,
   publishBlogHandler,
   publishBlogArgs,
+  unpublishBlogHandler,
+  unpublishBlogArgs,
   pinBlogHandler,
   pinBlogArgs,
   featureBlogHandler,
@@ -55,6 +61,10 @@ import {
   getCommentRepliesArgs,
   getBlogStatsHandler,
   getBlogStatsArgs,
+  getBlogOverallStatsHandler,
+  getBlogOverallStatsArgs,
+  getBlogFlagsHandler,
+  getBlogFlagsArgs,
   getCategoriesHandler,
   getCategoriesArgs,
   getTagsHandler,
@@ -99,6 +109,16 @@ export const getCommentReplies = query({
 export const getBlogStats = query({
   args: getBlogStatsArgs,
   handler: getBlogStatsHandler,
+});
+
+export const getBlogOverallStats = query({
+  args: getBlogOverallStatsArgs,
+  handler: getBlogOverallStatsHandler,
+});
+
+export const getBlogFlags = query({
+  args: getBlogFlagsArgs,
+  handler: getBlogFlagsHandler,
 });
 
 export const getCategories = query({
@@ -188,9 +208,24 @@ export const flagBlog = mutation({
   handler: flagBlogHandler,
 });
 
+export const reviewFlag = mutation({
+  args: reviewFlagArgs,
+  handler: reviewFlagHandler,
+});
+
+export const archiveBlog = mutation({
+  args: archiveBlogArgs,
+  handler: archiveBlogHandler,
+});
+
 export const publishBlog = mutation({
   args: publishBlogArgs,
   handler: publishBlogHandler,
+});
+
+export const unpublishBlog = mutation({
+  args: unpublishBlogArgs,
+  handler: unpublishBlogHandler,
 });
 
 export const pinBlog = mutation({

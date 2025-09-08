@@ -8,7 +8,7 @@ import { QueryCtx } from "../../_generated/server";
 export const getBlogsArgs = {
   paginationOpts: paginationOptsValidator,
   search: v.optional(v.string()),
-  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("SCHEDULED"), v.literal("ARCHIVED"), v.literal("DELETED"))),
+  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("PENDING"), v.literal("ARCHIVED"), v.literal("DELETED"))),
   authorSlug: v.optional(v.string()),
   categorySlug: v.optional(v.string()),
   tagSlug: v.optional(v.string()),
@@ -17,6 +17,7 @@ export const getBlogsArgs = {
   featured: v.optional(v.boolean()),
   pinned: v.optional(v.boolean()),
   userSlug: v.optional(v.string()), // Add userSlug for user interaction state
+  includeAllStatuses: v.optional(v.boolean()), // For management/admin views that need all blogs
 };
 
 export const getBlogsHandler = async (
@@ -24,7 +25,7 @@ export const getBlogsHandler = async (
   args: {
     paginationOpts: PaginationOptions;
     search?: string;
-    status?: "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED" | "DELETED";
+    status?: "DRAFT" | "PUBLISHED" | "PENDING" | "ARCHIVED" | "DELETED";
     authorSlug?: string;
     categorySlug?: string;
     tagSlug?: string;
@@ -33,6 +34,7 @@ export const getBlogsHandler = async (
     featured?: boolean;
     pinned?: boolean;
     userSlug?: string;
+    includeAllStatuses?: boolean;
   }
 ) => {
   // Start with appropriate index based on filters
@@ -57,11 +59,17 @@ export const getBlogsHandler = async (
       .query("blogs")
       .withIndex("by_isFeatured", (q) => q.eq("isFeatured", args.featured))
       .collect();
-  } else {
-    // Use publishedAt index for general queries
+  } else if (args.includeAllStatuses) {
+    // For management/admin views - fetch all blogs regardless of status
     blogs = await ctx.db
       .query("blogs")
-      .withIndex("by_publishedAt")
+      .withIndex("by_publishedAt") // Use publishedAt as fallback index
+      .collect();
+  } else {
+    // Default to PUBLISHED status for public consumption
+    blogs = await ctx.db
+      .query("blogs")
+      .withIndex("by_status", (q) => q.eq("status", "PUBLISHED"))
       .collect();
   }
 
@@ -119,10 +127,7 @@ export const getBlogsHandler = async (
     }
   }
 
-  // Apply other filters
-  if (args.status && !args.authorSlug) {
-    blogs = blogs.filter(blog => blog.status === args.status);
-  }
+  // Apply other filters (status is already handled at index level)
   if (args.pinned !== undefined && !args.authorSlug) {
     blogs = blogs.filter(blog => blog.isPinned === args.pinned);
   }
@@ -216,21 +221,36 @@ export const getBlogsHandler = async (
         title: blog.title,
         slug: blog.slug,
         subtitle: blog.subtitle,
+        content: blog.content,
         excerpt: blog.excerpt,
         readingTime: blog.readingTime,
+        wordCount: blog.wordCount,
         status: blog.status,
+        moderationStatus: blog.moderationStatus,
         publishedAt: blog.publishedAt,
+        scheduledFor: blog.scheduledFor,
         lastEditedAt: blog.lastEditedAt,
+        metaDescription: blog.metaDescription,
+        metaKeywords: blog.metaKeywords,
+        canonicalUrl: blog.canonicalUrl,
         viewCount: blog.viewCount,
         likeCount: blog.likeCount,
         commentCount: blog.commentCount,
         shareCount: blog.shareCount,
         bookmarkCount: blog.bookmarkCount,
+        flagCount: blog.flagCount,
         authorSlug: blog.authorSlug,
+        allowComments: blog.allowComments,
+        allowBookmarks: blog.allowBookmarks,
+        allowLikes: blog.allowLikes,
+        allowShares: blog.allowShares,
         isPinned: blog.isPinned,
         isFeatured: blog.isFeatured,
         createdAt: blog.createdAt,
         updatedAt: blog.updatedAt,
+        moderatedAt: blog.moderatedAt,
+        moderatedBy: blog.moderatedBy,
+        moderationNotes: blog.moderationNotes,
         author: author ? {
           username: author.username,
           firstName: author.firstName,

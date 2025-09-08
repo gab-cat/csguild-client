@@ -7,7 +7,7 @@ import { QueryCtx } from "../../_generated/server";
 
 export const getMyBlogsArgs = {
   paginationOpts: paginationOptsValidator,
-  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("SCHEDULED"), v.literal("ARCHIVED"), v.literal("DELETED"))),
+  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("PENDING"), v.literal("ARCHIVED"), v.literal("DELETED"))),
   sortBy: v.optional(v.union(v.literal("createdAt"), v.literal("publishedAt"), v.literal("updatedAt"), v.literal("viewCount"), v.literal("likeCount"), v.literal("title"))),
   sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
 };
@@ -16,7 +16,7 @@ export const getMyBlogsHandler = async (
   ctx: QueryCtx,
   args: {
     paginationOpts: PaginationOptions;
-    status?: "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED" | "DELETED";
+    status?: "DRAFT" | "PUBLISHED" | "PENDING" | "ARCHIVED" | "DELETED";
     sortBy?: "createdAt" | "publishedAt" | "updatedAt" | "viewCount" | "likeCount" | "title";
     sortOrder?: "asc" | "desc";
   }

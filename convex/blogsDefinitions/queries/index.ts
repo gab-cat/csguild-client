@@ -9,6 +9,10 @@ export { getCommentRepliesHandler, getCommentRepliesArgs } from "./getCommentRep
 
 // Analytics queries
 export { getBlogStatsHandler, getBlogStatsArgs } from "./getBlogStats";
+export { getBlogOverallStatsHandler, getBlogOverallStatsArgs } from "./getBlogOverallStats";
+
+// Flag management queries
+export { getBlogFlagsHandler, getBlogFlagsArgs } from "./getBlogFlags";
 
 // Category/Tag queries
 export { getCategoriesHandler, getCategoriesArgs } from "./getCategories";

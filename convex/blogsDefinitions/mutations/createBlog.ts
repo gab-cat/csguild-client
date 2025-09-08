@@ -15,8 +15,8 @@ export const createBlogArgs = {
   metaKeywords: v.optional(v.array(v.string())),
   canonicalUrl: v.optional(v.string()),
   categories: v.optional(v.array(v.id("blogCategories"))),
-  tags: v.optional(v.array(v.id("blogTags"))),
-  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("SCHEDULED"), v.literal("ARCHIVED"), v.literal("DELETED"))),
+  tagNames: v.optional(v.array(v.string())), // Changed from tags to tagNames
+  status: v.optional(v.union(v.literal("DRAFT"), v.literal("PUBLISHED"), v.literal("PENDING"), v.literal("ARCHIVED"), v.literal("DELETED"))),
   scheduledFor: v.optional(v.number()),
   allowComments: v.optional(v.boolean()),
   allowBookmarks: v.optional(v.boolean()),
@@ -36,8 +36,8 @@ export const createBlogHandler = async (
     metaKeywords?: string[];
     canonicalUrl?: string;
     categories?: string[];
-    tags?: string[];
-    status?: "DRAFT" | "PUBLISHED" | "SCHEDULED" | "ARCHIVED" | "DELETED";
+    tagNames?: string[]; // Changed from tags to tagNames
+    status?: "DRAFT" | "PUBLISHED" | "PENDING" | "ARCHIVED" | "DELETED";
     scheduledFor?: number;
     allowComments?: boolean;
     allowBookmarks?: boolean;
@@ -81,7 +81,7 @@ export const createBlogHandler = async (
     excerpt: args.excerpt,
     readingTime,
     wordCount,
-    status: args.status || "PUBLISHED",
+    status: args.status || "PENDING",
     scheduledFor: args.scheduledFor,
     lastEditedAt: now,
     metaDescription: args.metaDescription,
@@ -92,7 +92,7 @@ export const createBlogHandler = async (
     commentCount: 0,
     shareCount: 0,
     bookmarkCount: 0,
-    moderationStatus: "PENDING",
+    moderationStatus: undefined,
     flagCount: 0,
     authorSlug: user.username!,
     allowComments: args.allowComments ?? true,
@@ -118,16 +118,52 @@ export const createBlogHandler = async (
     );
   }
 
-  // Add tag relations
-  if (args.tags && args.tags.length > 0) {
+  // Add tag relations - handle tag names by finding/creating tags
+  if (args.tagNames && args.tagNames.length > 0) {
     await Promise.all(
-      args.tags.map(tagId =>
-        ctx.db.insert("blogTagRelations", {
+      args.tagNames.map(async (tagName) => {
+        // Generate slug from tag name
+        const tagSlug = tagName
+          .toLowerCase()
+          .replace(/[^a-z0-9\s-]/g, '')
+          .replace(/\s+/g, '-')
+          .replace(/-+/g, '-')
+          .trim();
+
+        // Try to find existing tag
+        const existingTag = await ctx.db
+          .query("blogTags")
+          .withIndex("by_slug", (q) => q.eq("slug", tagSlug))
+          .first();
+
+        let tagId: Id<"blogTags">;
+
+        if (existingTag) {
+          // Update blog count for existing tag
+          tagId = existingTag._id;
+          await ctx.db.patch(tagId, {
+            blogCount: (existingTag.blogCount || 0) + 1,
+            updatedAt: now,
+          });
+        } else {
+          // Create new tag
+          tagId = await ctx.db.insert("blogTags", {
+            name: tagName,
+            slug: tagSlug,
+            blogCount: 1,
+            isOfficial: false,
+            createdAt: now,
+            updatedAt: now,
+          });
+        }
+
+        // Create tag relation
+        await ctx.db.insert("blogTagRelations", {
           blogId,
-          tagId: tagId as Id<"blogTags">,
+          tagId,
           createdAt: now,
-        })
-      )
+        });
+      })
     );
   }
 

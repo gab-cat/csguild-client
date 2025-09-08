@@ -38,7 +38,9 @@ export const pinBlogHandler = async (
   }
 
   // Only allow pinning if user is author or admin
-  if (user.username !== blog.authorSlug) {
+  const isAdmin = Array.isArray(user.roles) && user.roles.includes("ADMIN");
+  const isAuthor = user.username === blog.authorSlug;
+  if (!isAdmin && !isAuthor) {
     throw new Error("You can only pin your own blogs or must be an admin");
   }
 

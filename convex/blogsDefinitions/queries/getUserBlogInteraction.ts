@@ -27,7 +27,7 @@ export const getUserBlogInteractionHandler = async (
   const like = await ctx.db
     .query("blogLikes")
     .withIndex("by_blogId_userSlug", (q) =>
-      q.eq("blogId", args.blogId).eq("userSlug", args.userSlug)
+      q.eq("blogId", args.blogId).eq("userSlug", args.userSlug!)
     )
     .first();
 
@@ -35,7 +35,7 @@ export const getUserBlogInteractionHandler = async (
   const bookmark = await ctx.db
     .query("blogBookmarks")
     .withIndex("by_blogId_userSlug", (q) =>
-      q.eq("blogId", args.blogId).eq("userSlug", args.userSlug)
+      q.eq("blogId", args.blogId).eq("userSlug", args.userSlug!)
     )
     .first();
 

@@ -16,10 +16,11 @@ export const getFeaturedBlogsHandler = async (
     userSlug?: string;
   }
 ) => {
-  // Get featured blogs using the by_isFeatured index
+  // Get featured blogs using the by_isFeatured index, filtered by PUBLISHED status
   const blogs = await ctx.db
     .query("blogs")
     .withIndex("by_isFeatured", (q) => q.eq("isFeatured", true))
+    .filter((q) => q.eq(q.field("status"), "PUBLISHED"))
     .collect();
 
   // Get enriched data for each blog
