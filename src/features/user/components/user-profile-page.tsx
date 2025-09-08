@@ -19,6 +19,7 @@ import {
   Sparkles,
   BookOpen,
 } from 'lucide-react'
+import Link from 'next/link'
 import { useState, useEffect, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 import QRCode from 'react-qr-code'
@@ -106,7 +107,7 @@ export function UserProfilePage() {
           <h1 className="text-2xl font-bold text-white mb-4">Profile Not Found</h1>
           <p className="text-gray-400 mb-6">Please log in to view your profile.</p>
           <Button asChild>
-            <a href="/auth/login">Log In</a>
+            <Link href="/auth/login">Log In</Link>
           </Button>
         </div>
       </div>
@@ -269,7 +270,7 @@ export function UserProfilePage() {
 
   return (
     <>
-      <div className="min-h-screen bg-gradient-to-br from-slate-950 via-purple-950/20 to-slate-950">
+      <div className="min-h-screen">
         <div className="max-w-7xl mx-auto p-8 space-y-12">
           {/* Clean Profile Header */}
           <motion.div
