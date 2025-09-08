@@ -214,6 +214,7 @@ export const toggleFacilityAccessHandler = async (
         lastName: user.lastName || "",
         email: user.email || "",
         imageUrl: user.imageUrl || "",
+        course: user.course || "",
       },
       facility: {
         id: facility._id,
