@@ -19,6 +19,8 @@ import {
   reactivateProjectMemberArgs,
   createRoleHandler,
   createRoleArgs,
+  toggleProjectFeaturedHandler,
+  toggleProjectFeaturedArgs,
 } from "./projectsDefinitions/mutations";
 import {
   // Query handlers and args
@@ -38,6 +40,8 @@ import {
   getRolesArgs,
   getRoleBySlugHandler,
   getRoleBySlugArgs,
+  getFeaturedProjectsHandler,
+  getFeaturedProjectsArgs,
 } from "./projectsDefinitions/queries";
 
 // QUERIES
@@ -80,6 +84,11 @@ export const getRoles = query({
 export const getRoleBySlug = query({
   args: getRoleBySlugArgs,
   handler: getRoleBySlugHandler,
+});
+
+export const getFeaturedProjects = query({
+  args: getFeaturedProjectsArgs,
+  handler: getFeaturedProjectsHandler,
 });
 
 // MUTATIONS
@@ -127,4 +136,9 @@ export const reactivateProjectMember = mutation({
 export const createRole = mutation({
   args: createRoleArgs,
   handler: createRoleHandler,
+});
+
+export const toggleProjectFeatured = mutation({
+  args: toggleProjectFeaturedArgs,
+  handler: toggleProjectFeaturedHandler,
 });

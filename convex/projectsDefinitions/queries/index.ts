@@ -6,3 +6,4 @@ export * from "./getMyProjects";
 export * from "./getMyApplications";
 export * from "./getRoles";
 export * from "./getRoleBySlug";
+export * from "./getFeaturedProjects";

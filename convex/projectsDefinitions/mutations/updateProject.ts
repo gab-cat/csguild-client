@@ -9,6 +9,7 @@ export const updateProjectArgs = {
   description: v.optional(v.string()),
   tags: v.optional(v.array(v.string())),
   dueDate: v.optional(v.string()),
+  isFeatured: v.optional(v.boolean()),
   roles: v.optional(v.array(v.object({
     roleSlug: v.string(),
     maxMembers: v.number(),
@@ -24,6 +25,7 @@ export const updateProjectHandler = async (
     description?: string;
     tags?: string[];
     dueDate?: string;
+    isFeatured?: boolean;
     roles?: Array<{
       roleSlug: string;
       maxMembers: number;
@@ -57,13 +59,14 @@ export const updateProjectHandler = async (
   }
 
   const now = Date.now();
-  const updateData: { 
+  const updateData: {
     updatedAt: number,
     title?: string,
     slug?: string,
     description?: string,
     tags?: string[],
     dueDate?: number,
+    isFeatured?: boolean,
   } = {
     updatedAt: now,
   };
@@ -102,6 +105,10 @@ export const updateProjectHandler = async (
 
   if (args.dueDate !== undefined) {
     updateData.dueDate = new Date(args.dueDate).getTime();
+  }
+
+  if (args.isFeatured !== undefined) {
+    updateData.isFeatured = args.isFeatured;
   }
 
   // Update the project
@@ -257,6 +264,7 @@ export const updateProjectHandler = async (
     tags: updatedProject.tags || [],
     dueDate: updatedProject.dueDate,
     status: updatedProject.status,
+    isFeatured: updatedProject.isFeatured || false,
     ownerSlug: updatedProject.ownerSlug,
     owner: {
       id: currentUser._id,

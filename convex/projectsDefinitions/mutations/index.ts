@@ -7,3 +7,4 @@ export * from "./unsaveProject";
 export * from "./removeProjectMember";
 export * from "./reactivateProjectMember";
 export * from "./createRole";
+export * from "./toggleProjectFeatured";

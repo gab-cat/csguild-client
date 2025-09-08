@@ -12,6 +12,8 @@ export const getProjectsArgs = {
   sortBy: v.optional(v.union(v.literal("createdAt"), v.literal("updatedAt"), v.literal("dueDate"), v.literal("title"))),
   sortOrder: v.optional(v.union(v.literal("asc"), v.literal("desc"))),
   pinned: v.optional(v.boolean()),
+  isFeatured: v.optional(v.boolean()),
+  includeFeatured: v.optional(v.boolean()), // New parameter to control featured project inclusion
 };
 
 export const getProjectsHandler = async (
@@ -26,6 +28,8 @@ export const getProjectsHandler = async (
     sortBy?: "createdAt" | "updatedAt" | "dueDate" | "title";
     sortOrder?: "asc" | "desc";
     pinned?: boolean;
+    isFeatured?: boolean;
+    includeFeatured?: boolean;
   }
 ) => {
   const limit = args.limit || 10;
@@ -84,6 +88,16 @@ export const getProjectsHandler = async (
       projects = projects.filter(project => !pinnedSlugs.has(project.slug));
     }
   }
+
+  // Apply featured filter logic
+  if (args.isFeatured !== undefined) {
+    // Explicit featured filter takes precedence
+    projects = projects.filter(project => project.isFeatured === args.isFeatured);
+  } else if (args.includeFeatured === false) {
+    // Explicitly exclude featured projects (for regular projects page)
+    projects = projects.filter(project => project.isFeatured !== true);
+  }
+  // If includeFeatured is true or undefined, include all projects (management page default)
 
   // Sort projects
   const sortBy = args.sortBy || "createdAt";
@@ -169,6 +183,7 @@ export const getProjectsHandler = async (
         tags: project.tags || [],
         dueDate: project.dueDate,
         status: project.status || "OPEN",
+        isFeatured: project.isFeatured || false,
         createdAt: project.createdAt,
         updatedAt: project.updatedAt,
         owner: owner ? {
