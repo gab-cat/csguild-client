@@ -4,10 +4,12 @@ import { motion } from 'framer-motion'
 import { Calendar } from 'lucide-react'
 
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
-import { CalendarView } from '@/features/dashboard'
+import { CalendarView, FacilityStatusNotification } from '@/features/dashboard'
+import { useFacilityStatus } from '@/features/dashboard/hooks/use-facility-status'
 
 export default function DashboardPage() {
   const { user } = useCurrentUser()
+  const { facility, isOpen, activeSessionsCount } = useFacilityStatus()
 
   const firstName = user?.firstName || 'User'
 
@@ -15,15 +17,15 @@ export default function DashboardPage() {
     <div className="min-h-screen text-white">
       <div className="container mx-auto px-8 py-6 max-w-full">
         {/* Header */}
-        <motion.div 
+        <motion.div
           className="mb-6"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-            <div>
-              <motion.h1 
+          <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
+            <div className="flex-1">
+              <motion.h1
                 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent mb-1"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
@@ -31,7 +33,7 @@ export default function DashboardPage() {
               >
                 <span className="text-white">Welcome back,</span> {firstName}!
               </motion.h1>
-              <motion.p 
+              <motion.p
                 className="text-gray-300 text-sm flex items-center gap-2"
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -40,6 +42,15 @@ export default function DashboardPage() {
                 <Calendar className="w-4 h-4 text-pink-400" />
                 Your calendar dashboard - manage your schedule and events
               </motion.p>
+            </div>
+
+            {/* Facility Status Notification */}
+            <div className="flex-shrink-0">
+              <FacilityStatusNotification
+                facility={facility}
+                isOpen={isOpen}
+                activeSessionsCount={activeSessionsCount}
+              />
             </div>
           </div>
         </motion.div>

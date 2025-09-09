@@ -3,3 +3,4 @@ export { getActiveSessionsArgs, getActiveSessionsHandler } from "./getActiveSess
 export { getFacilitiesArgs, getFacilitiesHandler } from "./getFacilities";
 export { getFacilityByIdArgs, getFacilityByIdHandler } from "./getFacilityById";
 export { getFacilityUsageHistoryArgs, getFacilityUsageHistoryHandler } from "./getFacilityUsageHistory";
+export { getFacilityOpenStatusArgs, getFacilityOpenStatusHandler } from "./getFacilityOpenStatus";

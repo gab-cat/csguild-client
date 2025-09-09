@@ -20,6 +20,8 @@ import {
   getFacilityByIdHandler,
   getFacilityUsageHistoryArgs,
   getFacilityUsageHistoryHandler,
+  getFacilityOpenStatusArgs,
+  getFacilityOpenStatusHandler,
 } from "./facilitiesDefinitions/queries";
 
 // MUTATIONS
@@ -69,5 +71,10 @@ export const getActiveSessions = query({
 export const getFacilityUsageHistory = query({
   args: getFacilityUsageHistoryArgs,
   handler: getFacilityUsageHistoryHandler,
+});
+
+export const getFacilityOpenStatus = query({
+  args: getFacilityOpenStatusArgs,
+  handler: getFacilityOpenStatusHandler,
 });
 

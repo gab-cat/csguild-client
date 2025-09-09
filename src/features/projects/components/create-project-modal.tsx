@@ -77,10 +77,14 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
   const [newRole, setNewRole] = useState({ slug: '', maxMembers: 1, requirements: '' });
   const [roleComboboxOpen, setRoleComboboxOpen] = useState(false);
   const [roleSearchQuery, setRoleSearchQuery] = useState('');
+  const [newRoleName, setNewRoleName] = useState('');
+  const [newRoleDescription, setNewRoleDescription] = useState('');
+  const [showCreateRole, setShowCreateRole] = useState(false);
 
   const debouncedRoleSearch = useDebounce(roleSearchQuery, 500);
   // @ts-ignore
   const createProjectMutation = useMutation(api.projects.createProject);
+  const createRoleMutation = useMutation(api.projects.createRole);
   const rolesQuery = useQuery(api.projects.getRoles, {
     search: debouncedRoleSearch || undefined,
   });
@@ -140,6 +144,44 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
   const removeRole = (roleSlug: string) => {
     const currentRoles = getValues('roles') || [];
     setValue('roles', currentRoles.filter(role => role.roleSlug !== roleSlug));
+  };
+
+  const handleCreateRole = async () => {
+    if (!newRoleName.trim()) return
+
+    try {
+      const newRole = await createRoleMutation({
+        name: newRoleName.trim(),
+        description: newRoleDescription.trim() || undefined,
+      })
+
+      showSuccessToast(
+        'Role Created',
+        `Role "${newRoleName}" has been created successfully.`
+      )
+
+      // Add the newly created role to the project
+      const currentRoles = getValues('roles') || [];
+      setValue('roles', [
+        ...currentRoles,
+        {
+          roleSlug: newRole.slug,
+          maxMembers: 1,
+          requirements: '',
+        },
+      ]);
+
+      // Reset form
+      setNewRoleName('')
+      setNewRoleDescription('')
+      setShowCreateRole(false)
+    } catch (error) {
+      showErrorToast(
+        'Role Creation Failed',
+        'Failed to create new role. Please try again.'
+      )
+      console.error('Create role error:', error);
+    }
   };
 
   return (
@@ -321,12 +363,80 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
 
             {/* Team Structure Section */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 bg-green-500/20 rounded-lg flex items-center justify-center">
-                  <Users className="w-3 h-3 text-green-400" />
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 bg-green-500/20 rounded-lg flex items-center justify-center">
+                    <Users className="w-3 h-3 text-green-400" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-white">Team Structure</h3>
                 </div>
-                <h3 className="text-lg font-semibold text-white">Team Structure</h3>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowCreateRole(!showCreateRole)}
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 focus:ring-2 focus:ring-green-500/50"
+                >
+                  <Plus className="w-4 h-4 mr-1" />
+                  Create New Role
+                </Button>
               </div>
+
+              {showCreateRole && (
+                <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-4 space-y-3">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Plus className="w-4 h-4 text-green-400" />
+                    <h4 className="text-sm font-semibold text-green-300">Create New Role</h4>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div>
+                      <Label className="text-xs font-medium text-gray-300">Role Name *</Label>
+                      <Input
+                        type="text"
+                        value={newRoleName}
+                        onChange={(e) => setNewRoleName(e.target.value)}
+                        placeholder="e.g., Frontend Developer"
+                        className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/50"
+                      />
+                    </div>
+                    <div>
+                      <Label className="text-xs font-medium text-gray-300">Description</Label>
+                      <Input
+                        type="text"
+                        value={newRoleDescription}
+                        onChange={(e) => setNewRoleDescription(e.target.value)}
+                        placeholder="Optional description"
+                        className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-400 focus:ring-2 focus:ring-green-500/50"
+                      />
+                    </div>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      type="button"
+                      onClick={handleCreateRole}
+                      disabled={!newRoleName.trim()}
+                      size="sm"
+                      className="bg-green-600 hover:bg-green-700 text-white"
+                    >
+                      <Plus className="w-3 h-3 mr-1" />
+                      Create Role
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => {
+                        setShowCreateRole(false)
+                        setNewRoleName('')
+                        setNewRoleDescription('')
+                      }}
+                      className="text-gray-400 hover:text-white hover:bg-gray-800"
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
 
               {/* Role Requirements */}
               <div className="space-y-2">

@@ -102,6 +102,7 @@ import type * as facilitiesDefinitions_mutations_updateFacility from "../facilit
 import type * as facilitiesDefinitions_queries_getActiveSessions from "../facilitiesDefinitions/queries/getActiveSessions.js";
 import type * as facilitiesDefinitions_queries_getFacilities from "../facilitiesDefinitions/queries/getFacilities.js";
 import type * as facilitiesDefinitions_queries_getFacilityById from "../facilitiesDefinitions/queries/getFacilityById.js";
+import type * as facilitiesDefinitions_queries_getFacilityOpenStatus from "../facilitiesDefinitions/queries/getFacilityOpenStatus.js";
 import type * as facilitiesDefinitions_queries_getFacilityUsageHistory from "../facilitiesDefinitions/queries/getFacilityUsageHistory.js";
 import type * as facilitiesDefinitions_queries_index from "../facilitiesDefinitions/queries/index.js";
 import type * as helpers from "../helpers.js";
@@ -253,6 +254,7 @@ declare const fullApi: ApiFromModules<{
   "facilitiesDefinitions/queries/getActiveSessions": typeof facilitiesDefinitions_queries_getActiveSessions;
   "facilitiesDefinitions/queries/getFacilities": typeof facilitiesDefinitions_queries_getFacilities;
   "facilitiesDefinitions/queries/getFacilityById": typeof facilitiesDefinitions_queries_getFacilityById;
+  "facilitiesDefinitions/queries/getFacilityOpenStatus": typeof facilitiesDefinitions_queries_getFacilityOpenStatus;
   "facilitiesDefinitions/queries/getFacilityUsageHistory": typeof facilitiesDefinitions_queries_getFacilityUsageHistory;
   "facilitiesDefinitions/queries/index": typeof facilitiesDefinitions_queries_index;
   helpers: typeof helpers;
