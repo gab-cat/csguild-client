@@ -131,6 +131,13 @@ export function FacilitiesManagementPage() {
     setIsEditOpen(true)
   }
 
+  function handleSessionsDialogChange(open: boolean) {
+    setIsSessionsOpen(open)
+    if (!open) {
+      setSelectedFacilityForSessions(null)
+    }
+  }
+
   async function handleEndSession(sessionId: Id<'facilityUsages'>) {
     try {
       await endSession({ sessionId })
@@ -146,19 +153,21 @@ export function FacilitiesManagementPage() {
 
   return (
     <motion.div className="container mx-auto px-0 py-8 max-w-7xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="flex items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-semibold">Facilities</h1>
-          <p className="text-sm text-muted-foreground">Manage access, sessions, and details</p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold">Facilities</h1>
+            <p className="text-sm text-muted-foreground">Manage access, sessions, and details</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row gap-3">
           <Input
             placeholder="Search facilities"
             value={queryText}
             onChange={(e) => setQueryText(e.target.value)}
-            className="w-64 border-gray-800 focus:border-gray-800 hover:border-gray-400 ring-0"
+            className="flex-1 sm:flex-initial sm:w-64 border-gray-800 focus:border-gray-800 hover:border-gray-400 ring-0"
           />
-          <Button onClick={() => setIsCreateOpen(true)}>
+          <Button onClick={() => setIsCreateOpen(true)} className="w-full sm:w-auto">
             <Plus className="w-4 h-4 mr-2" /> New
           </Button>
         </div>
@@ -167,39 +176,43 @@ export function FacilitiesManagementPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((f) => (
           <div key={String(f.id)} className="rounded-xl border border-gray-800 bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-4">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <span className="inline-block h-2.5 w-2.5 rounded-full" style={{ background: f.isActive ? '#22c55e' : '#ef4444' }} />
-                  <h2 className="font-medium truncate">{f.name}</h2>
-                  <span className={`text-xs px-2 py-1 rounded-full border ${
-                    f.isActive
-                      ? 'bg-green-500/10 text-green-500 border-green-500/30'
-                      : 'bg-red-100 text-red-800'
-                  }`}>
-                    {f.isActive ? 'Active' : 'Inactive'}
-                  </span>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                    <div className="flex items-center gap-2 flex-1 min-w-0">
+                      <span className="inline-block h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: f.isActive ? '#22c55e' : '#ef4444' }} />
+                      <h2 className="font-medium truncate text-sm sm:text-base">{f.name}</h2>
+                    </div>
+                    <span className={`text-xs px-2 py-1 rounded-full border flex-shrink-0 ${
+                      f.isActive
+                        ? 'bg-green-500/10 text-green-500 border-green-500/30'
+                        : 'bg-red-100 text-red-800'
+                    }`}>
+                      {f.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </div>
+                  {f.location ? <p className="text-xs text-pink-400/80 truncate break-words">{f.location}</p> : null}
                 </div>
-                {f.location ? <p className="text-xs text-pink-400/80 mt-2 truncate">{f.location}</p> : null}
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <Button variant="ghost" size="icon" onClick={() => handleEditFacility(f)} title="Edit" className="h-8 w-8">
+                    <Settings2 className="w-4 h-4" />
+                  </Button>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => handleEditFacility(f)} title="Edit">
-                  <Settings2 className="w-4 h-4" />
-                </Button>
-              </div>
+              {f.description ? <p className="text-sm text-gray-400 line-clamp-2">{f.description}</p> : null}
+              <Button size="sm" variant="secondary" onClick={() => handleViewSessions(f.id)} className="w-full sm:w-auto">
+                <MonitorPause className="w-4 h-4 mr-2" /> <span className="hidden sm:inline">Active sessions</span><span className="sm:hidden">Sessions</span>
+              </Button>
             </div>
-            {f.description ? <p className="text-sm text-gray-400 line-clamp-2">{f.description}</p> : null}
-            <Button size="sm" variant="secondary" onClick={() => handleViewSessions(f.id)}>
-              <MonitorPause className="w-4 h-4 mr-2" /> Active sessions
-            </Button>
           </div>
         ))}
       </div>
 
       <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
-        <DialogContent>
+        <DialogContent className="mx-4 sm:mx-auto">
           <DialogHeader>
-            <DialogTitle>Create facility</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Create facility</DialogTitle>
           </DialogHeader>
           <form
             className="space-y-4"
@@ -234,9 +247,9 @@ export function FacilitiesManagementPage() {
                 className="border-gray-800 focus:border-gray-400 hover:border-gray-400 ring-0"
               />
             </div>
-            <div className="flex items-center justify-end gap-3">
-              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)}>Cancel</Button>
-              <Button type="submit">Create</Button>
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+              <Button type="button" variant="ghost" onClick={() => setIsCreateOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+              <Button type="submit" className="w-full sm:w-auto">Create</Button>
             </div>
           </form>
         </DialogContent>
@@ -244,9 +257,9 @@ export function FacilitiesManagementPage() {
 
 
       <Dialog open={isEditOpen} onOpenChange={setIsEditOpen}>
-        <DialogContent>
+        <DialogContent className="mx-4 sm:mx-auto">
           <DialogHeader>
-            <DialogTitle>Edit facility</DialogTitle>
+            <DialogTitle className="text-lg sm:text-xl">Edit facility</DialogTitle>
           </DialogHeader>
           <form
             className="space-y-4"
@@ -284,7 +297,7 @@ export function FacilitiesManagementPage() {
                 className="border-gray-800 focus:border-gray-400 hover:border-gray-400 ring-0"
               />
             </div>
-            <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-4">
               <div className="flex items-center gap-2">
                 <Switch
                   id="isActive"
@@ -297,9 +310,9 @@ export function FacilitiesManagementPage() {
                   {isFacilityActive ? 'Active' : 'Inactive'}
                 </Label>
               </div>
-              <div className="flex items-center gap-3">
-                <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)}>Cancel</Button>
-                <Button type="submit">Save</Button>
+              <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+                <Button type="button" variant="ghost" onClick={() => setIsEditOpen(false)} className="w-full sm:w-auto">Cancel</Button>
+                <Button type="submit" className="w-full sm:w-auto">Save</Button>
               </div>
             </div>
           </form>
@@ -307,13 +320,8 @@ export function FacilitiesManagementPage() {
       </Dialog>
 
       {/* Active Sessions Dialog */}
-      <Dialog open={isSessionsOpen} onOpenChange={(open) => {
-        setIsSessionsOpen(open)
-        if (!open) {
-          setSelectedFacilityForSessions(null)
-        }
-      }}>
-        <DialogContent className="max-w-2xl">
+      <Dialog open={isSessionsOpen} onOpenChange={handleSessionsDialogChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
           <motion.div
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -321,7 +329,7 @@ export function FacilitiesManagementPage() {
             transition={{ duration: 0.3, ease: "easeOut" }}
           >
             <DialogHeader className="pb-6">
-              <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent">
+              <DialogTitle className="text-xl sm:text-2xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent">
                     Active Sessions
               </DialogTitle>
               <p className="text-gray-400 text-sm mt-2">
@@ -333,22 +341,24 @@ export function FacilitiesManagementPage() {
               {activeSessions && activeSessions.length > 0 && selectedFacilityForSessions ? (
                 <div className="space-y-4">
                   {(activeSessions as ActiveSession[]).map((session) => (
-                    <div key={String(session.id)} className="flex items-center justify-between p-4 rounded-lg border bg-card/50">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
+                    <div key={String(session.id)} className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-4 rounded-lg border bg-card/50">
+                      <div className="flex items-center gap-3 min-w-0 flex-1">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center flex-shrink-0">
                           <User className="w-5 h-5 text-white" />
                         </div>
-                        <div>
-                          <div className="font-medium">
+                        <div className="min-w-0 flex-1">
+                          <div className="font-medium truncate">
                             {session.user.firstName || session.user.username}
                             {session.user.lastName && ` ${session.user.lastName}`}
                           </div>
-                          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                            <Clock className="w-3 h-3" />
-                            <span>
-                                  Started {new Date(session.timeIn || 0).toLocaleString()}
-                            </span>
-                            <Badge variant="secondary" className="ml-2">
+                          <div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-2 text-xs text-muted-foreground">
+                            <div className="flex items-center gap-1">
+                              <Clock className="w-3 h-3 flex-shrink-0" />
+                              <span className="truncate">
+                                Started {new Date(session.timeIn || 0).toLocaleString()}
+                              </span>
+                            </div>
+                            <Badge variant="secondary" className="self-start sm:self-center">
                               {Math.floor(session.duration / 60000)}m
                             </Badge>
                           </div>
@@ -358,6 +368,7 @@ export function FacilitiesManagementPage() {
                         variant="destructive"
                         size="sm"
                         onClick={() => handleEndSession(session.id)}
+                        className="w-full sm:w-auto"
                       >
                             End Session
                       </Button>
@@ -372,13 +383,14 @@ export function FacilitiesManagementPage() {
               )}
             </div>
 
-            <div className="flex items-center justify-end gap-3 pt-4">
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3 pt-4">
               <Button
                 variant="ghost"
                 onClick={() => {
                   setIsSessionsOpen(false)
                   setSelectedFacilityForSessions(null)
                 }}
+                className="w-full sm:w-auto"
               >
                     Close
               </Button>

@@ -468,11 +468,11 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                             <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                           </Button>
                         </PopoverTrigger>
-                        <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700">
-                          <Command>
+                        <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700 z-50">
+                          <Command className="pointer-events-auto">
                             <CommandInput 
                               placeholder="Search roles..." 
-                              className="bg-gray-800 border-gray-700 text-white"
+                              className="h-full"
                               value={roleSearchQuery}
                               onValueChange={setRoleSearchQuery}
                             />
@@ -486,7 +486,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                                     key={role.slug}
                                     value={role.slug}
                                     onSelect={(currentValue) => {
-                                      setNewRole(prev => ({ 
+                                      setNewRole((prev) => ({ 
                                         ...prev, 
                                         slug: currentValue === newRole.slug ? "" : currentValue 
                                       }));

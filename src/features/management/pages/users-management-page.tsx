@@ -123,12 +123,14 @@ export function UsersManagementPage() {
 
   return (
     <motion.div className="container mx-auto px-0 py-8 max-w-7xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="flex items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-semibold">Users</h1>
-          <p className="text-sm text-muted-foreground">Search, inspect, and act quickly</p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold">Users</h1>
+            <p className="text-sm text-muted-foreground">Search, inspect, and act quickly</p>
+          </div>
         </div>
-        <div className="relative w-80">
+        <div className="relative w-full sm:w-80">
           <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
             className="pl-8 border-gray-800 focus:border-gray-400 hover:border-gray-400"
@@ -145,47 +147,53 @@ export function UsersManagementPage() {
       <div ref={parentRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {(filtered || []).map((u: AppUser) => (
           <div key={String(u._id)} className="rounded-xl border border-gray-800 transition-all duration-300 hover:border-gray-400 bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <h2 className="font-medium truncate">{`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email}</h2>
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                    <h2 className="font-medium truncate text-sm sm:text-base">{`${u.firstName || ''} ${u.lastName || ''}`.trim() || u.username || u.email}</h2>
+                    <div className="flex-shrink-0">
+                      {u.emailVerified ? (
+                        <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-600 px-2 py-0.5 text-xs gap-1">
+                          <Check className="w-3 h-3" /> Verified
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-600 px-2 py-0.5 text-xs">Unverified</span>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-pink-400/80 truncate mb-2 break-words">{u.email}</p>
+                  {u.roles && u.roles.length ? <p className="text-xs text-gray-400">Roles: {u.roles.join(', ')}</p> : null}
+                </div>
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <Button variant="ghost" size="icon" onClick={() => {
+                    setSelected(u);
+                    setSelectedRoles((u.roles as Array<"STUDENT" | "USER" | "STAFF" | "ADMIN">) || []);
+                    setEditOpen(true);
+                  }} title="Edit" className="h-8 w-8">
+                    <Pencil className="w-4 h-4" />
+                  </Button>
                   {u.emailVerified ? (
-                    <span className="inline-flex items-center rounded-full bg-emerald-500/10 text-emerald-600 px-2 py-0.5 text-xs gap-1"><Check className="w-3 h-3" /> Verified</span>
+                    <Button variant="ghost" size="icon" title="Email verified" disabled className="h-8 w-8">
+                      <MailCheck className="w-4 h-4" />
+                    </Button>
                   ) : (
-                    <span className="inline-flex items-center rounded-full bg-amber-500/10 text-amber-600 px-2 py-0.5 text-xs">Unverified</span>
+                    <Button variant="ghost" size="icon" onClick={() => handleResend(u.email || '')} title="Resend verification" className="h-8 w-8">
+                      <MailQuestion className="w-4 h-4" />
+                    </Button>
                   )}
                 </div>
-                <p className="text-xs text-pink-400/80 truncate mb-2">{u.email}</p>
-                {u.roles && u.roles.length ? <p className="text-xs text-gray-400">Roles: {u.roles.join(', ')}</p> : null}
               </div>
-              <div className="flex items-center gap-2">
-                <Button variant="ghost" size="icon" onClick={() => {
-                  setSelected(u);
-                  setSelectedRoles((u.roles as Array<"STUDENT" | "USER" | "STAFF" | "ADMIN">) || []);
-                  setEditOpen(true);
-                }} title="Edit">
-                  <Pencil className="w-4 h-4" />
-                </Button>
-                {u.emailVerified ? (
-                  <Button variant="ghost" size="icon" title="Email verified" disabled>
-                    <MailCheck className="w-4 h-4" />
-                  </Button>
-                ) : (
-                  <Button variant="ghost" size="icon" onClick={() => handleResend(u.email || '')} title="Resend verification">
-                    <MailQuestion className="w-4 h-4" />
-                  </Button>
-                )}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                <div className="text-xs bg-gray-800/50 rounded-md px-2 py-1 truncate min-w-0 flex-1">
+                  RFID: {u.rfidId ? (
+                    <span className="text-foreground break-words">{u.rfidId}</span>
+                  ) : (
+                    <span className="opacity-70">none</span>
+                  )}
+                </div>
+                <RfidPrompt onSubmit={(card) => handleRegisterRfid(u._id, card)} />
               </div>
-            </div>
-            <div className="flex items-center justify-between gap-3">
-              <div className="text-xs bg-gray-800/50 rounded-md px-2 py-1 truncate">
-                RFID: {u.rfidId ? (
-                  <span className="text-foreground">{u.rfidId}</span>
-                ) : (
-                  <span className="opacity-70">none</span>
-                )}
-              </div>
-              <RfidPrompt onSubmit={(card) => handleRegisterRfid(u._id, card)} />
             </div>
           </div>
         ))}
@@ -213,9 +221,9 @@ export function UsersManagementPage() {
       <AnimatePresence>
         {editOpen && selected && (
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogContent>
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Edit user</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl">Edit user</DialogTitle>
               </DialogHeader>
               <form
                 className="space-y-4"
@@ -260,13 +268,13 @@ export function UsersManagementPage() {
                     ))}
                   </div>
                 </div>
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
                   <Button type="button" variant="ghost" onClick={() => {
                     setEditOpen(false);
                     setSelected(null);
                     setSelectedRoles([]);
-                  }}>Cancel</Button>
-                  <Button type="submit">Save</Button>
+                  }} className="w-full sm:w-auto">Cancel</Button>
+                  <Button type="submit" className="w-full sm:w-auto">Save</Button>
                 </div>
               </form>
             </DialogContent>
@@ -282,23 +290,29 @@ function RfidPrompt({ onSubmit }: { onSubmit: (card: string) => void }) {
   const [card, setCard] = useState('')
   return (
     <>
-      <Button size="sm" variant="secondary" onClick={() => setOpen(true)}>
+      <Button size="sm" variant="secondary" onClick={() => setOpen(true)} className="whitespace-nowrap">
         <IdCard className="w-4 h-4 mr-2" /> Link RFID
       </Button>
       <AnimatePresence>
         {open && (
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogContent>
+            <DialogContent className="mx-4 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Register RFID card</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl">Register RFID card</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="rfid">Card ID</Label>
-                  <Input id="rfid" value={card} onChange={(e) => setCard(e.target.value)} className="border-gray-800 focus:border-gray-400 hover:border-gray-400" />
+                  <Input
+                    id="rfid"
+                    value={card}
+                    onChange={(e) => setCard(e.target.value)}
+                    className="border-gray-800 focus:border-gray-400 hover:border-gray-400"
+                    placeholder="Enter RFID card ID"
+                  />
                 </div>
-                <div className="flex items-center justify-end gap-3">
-                  <Button variant="ghost" onClick={() => setOpen(false)}>Cancel</Button>
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
+                  <Button variant="ghost" onClick={() => setOpen(false)} className="w-full sm:w-auto">Cancel</Button>
                   <Button
                     onClick={() => {
                       if (!card.trim()) return toast.error('Enter card id')
@@ -306,6 +320,7 @@ function RfidPrompt({ onSubmit }: { onSubmit: (card: string) => void }) {
                       setOpen(false)
                       setCard('')
                     }}
+                    className="w-full sm:w-auto"
                   >
                     Save
                   </Button>

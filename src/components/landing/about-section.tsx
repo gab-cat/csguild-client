@@ -6,7 +6,6 @@ import { useRef, useState, useEffect } from "react"
 
 import Counter from "@/components/Counter"
 import { Card, CardContent } from "@/components/ui/card"
-import { LayoutGrid } from "@/components/ui/layout-grid"
 
 export function AboutSection() {
   const ref = useRef(null)

@@ -266,9 +266,9 @@ export function BlogsManagementPage() {
 
   return (
     <motion.div className="container mx-auto px-0 py-8 max-w-7xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="flex items-center justify-between gap-4 mb-8">
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-semibold">Blog Management</h1>
+          <h1 className="text-2xl sm:text-3xl font-semibold">Blog Management</h1>
           <p className="text-sm text-muted-foreground">Monitor, moderate, and manage blog posts</p>
         </div>
       </div>
@@ -283,34 +283,36 @@ export function BlogsManagementPage() {
         </TabsList>
         
         <TabsContent value="blogs" className="space-y-6">
-          <div className="flex items-center gap-3">
-            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as BlogStatus | "all")}>
-              <SelectTrigger className="w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
-                <SelectValue placeholder="Filter by status" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="DRAFT">Draft</SelectItem>
-                <SelectItem value="PUBLISHED">Published</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="ARCHIVED">Archived</SelectItem>
-                <SelectItem value="DELETED">Deleted</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select value={selectedModerationStatus} onValueChange={(value) => setSelectedModerationStatus(value as ModerationStatus | "all")}>
-              <SelectTrigger className="w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
-                <SelectValue placeholder="Filter by moderation" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Moderation</SelectItem>
-                <SelectItem value="PENDING">Pending</SelectItem>
-                <SelectItem value="APPROVED">Approved</SelectItem>
-                <SelectItem value="REJECTED">Rejected</SelectItem>
-                <SelectItem value="FLAGGED">Flagged</SelectItem>
-                <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
-              </SelectContent>
-            </Select>
-            <div className="relative w-80">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <div className="flex flex-col sm:flex-row gap-3 flex-1">
+              <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as BlogStatus | "all")}>
+                <SelectTrigger className="w-full sm:w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
+                  <SelectValue placeholder="Filter by status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Status</SelectItem>
+                  <SelectItem value="DRAFT">Draft</SelectItem>
+                  <SelectItem value="PUBLISHED">Published</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="ARCHIVED">Archived</SelectItem>
+                  <SelectItem value="DELETED">Deleted</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedModerationStatus} onValueChange={(value) => setSelectedModerationStatus(value as ModerationStatus | "all")}>
+                <SelectTrigger className="w-full sm:w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
+                  <SelectValue placeholder="Filter by moderation" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Moderation</SelectItem>
+                  <SelectItem value="PENDING">Pending</SelectItem>
+                  <SelectItem value="APPROVED">Approved</SelectItem>
+                  <SelectItem value="REJECTED">Rejected</SelectItem>
+                  <SelectItem value="FLAGGED">Flagged</SelectItem>
+                  <SelectItem value="UNDER_REVIEW">Under Review</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="relative flex-1 sm:flex-initial">
               <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
                 className="pl-8 border-gray-800 focus:border-gray-400 hover:border-gray-400"
@@ -324,13 +326,17 @@ export function BlogsManagementPage() {
           <div ref={parentRef} className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
             {filtered.map((blog) => (
               <div key={blog._id} className="rounded-xl border border-gray-800 transition-all duration-300 hover:border-gray-400 bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="flex items-center gap-2 mb-2">
-                      {getModerationIcon(blog.moderationStatus)}
-                      <h2 className="font-medium truncate">{blog.title}</h2>
-                      {blog.isPinned && <Pin className="w-3 h-3 text-yellow-500" />}
-                      {blog.isFeatured && <Star className="w-3 h-3 text-purple-500" />}
+                <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 mb-2">
+                      <div className="flex items-center gap-2 flex-1 min-w-0">
+                        {getModerationIcon(blog.moderationStatus)}
+                        <h2 className="font-medium truncate text-sm sm:text-base">{blog.title}</h2>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        {blog.isPinned && <Pin className="w-3 h-3 text-yellow-500" />}
+                        {blog.isFeatured && <Star className="w-3 h-3 text-purple-500" />}
+                      </div>
                     </div>
 
                     <div className="flex flex-wrap gap-1 mb-2">
@@ -372,53 +378,57 @@ export function BlogsManagementPage() {
                     )}
                   </div>
 
-                  <div className="flex flex-col gap-2">
-                    <Button variant="ghost" size="icon" onClick={() => {
-                      setSelected(blog);
-                      setModerationOpen(true);
-                    }} title="Moderate">
-                      <Settings2 className="w-4 h-4" />
-                    </Button>
-
-                    {/* Publish button for non-published blogs */}
-                    {(blog.status === "DRAFT" || blog.status === "PENDING") && (
-                      <Button variant="ghost" size="icon" onClick={() => handlePublish(blog.slug)} title="Publish">
-                        <FileText className="w-4 h-4" />
+                  <div className="flex sm:flex-col gap-2">
+                    <div className="flex gap-1 sm:flex-col">
+                      <Button variant="ghost" size="icon" onClick={() => {
+                        setSelected(blog);
+                        setModerationOpen(true);
+                      }} title="Moderate" className="h-8 w-8">
+                        <Settings2 className="w-4 h-4" />
                       </Button>
-                    )}
 
-                    {/* Unpublish/Draft button for published or pending blogs */}
-                    {(blog.status === "PUBLISHED" || blog.status === "PENDING") && (
-                      <Button variant="ghost" size="icon" onClick={() => handleUnpublish(blog._id)} title="Make Draft">
-                        <FileText className="w-4 h-4 text-orange-500" />
+                      {/* Publish button for non-published blogs */}
+                      {(blog.status === "DRAFT" || blog.status === "PENDING") && (
+                        <Button variant="ghost" size="icon" onClick={() => handlePublish(blog.slug)} title="Publish" className="h-8 w-8">
+                          <FileText className="w-4 h-4" />
+                        </Button>
+                      )}
+
+                      {/* Unpublish/Draft button for published or pending blogs */}
+                      {(blog.status === "PUBLISHED" || blog.status === "PENDING") && (
+                        <Button variant="ghost" size="icon" onClick={() => handleUnpublish(blog._id)} title="Make Draft" className="h-8 w-8">
+                          <FileText className="w-4 h-4 text-orange-500" />
+                        </Button>
+                      )}
+                    </div>
+
+                    <div className="flex gap-1 sm:flex-col">
+                      <Button variant="ghost" size="icon" onClick={() => handlePin(blog._id)} title="Pin/Unpin" className="h-8 w-8">
+                        <Pin className={`w-4 h-4 ${blog.isPinned ? 'text-yellow-500' : ''}`} />
                       </Button>
-                    )}
 
-                    <Button variant="ghost" size="icon" onClick={() => handlePin(blog._id)} title="Pin/Unpin">
-                      <Pin className={`w-4 h-4 ${blog.isPinned ? 'text-yellow-500' : ''}`} />
-                    </Button>
-
-                    <Button variant="ghost" size="icon" onClick={() => handleFeature(blog._id)} title="Feature/Unfeature">
-                      <Star className={`w-4 h-4 ${blog.isFeatured ? 'text-purple-500' : ''}`} />
-                    </Button>
-
-                    {/* Archive button - only for published blogs */}
-                    {blog.status === "PUBLISHED" && (
-                      <Button variant="ghost" size="icon" onClick={() => handleArchive(blog._id)} title="Archive">
-                        <Archive className="w-4 h-4" />
+                      <Button variant="ghost" size="icon" onClick={() => handleFeature(blog._id)} title="Feature/Unfeature" className="h-8 w-8">
+                        <Star className={`w-4 h-4 ${blog.isFeatured ? 'text-purple-500' : ''}`} />
                       </Button>
-                    )}
 
-                    {/* Delete button - always available, but with different styling for published */}
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(blog.slug)}
-                      title="Delete"
-                      className={`${blog.status === "PUBLISHED" ? 'text-red-400 hover:text-red-500' : 'text-red-500 hover:text-red-600'}`}
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
+                      {/* Archive button - only for published blogs */}
+                      {blog.status === "PUBLISHED" && (
+                        <Button variant="ghost" size="icon" onClick={() => handleArchive(blog._id)} title="Archive" className="h-8 w-8">
+                          <Archive className="w-4 h-4" />
+                        </Button>
+                      )}
+
+                      {/* Delete button - always available, but with different styling for published */}
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(blog.slug)}
+                        title="Delete"
+                        className={`h-8 w-8 ${blog.status === "PUBLISHED" ? 'text-red-400 hover:text-red-500' : 'text-red-500 hover:text-red-600'}`}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                 </div>
 
@@ -485,18 +495,18 @@ export function BlogsManagementPage() {
       <AnimatePresence>
         {moderationOpen && selected && (
           <Dialog open={moderationOpen} onOpenChange={setModerationOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Moderate Blog: {selected.title}</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl">Moderate Blog: {selected.title}</DialogTitle>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="bg-gray-800/30 rounded-lg p-4">
                   <h4 className="font-medium mb-2">Blog Details</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-400">Author:</span>
-                      <p>{getAuthorName(selected.author)}</p>
+                      <p className="break-words">{getAuthorName(selected.author)}</p>
                     </div>
                     <div>
                       <span className="text-gray-400">Status:</span>
@@ -562,13 +572,13 @@ export function BlogsManagementPage() {
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
                   <Button type="button" variant="ghost" onClick={() => {
                     setModerationOpen(false);
                     setSelected(null);
                     setModerationNotes('');
-                  }}>Cancel</Button>
-                  <Button onClick={handleModeration}>
+                  }} className="w-full sm:w-auto">Cancel</Button>
+                  <Button onClick={handleModeration} className="w-full sm:w-auto">
                     {moderationAction} Blog
                   </Button>
                 </div>

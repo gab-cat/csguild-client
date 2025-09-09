@@ -174,42 +174,46 @@ export function BlogFlagManagement() {
 
   return (
     <motion.div className="space-y-6" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-semibold">Flag Management</h2>
-          <p className="text-sm text-muted-foreground">Review and manage reported blog content</p>
+      <div className="flex flex-col gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h2 className="text-xl font-semibold">Flag Management</h2>
+            <p className="text-sm text-muted-foreground">Review and manage reported blog content</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as FlagStatus | "all")}>
-            <SelectTrigger className="w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="PENDING">Pending</SelectItem>
-              <SelectItem value="REVIEWED">Reviewed</SelectItem>
-              <SelectItem value="RESOLVED">Resolved</SelectItem>
-              <SelectItem value="DISMISSED">Dismissed</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedReason} onValueChange={(value) => setSelectedReason(value as FlagReason | "all")}>
-            <SelectTrigger className="w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
-              <SelectValue placeholder="Filter by reason" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Reasons</SelectItem>
-              <SelectItem value="SPAM">Spam</SelectItem>
-              <SelectItem value="HARASSMENT">Harassment</SelectItem>
-              <SelectItem value="HATE_SPEECH">Hate Speech</SelectItem>
-              <SelectItem value="INAPPROPRIATE_CONTENT">Inappropriate Content</SelectItem>
-              <SelectItem value="COPYRIGHT_VIOLATION">Copyright Violation</SelectItem>
-              <SelectItem value="MISINFORMATION">Misinformation</SelectItem>
-              <SelectItem value="VIOLENCE">Violence</SelectItem>
-              <SelectItem value="ADULT_CONTENT">Adult Content</SelectItem>
-              <SelectItem value="OTHER">Other</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="relative w-80">
+        <div className="flex flex-col sm:flex-row gap-3">
+          <div className="flex flex-col sm:flex-row gap-3 flex-1">
+            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as FlagStatus | "all")}>
+              <SelectTrigger className="w-full sm:w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Status</SelectItem>
+                <SelectItem value="PENDING">Pending</SelectItem>
+                <SelectItem value="REVIEWED">Reviewed</SelectItem>
+                <SelectItem value="RESOLVED">Resolved</SelectItem>
+                <SelectItem value="DISMISSED">Dismissed</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedReason} onValueChange={(value) => setSelectedReason(value as FlagReason | "all")}>
+              <SelectTrigger className="w-full sm:w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
+                <SelectValue placeholder="Filter by reason" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Reasons</SelectItem>
+                <SelectItem value="SPAM">Spam</SelectItem>
+                <SelectItem value="HARASSMENT">Harassment</SelectItem>
+                <SelectItem value="HATE_SPEECH">Hate Speech</SelectItem>
+                <SelectItem value="INAPPROPRIATE_CONTENT">Inappropriate Content</SelectItem>
+                <SelectItem value="COPYRIGHT_VIOLATION">Copyright Violation</SelectItem>
+                <SelectItem value="MISINFORMATION">Misinformation</SelectItem>
+                <SelectItem value="VIOLENCE">Violence</SelectItem>
+                <SelectItem value="ADULT_CONTENT">Adult Content</SelectItem>
+                <SelectItem value="OTHER">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="relative flex-1 sm:flex-initial">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-8 border-gray-800 focus:border-gray-400 hover:border-gray-400"
@@ -237,55 +241,55 @@ export function BlogFlagManagement() {
                   </Badge>
                 </div>
                 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-                  <div>
-                    <div className="flex items-center gap-2 mb-2">
-                      <Flag className="w-4 h-4 text-gray-400" />
+                <div className="flex flex-col gap-3 text-sm">
+                  <div className="flex flex-col sm:flex-row sm:gap-4 gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
+                      <Flag className="w-4 h-4 text-gray-400 flex-shrink-0" />
                       <span className="text-gray-400">Flagged by:</span>
-                      <span>{getUserName(flag.flaggedBy)}</span>
+                      <span className="truncate">{getUserName(flag.flaggedBy)}</span>
                     </div>
-                    
+
                     {flag.blog && (
-                      <div className="flex items-center gap-2 mb-2">
-                        <User className="w-4 h-4 text-gray-400" />
+                      <div className="flex items-center gap-2 min-w-0">
+                        <User className="w-4 h-4 text-gray-400 flex-shrink-0" />
                         <span className="text-gray-400">Author:</span>
-                        <span>{getUserName(flag.author)}</span>
+                        <span className="truncate">{getUserName(flag.author)}</span>
                       </div>
                     )}
-                    
-                    <div className="flex items-center gap-2">
-                      <Calendar className="w-4 h-4 text-gray-400" />
-                      <span className="text-gray-400">Flagged:</span>
-                      <span>{formatDateTime(flag.createdAt)}</span>
-                    </div>
                   </div>
-                  
-                  <div>
+
+                  <div className="flex flex-col sm:flex-row sm:gap-4 gap-2">
+                    <div className="flex items-center gap-2">
+                      <Calendar className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-400">Flagged:</span>
+                      <span className="text-xs sm:text-sm">{formatDateTime(flag.createdAt)}</span>
+                    </div>
+
                     {flag.blog && (
                       <>
-                        <div className="flex items-center gap-2 mb-2">
-                          <FileText className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400">Blog Status:</span>
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-gray-400">Status:</span>
                           <span>{flag.blog.status || 'Unknown'}</span>
                         </div>
-                        
-                        <div className="flex items-center gap-2 mb-2">
-                          <Flag className="w-4 h-4 text-gray-400" />
-                          <span className="text-gray-400">Total Flags:</span>
+
+                        <div className="flex items-center gap-2">
+                          <Flag className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                          <span className="text-gray-400">Total:</span>
                           <span>{flag.blog.flagCount || 0}</span>
                         </div>
                       </>
                     )}
-                    
-                    {flag.reviewedAt && (
-                      <div className="flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-400" />
-                        <span className="text-gray-400">Reviewed:</span>
-                        <span>{formatDateTime(flag.reviewedAt)}</span>
-                        {flag.reviewedBy && <span>by {flag.reviewedBy}</span>}
-                      </div>
-                    )}
                   </div>
+
+                  {flag.reviewedAt && (
+                    <div className="flex items-center gap-2">
+                      <Clock className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                      <span className="text-gray-400">Reviewed:</span>
+                      <span className="text-xs sm:text-sm">{formatDateTime(flag.reviewedAt)}</span>
+                      {flag.reviewedBy && <span className="hidden sm:inline">by {flag.reviewedBy}</span>}
+                    </div>
+                  )}
                 </div>
                 
                 {flag.description && (
@@ -333,26 +337,26 @@ export function BlogFlagManagement() {
       <AnimatePresence>
         {reviewOpen && selected && (
           <Dialog open={reviewOpen} onOpenChange={setReviewOpen}>
-            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Review Flag: {selected.blog?.title || 'Deleted Blog'}</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl">Review Flag: {selected.blog?.title || 'Deleted Blog'}</DialogTitle>
               </DialogHeader>
               
               <div className="space-y-4">
                 <div className="bg-gray-800/30 rounded-lg p-4">
                   <h4 className="font-medium mb-2">Flag Details</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-400">Reason:</span>
-                      <p>{flagReasonLabels[selected.reason]}</p>
+                      <p className="break-words">{flagReasonLabels[selected.reason]}</p>
                     </div>
                     <div>
                       <span className="text-gray-400">Flagged by:</span>
-                      <p>{getUserName(selected.flaggedBy)}</p>
+                      <p className="break-words">{getUserName(selected.flaggedBy)}</p>
                     </div>
                     <div>
                       <span className="text-gray-400">Date:</span>
-                      <p>{formatDateTime(selected.createdAt)}</p>
+                      <p className="text-xs sm:text-sm">{formatDateTime(selected.createdAt)}</p>
                     </div>
                     <div>
                       <span className="text-gray-400">Status:</span>
@@ -371,10 +375,10 @@ export function BlogFlagManagement() {
                 {selected.blog && (
                   <div className="bg-gray-800/30 rounded-lg p-4">
                     <h4 className="font-medium mb-2">Blog Details</h4>
-                    <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                       <div>
                         <span className="text-gray-400">Author:</span>
-                        <p>{getUserName(selected.author)}</p>
+                        <p className="break-words">{getUserName(selected.author)}</p>
                       </div>
                       <div>
                         <span className="text-gray-400">Status:</span>
@@ -404,20 +408,20 @@ export function BlogFlagManagement() {
                   />
                 </div>
 
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
                   <Button type="button" variant="ghost" onClick={() => {
                     setReviewOpen(false);
                     setSelected(null);
                     setReviewNotes('');
-                  }}>Cancel</Button>
-                  <Button 
-                    variant="outline" 
+                  }} className="w-full sm:w-auto">Cancel</Button>
+                  <Button
+                    variant="outline"
                     onClick={() => handleReview("DISMISS")}
-                    className="border-gray-600 hover:border-gray-400"
+                    className="w-full sm:w-auto border-gray-600 hover:border-gray-400"
                   >
                     Dismiss Flag
                   </Button>
-                  <Button onClick={() => handleReview("RESOLVE")}>
+                  <Button onClick={() => handleReview("RESOLVE")} className="w-full sm:w-auto">
                     Resolve Flag
                   </Button>
                 </div>

@@ -21,14 +21,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
 
 export interface CalendarEvent {
   _id: string
@@ -247,7 +239,7 @@ export function CalendarEventsList({
         </motion.div>
       </motion.div>
 
-      {/* Events Table */}
+      {/* Events List - Mobile Responsive */}
       <AnimatePresence mode="wait">
         {filteredAndSortedEvents.length === 0 ? (
           <motion.div
@@ -288,188 +280,242 @@ export function CalendarEventsList({
           </motion.div>
         ) : (
           <motion.div
-            className="rounded-xl border border-gray-600/30 overflow-hidden bg-gray-800/20 backdrop-blur-sm"
+            className="space-y-4"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.4 }}
-            key="table"
+            key="cards"
           >
-            <Table>
-              <TableHeader className="bg-gray-800/50">
-                <TableRow className="border-gray-600/30 hover:bg-gray-800/30">
-                  <TableHead className="text-gray-300 font-semibold py-4">Event</TableHead>
-                  <TableHead className="text-gray-300 font-semibold py-4">Date & Time</TableHead>
-                  <TableHead className="text-gray-300 font-semibold py-4">Category</TableHead>
-                  <TableHead className="text-gray-300 font-semibold py-4">Priority</TableHead>
-                  <TableHead className="text-gray-300 font-semibold py-4">Status</TableHead>
-                  <TableHead className="text-gray-300 font-semibold py-4">Creator</TableHead>
-                  <TableHead className="w-[50px] py-4"></TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                <AnimatePresence>
-                  {filteredAndSortedEvents.map((event, index) => (
-                    <motion.tr
-                      key={event._id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, y: -20 }}
-                      transition={{ duration: 0.3, delay: index * 0.05 }}
-                      className="border-gray-600/30 hover:bg-gray-800/30 transition-all duration-200"
-                    >
-                      <TableCell className="py-4">
-                        <motion.div
-                          className="space-y-2"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.1 }}
-                        >
-                          <div className="font-semibold text-white">{event.title}</div>
-                          {event.description && (
-                            <div className="text-sm text-gray-400 line-clamp-1">
-                              {event.description}
-                            </div>
-                          )}
-                          <div className="flex items-center gap-4 text-xs text-gray-500">
-                            {event.location && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="w-3 h-3 text-cyan-400" />
-                                {event.location}
-                              </div>
-                            )}
-                            {event.attendees && event.attendees.length > 0 && (
-                              <div className="flex items-center gap-1">
-                                <Users className="w-3 h-3 text-teal-400" />
-                                {event.attendees.length} attendee{event.attendees.length > 1 ? 's' : ''}
-                              </div>
-                            )}
+            <AnimatePresence>
+              {filteredAndSortedEvents.map((event, index) => (
+                <motion.div
+                  key={event._id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                  className="rounded-xl border border-gray-600/30 bg-gray-800/20 backdrop-blur-sm p-4 hover:border-gray-400/50 transition-all duration-200"
+                >
+                  {/* Mobile Layout */}
+                  <div className="block md:hidden">
+                    <div className="flex items-start justify-between gap-3 mb-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          <h3 className="font-semibold text-white text-sm truncate">{event.title}</h3>
+                          <div className="flex gap-1">
+                            <Badge className={`${CATEGORY_COLORS[event.category || 'OTHER']} border-0 font-medium text-xs px-2 py-0.5`}>
+                              {event.category || 'Other'}
+                            </Badge>
+                            <Badge className={`${PRIORITY_COLORS[event.priority || 'MEDIUM']} border-0 font-medium text-xs px-2 py-0.5`}>
+                              {event.priority || 'Medium'}
+                            </Badge>
                           </div>
-                        </motion.div>
-                      </TableCell>
+                        </div>
 
-                      <TableCell className="py-4">
-                        <motion.div
-                          className="space-y-2"
-                          initial={{ opacity: 0, x: -10 }}
-                          animate={{ opacity: 1, x: 0 }}
-                          transition={{ delay: 0.15 }}
-                        >
-                          <div className="flex items-center gap-2 text-sm text-gray-300">
-                            <Calendar className="w-4 h-4 text-orange-400" />
+                        <div className="flex items-center gap-2 text-xs text-gray-300 mb-2">
+                          <Calendar className="w-3 h-3 text-orange-400 flex-shrink-0" />
+                          <span className="truncate">
                             {formatDate(event.startDate)}
                             {event.endDate && event.endDate !== event.startDate && (
                               <span className="text-gray-500"> - {formatDate(event.endDate)}</span>
                             )}
-                          </div>
-                          {!event.isAllDay && (event.startTime || event.endTime) && (
-                            <div className="flex items-center gap-2 text-sm text-gray-400">
-                              <Clock className="w-4 h-4 text-orange-400" />
+                          </span>
+                        </div>
+
+                        {!event.isAllDay && (event.startTime || event.endTime) && (
+                          <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                            <Clock className="w-3 h-3 text-orange-400 flex-shrink-0" />
+                            <span>
                               {event.startTime && formatTime(event.startTime)}
                               {event.endTime && event.startTime !== event.endTime && (
                                 <span> - {formatTime(event.endTime)}</span>
                               )}
-                            </div>
-                          )}
-                          {event.isAllDay && (
-                            <Badge variant="secondary" className="text-xs bg-gray-700/50 text-gray-300 border-gray-600">
-                              All Day
-                            </Badge>
-                          )}
-                        </motion.div>
-                      </TableCell>
+                            </span>
+                          </div>
+                        )}
 
-                      <TableCell className="py-4">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.2 }}
-                        >
-                          <Badge className={`${CATEGORY_COLORS[event.category || 'OTHER']} border-0 font-medium`}>
-                            {event.category || 'Other'}
+                        {event.isAllDay && (
+                          <Badge variant="secondary" className="text-xs bg-gray-700/50 text-gray-300 border-gray-600 mb-2">
+                            All Day
                           </Badge>
-                        </motion.div>
-                      </TableCell>
+                        )}
 
-                      <TableCell className="py-4">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.25 }}
-                        >
-                          <Badge className={`${PRIORITY_COLORS[event.priority || 'MEDIUM']} border-0 font-medium`}>
-                            {event.priority || 'Medium'}
-                          </Badge>
-                        </motion.div>
-                      </TableCell>
-
-                      <TableCell className="py-4">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.3 }}
-                        >
-                          <Badge className={`${STATUS_COLORS[event.status || 'SCHEDULED']} border-0 font-medium`}>
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mb-2">
+                          <span>By {event.createdBy}</span>
+                          <Badge className={`${STATUS_COLORS[event.status || 'SCHEDULED']} border-0 font-medium text-xs px-2 py-0.5`}>
                             {event.status || 'Scheduled'}
                           </Badge>
-                        </motion.div>
-                      </TableCell>
+                        </div>
 
-                      <TableCell className="py-4 text-sm text-gray-400">
-                        {event.createdBy}
-                      </TableCell>
+                        <div className="flex items-center gap-4 text-xs text-gray-500">
+                          {event.location && (
+                            <div className="flex items-center gap-1">
+                              <MapPin className="w-3 h-3 text-cyan-400" />
+                              <span className="truncate">{event.location}</span>
+                            </div>
+                          )}
+                          {event.attendees && event.attendees.length > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Users className="w-3 h-3 text-teal-400" />
+                              <span>{event.attendees.length} attendee{event.attendees.length > 1 ? 's' : ''}</span>
+                            </div>
+                          )}
+                        </div>
 
-                      <TableCell className="py-4">
-                        <motion.div
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.35 }}
+                        {event.description && (
+                          <p className="text-xs text-gray-400 line-clamp-2 mt-2">{event.description}</p>
+                        )}
+                      </div>
+
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-8 w-8 p-0 hover:bg-gray-700/50 transition-colors duration-200 flex-shrink-0"
+                          >
+                            <MoreHorizontal className="w-4 h-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent
+                          align="end"
+                          className="bg-gray-900/95 backdrop-blur-sm border-gray-600 rounded-lg shadow-lg"
                         >
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-8 w-8 p-0 hover:bg-gray-700/50 transition-colors duration-200"
-                              >
-                                <MoreHorizontal className="w-4 h-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent
-                              align="end"
-                              className="bg-gray-900/95 backdrop-blur-sm border-gray-600 rounded-lg shadow-lg"
-                            >
-                              <DropdownMenuItem
-                                onClick={() => onView(event)}
-                                className="hover:bg-gray-800 focus:bg-gray-800 transition-colors duration-200"
-                              >
-                                <Eye className="w-4 h-4 mr-2 text-blue-400" />
-                                View Details
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={() => onEdit(event)}
-                                className="hover:bg-gray-800 focus:bg-gray-800 transition-colors duration-200"
-                              >
-                                <Edit className="w-4 h-4 mr-2 text-green-400" />
-                                Edit Event
-                              </DropdownMenuItem>
-                              <DropdownMenuSeparator className="bg-gray-600" />
-                              <DropdownMenuItem
-                                onClick={() => onDelete(event._id)}
-                                className="text-red-400 hover:bg-red-900/20 focus:bg-red-900/20 transition-colors duration-200"
-                              >
-                                <Trash2 className="w-4 h-4 mr-2" />
-                                Delete Event
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </motion.div>
-                      </TableCell>
-                    </motion.tr>
-                  ))}
-                </AnimatePresence>
-              </TableBody>
-            </Table>
+                          <DropdownMenuItem
+                            onClick={() => onView(event)}
+                            className="hover:bg-gray-800 focus:bg-gray-800 transition-colors duration-200"
+                          >
+                            <Eye className="w-4 h-4 mr-2 text-blue-400" />
+                            View Details
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => onEdit(event)}
+                            className="hover:bg-gray-800 focus:bg-gray-800 transition-colors duration-200"
+                          >
+                            <Edit className="w-4 h-4 mr-2 text-green-400" />
+                            Edit Event
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator className="bg-gray-600" />
+                          <DropdownMenuItem
+                            onClick={() => onDelete(event._id)}
+                            className="text-red-400 hover:bg-red-900/20 focus:bg-red-900/20 transition-colors duration-200"
+                          >
+                            <Trash2 className="w-4 h-4 mr-2" />
+                            Delete Event
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </div>
+                  </div>
+
+                  {/* Desktop Layout (Table-like) */}
+                  <div className="hidden md:grid md:grid-cols-[1fr_200px_120px_120px_120px_120px_50px] md:gap-4 md:items-center">
+                    <div className="space-y-2">
+                      <div className="font-semibold text-white">{event.title}</div>
+                      {event.description && (
+                        <div className="text-sm text-gray-400 line-clamp-1">{event.description}</div>
+                      )}
+                      <div className="flex items-center gap-4 text-xs text-gray-500">
+                        {event.location && (
+                          <div className="flex items-center gap-1">
+                            <MapPin className="w-3 h-3 text-cyan-400" />
+                            {event.location}
+                          </div>
+                        )}
+                        {event.attendees && event.attendees.length > 0 && (
+                          <div className="flex items-center gap-1">
+                            <Users className="w-3 h-3 text-teal-400" />
+                            {event.attendees.length} attendee{event.attendees.length > 1 ? 's' : ''}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2 text-sm text-gray-300">
+                        <Calendar className="w-4 h-4 text-orange-400" />
+                        <span className="truncate">
+                          {formatDate(event.startDate)}
+                          {event.endDate && event.endDate !== event.startDate && (
+                            <span className="text-gray-500 block"> - {formatDate(event.endDate)}</span>
+                          )}
+                        </span>
+                      </div>
+                      {!event.isAllDay && (event.startTime || event.endTime) && (
+                        <div className="flex items-center gap-2 text-sm text-gray-400">
+                          <Clock className="w-4 h-4 text-orange-400" />
+                          <span>
+                            {event.startTime && formatTime(event.startTime)}
+                            {event.endTime && event.startTime !== event.endTime && (
+                              <span> - {formatTime(event.endTime)}</span>
+                            )}
+                          </span>
+                        </div>
+                      )}
+                      {event.isAllDay && (
+                        <Badge variant="secondary" className="text-xs bg-gray-700/50 text-gray-300 border-gray-600">
+                          All Day
+                        </Badge>
+                      )}
+                    </div>
+
+                    <Badge className={`${CATEGORY_COLORS[event.category || 'OTHER']} border-0 font-medium`}>
+                      {event.category || 'Other'}
+                    </Badge>
+
+                    <Badge className={`${PRIORITY_COLORS[event.priority || 'MEDIUM']} border-0 font-medium`}>
+                      {event.priority || 'Medium'}
+                    </Badge>
+
+                    <Badge className={`${STATUS_COLORS[event.status || 'SCHEDULED']} border-0 font-medium`}>
+                      {event.status || 'Scheduled'}
+                    </Badge>
+
+                    <div className="text-sm text-gray-400 truncate">{event.createdBy}</div>
+
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-gray-700/50 transition-colors duration-200"
+                        >
+                          <MoreHorizontal className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        className="bg-gray-900/95 backdrop-blur-sm border-gray-600 rounded-lg shadow-lg"
+                      >
+                        <DropdownMenuItem
+                          onClick={() => onView(event)}
+                          className="hover:bg-gray-800 focus:bg-gray-800 transition-colors duration-200"
+                        >
+                          <Eye className="w-4 h-4 mr-2 text-blue-400" />
+                          View Details
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          onClick={() => onEdit(event)}
+                          className="hover:bg-gray-800 focus:bg-gray-800 transition-colors duration-200"
+                        >
+                          <Edit className="w-4 h-4 mr-2 text-green-400" />
+                          Edit Event
+                        </DropdownMenuItem>
+                        <DropdownMenuSeparator className="bg-gray-600" />
+                        <DropdownMenuItem
+                          onClick={() => onDelete(event._id)}
+                          className="text-red-400 hover:bg-red-900/20 focus:bg-red-900/20 transition-colors duration-200"
+                        >
+                          <Trash2 className="w-4 h-4 mr-2" />
+                          Delete Event
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </motion.div>
         )}
       </AnimatePresence>

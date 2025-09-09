@@ -2,7 +2,7 @@
 
 import { useAutoAnimate } from '@formkit/auto-animate/react'
 import { useMutation, useQuery } from 'convex/react'
-import { AnimatePresence, motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { ChevronDown, Search, Settings2, User, Calendar, Badge as BadgeIcon, Star } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'
 import { toast } from 'sonner'
@@ -187,35 +187,39 @@ export function ProjectsManagementPage() {
 
   return (
     <motion.div className="container mx-auto px-0 py-8 max-w-7xl" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}>
-      <div className="flex items-center justify-between gap-4 mb-8">
-        <div>
-          <h1 className="text-3xl font-semibold">Projects</h1>
-          <p className="text-sm text-muted-foreground">Monitor, moderate, and manage projects</p>
+      <div className="flex flex-col gap-4 mb-8">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-semibold">Projects</h1>
+            <p className="text-sm text-muted-foreground">Monitor, moderate, and manage projects</p>
+          </div>
         </div>
-        <div className="flex items-center gap-3">
-          <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "all")}>
-            <SelectTrigger className="w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
-              <SelectValue placeholder="Filter by status" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Statuses</SelectItem>
-              <SelectItem value="OPEN">Open</SelectItem>
-              <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
-              <SelectItem value="COMPLETED">Completed</SelectItem>
-              <SelectItem value="CANCELLED">Cancelled</SelectItem>
-            </SelectContent>
-          </Select>
-          <Select value={selectedFeatured} onValueChange={(value) => setSelectedFeatured(value as "featured" | "non-featured" | "all")}>
-            <SelectTrigger className="w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
-              <SelectValue placeholder="Filter by featured" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Projects</SelectItem>
-              <SelectItem value="featured">Featured Only</SelectItem>
-              <SelectItem value="non-featured">Non-Featured</SelectItem>
-            </SelectContent>
-          </Select>
-          <div className="relative w-80">
+        <div className="flex flex-col gap-3">
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as "OPEN" | "IN_PROGRESS" | "COMPLETED" | "CANCELLED" | "all")}>
+              <SelectTrigger className="w-full sm:w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
+                <SelectValue placeholder="Filter by status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Statuses</SelectItem>
+                <SelectItem value="OPEN">Open</SelectItem>
+                <SelectItem value="IN_PROGRESS">In Progress</SelectItem>
+                <SelectItem value="COMPLETED">Completed</SelectItem>
+                <SelectItem value="CANCELLED">Cancelled</SelectItem>
+              </SelectContent>
+            </Select>
+            <Select value={selectedFeatured} onValueChange={(value) => setSelectedFeatured(value as "featured" | "non-featured" | "all")}>
+              <SelectTrigger className="w-full sm:w-48 border-gray-800 focus:border-gray-400 hover:border-gray-400">
+                <SelectValue placeholder="Filter by featured" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Projects</SelectItem>
+                <SelectItem value="featured">Featured Only</SelectItem>
+                <SelectItem value="non-featured">Non-Featured</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="relative w-full sm:w-80">
             <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               className="pl-8 border-gray-800 focus:border-gray-400 hover:border-gray-400"
@@ -230,78 +234,81 @@ export function ProjectsManagementPage() {
       <div ref={parentRef} className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
         {filtered.map((project) => (
           <div key={String(project.id)} className="rounded-xl border border-gray-800 transition-all duration-300 hover:border-gray-400 bg-card text-card-foreground shadow-sm p-4 flex flex-col gap-3">
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="flex items-center gap-2 mb-2">
-                  <h2 className="font-medium truncate">{project.title}</h2>
-                  <div className="flex items-center gap-1">
-                    <Badge variant="outline" className={`text-xs px-2 py-0.5 border ${statusColors[project.status]}`}>
-                      {statusLabels[project.status]}
-                    </Badge>
-                    {project.isFeatured && (
-                      <Badge variant="outline" className="text-xs px-2 py-0.5 border bg-yellow-500/10 text-yellow-500 border-yellow-500/30">
-                        <Star className="w-3 h-3 mr-1 fill-current" />
-                        Featured
+            <div className="flex flex-col gap-3">
+              <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-2 mb-2">
+                    <h2 className="font-medium truncate text-sm sm:text-base flex-1">{project.title}</h2>
+                    <div className="flex flex-wrap gap-1">
+                      <Badge variant="outline" className={`text-xs px-2 py-0.5 border ${statusColors[project.status]}`}>
+                        {statusLabels[project.status]}
                       </Badge>
-                    )}
+                      {project.isFeatured && (
+                        <Badge variant="outline" className="text-xs px-2 py-0.5 border bg-yellow-500/10 text-yellow-500 border-yellow-500/30">
+                          <Star className="w-3 h-3 mr-1 fill-current" />
+                          <span className="hidden sm:inline">Featured</span>
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <p className="text-xs text-pink-400/80 truncate mb-2 break-words">
+                    by {getOwnerName(project.owner)}
+                  </p>
+                  {project.tags.length > 0 && (
+                    <div className="flex flex-wrap gap-1 mb-2">
+                      {project.tags.slice(0, 2).map((tag, index) => (
+                        <Badge key={index} variant="secondary" className="text-xs">
+                          {tag}
+                        </Badge>
+                      ))}
+                      {project.tags.length > 2 && (
+                        <Badge variant="secondary" className="text-xs">
+                          +{project.tags.length - 2}
+                        </Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+                <div className="flex items-center gap-2 self-start sm:self-center">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleToggleFeatured(project.slug, project.isFeatured)}
+                    disabled={togglingProjects.has(project.slug)}
+                    title={project.isFeatured ? "Remove from featured" : "Mark as featured"}
+                    className="h-8 w-8"
+                  >
+                    <Star className={`w-4 h-4 ${project.isFeatured ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'} ${togglingProjects.has(project.slug) ? 'animate-pulse' : ''}`} />
+                  </Button>
+                  <Button variant="ghost" size="icon" onClick={() => {
+                    setSelected(project);
+                    setEditOpen(true);
+                  }} title="Edit" className="h-8 w-8">
+                    <Settings2 className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
+            
+              <p className="text-sm text-gray-400 line-clamp-2">{project.description}</p>
+            
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-xs text-gray-400">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4">
+                  <div className="flex items-center gap-1">
+                    <User className="w-3 h-3 flex-shrink-0" />
+                    <span>{project.memberCount} members</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <BadgeIcon className="w-3 h-3 flex-shrink-0" />
+                    <span>{project.applicationCount} applications</span>
                   </div>
                 </div>
-                <p className="text-xs text-pink-400/80 truncate mb-2">
-                  by {getOwnerName(project.owner)}
-                </p>
-                {project.tags.length > 0 && (
-                  <div className="flex flex-wrap gap-1 mb-2">
-                    {project.tags.slice(0, 3).map((tag, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs">
-                        {tag}
-                      </Badge>
-                    ))}
-                    {project.tags.length > 3 && (
-                      <Badge variant="secondary" className="text-xs">
-                        +{project.tags.length - 3}
-                      </Badge>
-                    )}
+                {project.dueDate && (
+                  <div className="flex items-center gap-1 self-start sm:self-center">
+                    <Calendar className="w-3 h-3 flex-shrink-0" />
+                    <span className="text-xs sm:text-sm">{formatDate(project.dueDate)}</span>
                   </div>
                 )}
               </div>
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  onClick={() => handleToggleFeatured(project.slug, project.isFeatured)}
-                  disabled={togglingProjects.has(project.slug)}
-                  title={project.isFeatured ? "Remove from featured" : "Mark as featured"}
-                >
-                  <Star className={`w-4 h-4 ${project.isFeatured ? 'fill-yellow-500 text-yellow-500' : 'text-gray-400'} ${togglingProjects.has(project.slug) ? 'animate-pulse' : ''}`} />
-                </Button>
-                <Button variant="ghost" size="icon" onClick={() => {
-                  setSelected(project);
-                  setEditOpen(true);
-                }} title="Edit">
-                  <Settings2 className="w-4 h-4" />
-                </Button>
-              </div>
-            </div>
-            
-            <p className="text-sm text-gray-400 line-clamp-2">{project.description}</p>
-            
-            <div className="flex items-center justify-between text-xs text-gray-400">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-1">
-                  <User className="w-3 h-3" />
-                  {project.memberCount} members
-                </div>
-                <div className="flex items-center gap-1">
-                  <BadgeIcon className="w-3 h-3" />
-                  {project.applicationCount} applications
-                </div>
-              </div>
-              {project.dueDate && (
-                <div className="flex items-center gap-1">
-                  <Calendar className="w-3 h-3" />
-                  {formatDate(project.dueDate)}
-                </div>
-              )}
             </div>
           </div>
         ))}
@@ -326,9 +333,9 @@ export function ProjectsManagementPage() {
       <AnimatePresence>
         {editOpen && selected && (
           <Dialog open={editOpen} onOpenChange={setEditOpen}>
-            <DialogContent className="max-w-2xl">
+            <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto mx-4 sm:mx-auto">
               <DialogHeader>
-                <DialogTitle>Edit Project: {selected.title}</DialogTitle>
+                <DialogTitle className="text-lg sm:text-xl">Edit Project: {selected.title}</DialogTitle>
               </DialogHeader>
               <form
                 className="space-y-4"
@@ -410,10 +417,10 @@ export function ProjectsManagementPage() {
 
                 <div className="bg-gray-800/30 rounded-lg p-4">
                   <h4 className="font-medium mb-2">Project Info</h4>
-                  <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-gray-400">Owner:</span>
-                      <p>{getOwnerName(selected.owner)}</p>
+                      <p className="break-words">{getOwnerName(selected.owner)}</p>
                     </div>
                     <div>
                       <span className="text-gray-400">Members:</span>
@@ -425,17 +432,17 @@ export function ProjectsManagementPage() {
                     </div>
                     <div>
                       <span className="text-gray-400">Created:</span>
-                      <p>{selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'Unknown'}</p>
+                      <p className="text-xs sm:text-sm">{selected.createdAt ? new Date(selected.createdAt).toLocaleDateString() : 'Unknown'}</p>
                     </div>
                   </div>
                 </div>
 
-                <div className="flex items-center justify-end gap-3">
+                <div className="flex flex-col-reverse sm:flex-row sm:items-center sm:justify-end gap-3">
                   <Button type="button" variant="ghost" onClick={() => {
                     setEditOpen(false);
                     setSelected(null);
-                  }}>Cancel</Button>
-                  <Button type="submit">Save Changes</Button>
+                  }} className="w-full sm:w-auto">Cancel</Button>
+                  <Button type="submit" className="w-full sm:w-auto">Save Changes</Button>
                 </div>
               </form>
             </DialogContent>
