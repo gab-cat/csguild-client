@@ -288,11 +288,11 @@ export function UpdateProjectModal({
                         <ChevronsUpDownIcon className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                       </Button>
                     </PopoverTrigger>
-                    <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700">
-                      <Command className="bg-gray-800 border-gray-700">
+                    <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700 z-50">
+                      <Command className="pointer-events-auto">
                         <CommandInput 
                           placeholder="Search status..." 
-                          className="bg-gray-800 text-white placeholder:text-gray-400"
+                          className="h-full"
                         />
                         <CommandList>
                           <CommandEmpty>No status found.</CommandEmpty>
@@ -603,10 +603,10 @@ export function UpdateProjectModal({
                     </Button>
                   </PopoverTrigger>
                   <PopoverContent className="w-full p-0 bg-gray-800 border-gray-700">
-                    <Command className="bg-gray-800 border-gray-700">
+                    <Command className="pointer-events-auto">
                       <CommandInput 
                         placeholder="Search roles..." 
-                        className="bg-gray-800 text-white placeholder:text-gray-400"
+                        className="h-full"
                         value={roleSearchTerm}
                         onValueChange={setRoleSearchTerm}
                       />
