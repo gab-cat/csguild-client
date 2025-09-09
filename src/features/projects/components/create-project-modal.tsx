@@ -185,57 +185,57 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
   };
 
   return (
-    <div className="w-full max-w-7xl mx-auto">
+    <div className="w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
       {/* Enhanced Header */}
-      <div className="relative mb-8">
+      <div className="relative mb-6 sm:mb-8">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-600/20 to-pink-600/20 rounded-lg blur-xl"></div>
-        <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-6">
+        <div className="relative bg-gray-900/80 backdrop-blur-sm border border-gray-700/50 rounded-lg p-4 sm:p-6">
           <div className="flex items-center gap-3 mb-3">
-            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center">
+            <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-lg flex items-center justify-center flex-shrink-0">
               <Rocket className="w-5 h-5 text-white" />
             </div>
-            <div>
-              <DialogTitle className="text-2xl font-bold text-white">
+            <div className="min-w-0 flex-1">
+              <DialogTitle className="text-xl sm:text-2xl tracking-tight font-bold text-white">
                 Create New Project
               </DialogTitle>
-              <p className="text-gray-400 text-sm">
+              <p className="text-gray-400 text-xs sm:text-sm mt-1">
                 Bring your vision to life and find the perfect team to make it happen
               </p>
             </div>
           </div>
           
           {/* Progress Steps */}
-          <div className="flex items-center gap-2 mt-4">
-            <div className="flex items-center gap-1 text-purple-400 text-sm">
+          <div className="flex items-center gap-1 sm:gap-2 mt-4 overflow-x-auto">
+            <div className="flex items-center gap-1 text-purple-400 text-xs sm:text-sm flex-shrink-0">
               <Target className="w-3 h-3" />
-              <span>Project Details</span>
+              <span className="whitespace-nowrap">Project Details</span>
             </div>
-            <div className="w-2 h-px bg-gray-600"></div>
-            <div className="flex items-center gap-1 text-gray-500 text-sm">
+            <div className="w-2 h-px bg-gray-600 flex-shrink-0"></div>
+            <div className="flex items-center gap-1 text-gray-500 text-xs sm:text-sm flex-shrink-0">
               <Users className="w-3 h-3" />
-              <span>Team Structure</span>
+              <span className="whitespace-nowrap">Team Structure</span>
             </div>
-            <div className="w-2 h-px bg-gray-600"></div>
-            <div className="flex items-center gap-1 text-gray-500 text-sm">
+            <div className="w-2 h-px bg-gray-600 flex-shrink-0"></div>
+            <div className="flex items-center gap-1 text-gray-500 text-xs sm:text-sm flex-shrink-0">
               <Rocket className="w-3 h-3" />
-              <span>Launch</span>
+              <span className="whitespace-nowrap">Launch</span>
             </div>
           </div>
         </div>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-8">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 sm:space-y-8">
         {/* Enhanced Two Column Layout */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 lg:gap-8">
           {/* Left Column - Form Fields */}
-          <div className="space-y-6 lg:space-y-8">
+          <div className="space-y-4 sm:space-y-6 lg:space-y-8">
             {/* Project Basics Section */}
-            <div className="space-y-6">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 bg-purple-500/20 rounded-lg flex items-center justify-center">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-6 h-6 bg-purple-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Target className="w-3 h-3 text-purple-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Project Basics</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Project Basics</h3>
               </div>
 
               {/* Project Name */}
@@ -251,8 +251,8 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                   />
                 </div>
                 <p className="text-xs text-gray-400 flex items-center gap-1">
-                  <Info className="w-3 h-3" />
-                  Choose a clear, descriptive name that reflects your project&apos;s purpose
+                  <Info className="w-3 h-3 flex-shrink-0" />
+                  <span>Choose a clear, descriptive name that reflects your project&apos;s purpose</span>
                 </p>
                 {errors.title && (
                   <p className="text-red-400 text-sm flex items-center gap-1">
@@ -289,11 +289,11 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
 
             {/* Technology Stack Section */}
             <div className="space-y-4">
-              <div className="flex items-center gap-2 mb-4">
-                <div className="w-6 h-6 bg-orange-500/20 rounded-lg flex items-center justify-center">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <div className="w-6 h-6 bg-orange-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                   <Hash className="w-3 h-3 text-orange-400" />
                 </div>
-                <h3 className="text-lg font-semibold text-white">Tags</h3>
+                <h3 className="text-base sm:text-lg font-semibold text-white">Tags</h3>
               </div>
 
               {/* Tags */}
@@ -306,7 +306,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                       value={newTag}
                       onChange={(e) => setNewTag(e.target.value)}
                       placeholder="Add Technology/Skill (e.g., React, TypeScript, Node.js, Python, UI/UX)"
-                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all pl-10"
+                      className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 focus:ring-2 focus:ring-orange-500/50 focus:border-orange-500/50 transition-all pl-10 text-sm"
                       onKeyDown={(e) => {
                         if (e.key === 'Enter') {
                           e.preventDefault();
@@ -319,7 +319,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                     type="button"
                     onClick={addTag}
                     size="sm"
-                    className="bg-orange-600 hover:bg-orange-700 text-white border-0"
+                    className="bg-orange-600 hover:bg-orange-700 text-white border-0 px-3 sm:px-4 flex-shrink-0"
                   >
                     <Plus className="w-4 h-4" />
                   </Button>
@@ -337,14 +337,14 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
                         initial={{ opacity: 0, scale: 0.8 }}
                         animate={{ opacity: 1, scale: 1 }}
                         transition={{ delay: index * 0.05 }}
-                        className="inline-flex items-center gap-1 bg-orange-600/20 text-orange-300 px-3 py-1.5 rounded-full text-sm border border-orange-500/30 hover:bg-orange-600/30 transition-colors"
+                        className="inline-flex items-center gap-1 bg-orange-600/20 text-orange-300 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm border border-orange-500/30 hover:bg-orange-600/30 transition-colors"
                       >
-                        <Tag className="w-3 h-3" />
-                        {tag}
+                        <Tag className="w-3 h-3 flex-shrink-0" />
+                        <span className="truncate max-w-[80px] sm:max-w-none">{tag}</span>
                         <button
                           type="button"
                           onClick={() => removeTag(tag)}
-                          className="ml-1 hover:text-red-400 transition-colors"
+                          className="ml-1 hover:text-red-400 transition-colors flex-shrink-0"
                         >
                           <X className="w-3 h-3" />
                         </button>
@@ -363,22 +363,23 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
 
             {/* Team Structure Section */}
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2">
-                  <div className="w-6 h-6 bg-green-500/20 rounded-lg flex items-center justify-center">
+                  <div className="w-6 h-6 bg-green-500/20 rounded-lg flex items-center justify-center flex-shrink-0">
                     <Users className="w-3 h-3 text-green-400" />
                   </div>
-                  <h3 className="text-lg font-semibold text-white">Team Structure</h3>
+                  <h3 className="text-base sm:text-lg font-semibold text-white">Team Structure</h3>
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={() => setShowCreateRole(!showCreateRole)}
-                  className="border-gray-600 text-gray-300 hover:bg-gray-800 focus:ring-2 focus:ring-green-500/50"
+                  className="border-gray-600 text-gray-300 hover:bg-gray-800 focus:ring-2 focus:ring-green-500/50 w-full sm:w-auto"
                 >
                   <Plus className="w-4 h-4 mr-1" />
-                  Create New Role
+                  <span className="sm:inline">Create New Role</span>
+                  <span className="sm:hidden">Create Role</span>
                 </Button>
               </div>
 
@@ -602,7 +603,7 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
           </div>
 
           {/* Right Column - Description and Guidelines */}
-          <div className="space-y-6 lg:sticky lg:top-4 lg:self-start">
+          <div className="space-y-4 sm:space-y-6">
             {/* Project Description */}
             <div className="space-y-3">
               <div className="flex items-center gap-2">
@@ -623,8 +624,8 @@ export function CreateProjectModal({ onClose }: CreateProjectModalProps) {
 • Any specific requirements or preferences?
 
 Example: "We're building a modern task management app that helps remote teams stay organized. Looking for passionate developers to join our journey..."`}
-                rows={12}
-                className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 resize-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all"
+                rows={8}
+                className="bg-gray-800/50 border-gray-700 text-white placeholder:text-gray-500 resize-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500/50 transition-all text-sm sm:text-base"
               />
               <p className="text-xs text-gray-400 flex items-center gap-1">
                 <Lightbulb className="w-3 h-3" />
@@ -639,9 +640,9 @@ Example: "We're building a modern task management app that helps remote teams st
             </div>
 
             {/* Quick Tips */}
-            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <Lightbulb className="w-5 h-5 text-blue-400" />
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-3 sm:p-4">
+              <div className="flex items-center gap-2 mb-2 sm:mb-3">
+                <Lightbulb className="w-5 h-5 text-blue-400 flex-shrink-0" />
                 <h4 className="text-sm font-semibold text-blue-300">Tips for Success</h4>
               </div>
               <ul className="space-y-2 text-xs text-blue-200">
@@ -667,12 +668,12 @@ Example: "We're building a modern task management app that helps remote teams st
         </div>
 
         {/* Instructions and Guidelines */}
-        <div className="space-y-6 pt-6 border-t border-gray-700/50">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div className="space-y-4 sm:space-y-6 pt-4 sm:pt-6 border-t border-gray-700/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
             {/* Project Guidelines */}
-            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <BookOpen className="w-5 h-5 text-purple-400" />
+            <div className="bg-purple-500/5 border border-purple-500/20 rounded-lg p-3 sm:p-5">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <BookOpen className="w-5 h-5 text-purple-400 flex-shrink-0" />
                 <h4 className="text-sm font-semibold text-purple-300">Project Guidelines</h4>
               </div>
               <ul className="space-y-2 text-xs text-purple-200">
@@ -696,9 +697,9 @@ Example: "We're building a modern task management app that helps remote teams st
             </div>
 
             {/* Community Standards */}
-            <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-5">
-              <div className="flex items-center gap-2 mb-4">
-                <Shield className="w-5 h-5 text-green-400" />
+            <div className="bg-green-500/5 border border-green-500/20 rounded-lg p-3 sm:p-5">
+              <div className="flex items-center gap-2 mb-3 sm:mb-4">
+                <Shield className="w-5 h-5 text-green-400 flex-shrink-0" />
                 <h4 className="text-sm font-semibold text-green-300">Community Standards</h4>
               </div>
               <ul className="space-y-2 text-xs text-green-200">
@@ -723,9 +724,9 @@ Example: "We're building a modern task management app that helps remote teams st
           </div>
 
           {/* Terms and Conditions */}
-          <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-5">
-            <div className="flex items-center gap-2 mb-4">
-              <AlertTriangle className="w-5 h-5 text-yellow-400" />
+          <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-3 sm:p-5">
+            <div className="flex items-center gap-2 mb-3 sm:mb-4">
+              <AlertTriangle className="w-5 h-5 text-yellow-400 flex-shrink-0" />
               <h4 className="text-sm font-semibold text-yellow-300">Terms & Conditions</h4>
             </div>
             <div className="space-y-3 text-xs text-gray-300">
@@ -762,18 +763,18 @@ Example: "We're building a modern task management app that helps remote teams st
         </div>
 
         {/* Enhanced Submit Section */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-6 border-t border-gray-700/50">
-          <div className="flex items-center gap-2 text-sm text-gray-400">
-            <Info className="w-4 h-4" />
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4 sm:pt-6 border-t border-gray-700/50">
+          <div className="flex items-center gap-2 text-xs sm:text-sm text-gray-400 order-2 sm:order-1">
+            <Info className="w-4 h-4 flex-shrink-0" />
             <span>All fields marked with * are required</span>
           </div>
-          
-          <div className="flex gap-3 w-full sm:w-auto">
+
+          <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto order-1 sm:order-2">
             <Button
               type="button"
               onClick={onClose}
               variant="outline"
-              className="flex-1 sm:flex-none border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500 transition-all"
+              className="w-full sm:w-auto border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-gray-500 transition-all min-h-[44px]"
             >
               <X className="w-4 h-4 mr-2" />
               Cancel
@@ -781,7 +782,7 @@ Example: "We're building a modern task management app that helps remote teams st
             <Button
               type="submit"
               disabled={isSubmitting}
-              className="flex-1 sm:flex-none bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg hover:shadow-xl transition-all"
+              className="w-full sm:w-auto bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg hover:shadow-xl transition-all min-h-[44px]"
             >
               {isSubmitting ? (
                 <>

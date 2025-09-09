@@ -26,7 +26,7 @@ export default function DashboardPage() {
           <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-6">
             <div className="flex-1">
               <motion.h1
-                className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent mb-1"
+                className="text-2xl md:text-3xl font-bold tracking-tight bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent mb-1"
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, delay: 0.2 }}

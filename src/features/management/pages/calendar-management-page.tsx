@@ -196,13 +196,13 @@ export function CalendarManagementPage() {
 
   return (
     <motion.div
-      className="container mx-auto px-0 py-8 max-w-7xl"
+      className="container mx-auto px-4 md:px-2 lg:px-0 py-8 max-w-7xl"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.6 }}
     >
       <motion.div
-        className="flex flex-col gap-6 mb-12"
+        className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6 mb-12"
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.2 }}
@@ -211,6 +211,7 @@ export function CalendarManagementPage() {
           initial={{ opacity: 0, x: -20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4, delay: 0.3 }}
+          className="flex-1"
         >
           <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent">
             Calendar Management
@@ -226,7 +227,7 @@ export function CalendarManagementPage() {
           transition={{ duration: 0.4, delay: 0.4 }}
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
-          className="self-start sm:self-auto"
+          className="flex-shrink-0"
         >
           <Button
             onClick={() => setIsCreateDialogOpen(true)}

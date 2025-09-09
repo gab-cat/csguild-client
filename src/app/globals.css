@@ -95,7 +95,7 @@ body {
       * But it's much better to find the root cause of the horizontal scrolling
       * Because this style applies to <body> tag.
   */
-  @apply overflow-x-hidden;
+  @apply overflow-x-hidden tracking-tight;
 }
 
 @keyframes fadeInUp {
