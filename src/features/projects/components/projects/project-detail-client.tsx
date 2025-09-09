@@ -287,9 +287,9 @@ export function ProjectDetailClient({ project, onClose }: ProjectDetailClientPro
         </div>
 
         {/* Description Section */}
-        <div className="space-y-3">
+        <div className="space-y-3 my-8">
           <h2 className="text-lg font-bold text-white">About This Project</h2>
-          <div className="bg-gray-800/30 border border-gray-700/50 rounded-lg p-4">
+          <div className="rounded-lg">
             <div className="prose prose-invert max-w-none">
               <p className="text-gray-300 leading-relaxed text-sm whitespace-pre-wrap">
                 {project.description}
