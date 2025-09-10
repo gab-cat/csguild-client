@@ -41,11 +41,12 @@ export function FeaturedProjectsSection() {
   const { isAuthenticated } = useCurrentUser()
   const { cardsVisible, toggleCards } = useFeaturedProjectsVisibility()
 
-  // Get featured projects
-  const featuredProjectsData = useQuery(api.projects.getFeaturedProjects, isAuthenticated ? { limit: 10 } : "skip")
+  // Get featured projects - always fetch regardless of auth status
+  const featuredProjectsData = useQuery(api.projects.getFeaturedProjects, { limit: 10 })
   const isLoadingFeatured = featuredProjectsData === undefined
 
   // Always call useQuery but conditionally use the result
+  console.log("isAuthenticated", isAuthenticated)
   const savedProjectsData = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
 
   // Create a Set of saved project slugs for efficient lookup

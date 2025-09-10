@@ -104,8 +104,10 @@ export function ProjectsClient() {
 
   // Use Convex queries directly
   const { isAuthenticated } = useCurrentUser();
-  const projectsQuery = useQuery(api.projects.getProjects, isAuthenticated ? regularFilters : "skip")
-  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, {})
+
+  // Always fetch projects, but use different parameters for authenticated vs non-authenticated users
+  const projectsQuery = useQuery(api.projects.getProjects, regularFilters)
+  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
 
   const projectsData = projectsQuery
   const savedProjectsData = savedProjectsQuery

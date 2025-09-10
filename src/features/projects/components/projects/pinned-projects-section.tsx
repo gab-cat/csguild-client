@@ -41,8 +41,9 @@ export function PinnedProjectsSection() {
   const { isAuthenticated } = useCurrentUser()
   const { cardsVisible, toggleCards } = usePinnedProjectsVisibility()
 
-  const pinnedProjectsData= useQuery(api.projects.getPinnedProjects, isAuthenticated ? {} : "skip")
-  const isLoadingPinned = pinnedProjectsData === undefined
+  // Always call useQuery to follow Rules of Hooks, but skip if not authenticated
+  const pinnedProjectsData = useQuery(api.projects.getPinnedProjects, isAuthenticated ? {} : "skip")
+  const isLoadingPinned = isAuthenticated && pinnedProjectsData === undefined
 
   // Always call useQuery but conditionally use the result
   const savedProjectsData = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
