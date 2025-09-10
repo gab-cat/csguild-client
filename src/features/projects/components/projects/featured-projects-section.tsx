@@ -7,7 +7,7 @@ import { useMemo, useState, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useAuthStore } from '@/features/auth'
+import { useCurrentUser } from '@/features/auth'
 import { api } from '@/lib/convex'
 
 import { isValidProjectCard, Project } from '../../types'
@@ -38,15 +38,15 @@ function useFeaturedProjectsVisibility() {
 }
 
 export function FeaturedProjectsSection() {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useCurrentUser()
   const { cardsVisible, toggleCards } = useFeaturedProjectsVisibility()
 
   // Get featured projects
-  const featuredProjectsData = useQuery(api.projects.getFeaturedProjects, { limit: 10 })
+  const featuredProjectsData = useQuery(api.projects.getFeaturedProjects, isAuthenticated ? { limit: 10 } : "skip")
   const isLoadingFeatured = featuredProjectsData === undefined
 
   // Always call useQuery but conditionally use the result
-  const savedProjectsData = useQuery(api.projects.getSavedProjects, { limit: 1000 })
+  const savedProjectsData = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
 
   // Create a Set of saved project slugs for efficient lookup
   const savedProjectSlugs = useMemo(() => {

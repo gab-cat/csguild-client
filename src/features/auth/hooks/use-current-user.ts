@@ -10,7 +10,6 @@ export function useCurrentUser() {
   const { setUser, setLoading } = useAuthStore()
 
   // Always call useQuery - Convex Auth will handle authentication state internally
-  // @ts-ignore
   const userQuery = useQuery(api.users.getCurrentUser)
 
   // Update the store when the query result changes

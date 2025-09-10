@@ -7,7 +7,7 @@ import { useMemo, useState, useEffect } from 'react'
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { useAuthStore } from '@/features/auth'
+import { useCurrentUser } from '@/features/auth'
 import { api } from '@/lib/convex'
 
 import { isValidProjectCard, Project } from '../../types'
@@ -38,15 +38,14 @@ function usePinnedProjectsVisibility() {
 }
 
 export function PinnedProjectsSection() {
-  const { isAuthenticated } = useAuthStore()
+  const { isAuthenticated } = useCurrentUser()
   const { cardsVisible, toggleCards } = usePinnedProjectsVisibility()
 
-  // @ts-ignore
-  const pinnedProjectsData= useQuery(api.projects.getPinnedProjects)
+  const pinnedProjectsData= useQuery(api.projects.getPinnedProjects, isAuthenticated ? {} : "skip")
   const isLoadingPinned = pinnedProjectsData === undefined
 
   // Always call useQuery but conditionally use the result
-  const savedProjectsData = useQuery(api.projects.getSavedProjects, { limit: 1000 })
+  const savedProjectsData = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
 
   // Create a Set of saved project slugs for efficient lookup
   const savedProjectSlugs = useMemo(() => {

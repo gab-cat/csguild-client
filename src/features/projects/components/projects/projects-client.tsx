@@ -11,7 +11,7 @@ import { AuthGuard } from '@/components/shared/auth-guard'
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { useAuthStore } from '@/features/auth'
+import { useCurrentUser } from '@/features/auth'
 import { api } from '@/lib/convex'
 
 import { isValidProjectCard, Project } from '../../types'
@@ -41,7 +41,6 @@ type RegularProjectFilters = ProjectFilters & {
 }
 
 export function ProjectsClient() {
-  const { isAuthenticated } = useAuthStore()
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
@@ -104,7 +103,8 @@ export function ProjectsClient() {
   }), [filters])
 
   // Use Convex queries directly
-  const projectsQuery = useQuery(api.projects.getProjects, regularFilters)
+  const { isAuthenticated } = useCurrentUser();
+  const projectsQuery = useQuery(api.projects.getProjects, isAuthenticated ? regularFilters : "skip")
   const savedProjectsQuery = useQuery(api.projects.getSavedProjects, {})
 
   const projectsData = projectsQuery
