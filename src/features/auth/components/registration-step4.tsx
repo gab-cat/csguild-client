@@ -104,7 +104,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
       formData.append('email', email)
       formData.append('flow', 'email-verification')
 
-      await signIn('password', formData)
+      await signIn('resend-otp', formData)
       setResendCooldown(60) // 60 second cooldown
 
       showInfoToast(
@@ -134,7 +134,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
       formData.append('flow', 'email-verification')
       formData.append('email', email)
 
-      await signIn('password', formData)
+      await signIn('resend-otp', formData)
       setVerificationSuccess(true)
 
       showSuccessToast(
@@ -195,9 +195,9 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
         </div>
         
         <div>
-          <h3 className="text-lg font-semibold text-white mb-2">Check Your Email</h3>
+          <h3 className="text-lg font-semibold text-white mb-2">Request Verification Code</h3>
           <p className="text-gray-300">
-             We&apos;ve sent a 6-digit verification code to
+             Click &ldquo;Send Code&rdquo; below to send a verification code to
           </p>
           <p className="text-pink-400 font-medium">{email}</p>
         </div>
@@ -237,12 +237,12 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
         )}
       </div>
 
-      {/* Resend Verification */}
+      {/* Send Verification Code */}
       <div className="flex items-center justify-between p-4 rounded-lg bg-violet-500/10 border border-violet-500/20">
         <div className="text-sm text-gray-300">
-          <p>Didn&apos;t receive the code?</p>
+          <p>Click to send verification code</p>
           <p className="text-xs text-gray-400 font-space-mono">
-            {"// Check your spam folder too"}
+            {"// First time? Click 'Send Code' to get started"}
           </p>
         </div>
         <Button
@@ -260,12 +260,12 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
           ) : resendCooldown > 0 ? (
             <div className="flex items-center gap-2">
               <RotateCcw className="h-4 w-4" />
-              <span>Resend ({resendCooldown}s)</span>
+              <span>Wait ({resendCooldown}s)</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <RotateCcw className="h-4 w-4" />
-              <span>Resend Code</span>
+              <Mail className="h-4 w-4" />
+              <span>Send Code</span>
             </div>
           )}
         </Button>
@@ -320,7 +320,7 @@ export function RegistrationStep4({ email, onBack }: RegistrationStep4Props) {
       {/* Help Text */}
       <div className="text-center">
         <div className="text-sm text-gray-400 font-space-mono bg-gray-500/10 border border-gray-500/20 rounded-lg p-4">
-          {"// Check your spam folder if you don't see the email within a few minutes"}
+          {"// Click 'Send Code' first, then check your email (including spam folder)"}
         </div>
       </div>
     </form>

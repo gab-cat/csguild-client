@@ -20,7 +20,13 @@ export const getCurrentUserHandler = async (ctx: QueryCtx) => {
   if (user.signupMethod === "EMAIL" && !user.emailVerified) {
     // Return null to force user to verify email
     // Frontend will handle redirecting to verification page
-    return null;
+    return {
+      emailVerified: false,
+      email: user.email,
+      userId: user._id,
+      needsAuth: false,
+      needsVerification: true,
+    };
   }
   
   return user;

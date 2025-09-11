@@ -1,6 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
+import { useQuery } from "convex/react";
+import { redirect, usePathname } from "next/navigation";
 import React from "react";
 
 import { AppSidebar } from "@/components/app-sidebar"
@@ -18,6 +19,7 @@ import {
   SidebarProvider,
   SidebarTrigger,
 } from "@/components/ui/sidebar"
+import { api } from "@/lib/convex";
 
 // Helper function to format path segments into readable labels
 function formatPathSegment(segment: string): string {
@@ -103,6 +105,10 @@ export default function PlatformLayout({
 }) {
   const pathname = usePathname();
   const breadcrumbs = generateBreadcrumbs(pathname);
+  const verificationStatus = useQuery(api.users.getUserVerificationStatus)
+  if (verificationStatus?.needsVerification) {
+    return redirect(`/verify-email?email=${encodeURIComponent(verificationStatus?.email || '')}`)
+  }
   return (
     <SidebarProvider>
       <AppSidebar />

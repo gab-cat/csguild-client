@@ -44,12 +44,14 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
       // Use Convex Auth signIn for registration with FormData
       await signIn('password', formData)
 
+      console.log('✅ Registration Step 3 - Account created successfully')
       showSuccessToast(
         'Welcome to CS Guild!',
         'Account created successfully. Check your email to verify and complete setup.'
       )
       onConfirm()
     } catch (error) {
+      console.error('❌ Registration Step 3 - Registration failed:', error)
       const errorMessage = error instanceof Error ? error.message : 'Registration failed'
       setError(errorMessage)
       showErrorToast(
@@ -114,12 +116,6 @@ export function RegistrationStep3({ data, onConfirm, onBack, onEdit }: Registrat
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold text-white mb-2">Review Your Information</h2>
-        <p className="text-gray-400">Please review your details before creating your account</p>
-      </div>
-
       {/* Personal Information */}
       <DataSection
         title="Personal Information"

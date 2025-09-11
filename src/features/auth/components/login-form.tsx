@@ -67,7 +67,6 @@ export function LoginForm() {
       router.push('/dashboard')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Login failed'
-      setError(errorMessage)
 
       // Check if the error is related to unverified email
       // @ts-expect-error - not typed properly
@@ -79,8 +78,10 @@ export function LoginForm() {
         router.push(`/verify-email?email=${data.email}`)
         setError('Please verify your email before logging in.')
       } else if (errorMessage.includes('locked')) {
+        setError('Your account has been locked. Please contact support.')
         showErrorToast('Account locked', 'Your account has been locked. Please contact support.')
       } else {
+        setError('Invalid credentials. Double-check your email and password.')
         showErrorToast('Login failed', 'Invalid credentials. Double-check your email and password.')
       }
     }

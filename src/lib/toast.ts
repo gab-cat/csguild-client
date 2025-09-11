@@ -121,7 +121,7 @@ export const showToast = ({
       actionButton: 'bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm border border-white/20 shadow-lg',
       cancelButton: 'bg-white/10 hover:bg-white/20 text-white transition-colors backdrop-blur-sm border border-white/20 shadow-lg',
       title: '!font-bold font-sans tracking-wide text-sm leading-tight',
-      description: 'text-xs opacity-80 leading-relaxed font-mono',
+      description: 'text-xs text-gray-300! opacity-80 leading-relaxed font-mono',
       toast: 'backdrop-blur-sm shadow-2xl border-2',
     },
     ...restOptions

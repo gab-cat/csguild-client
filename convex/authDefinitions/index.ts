@@ -73,7 +73,7 @@ function safelyMergeUserData(
   return updateData;
 }
 
-// Configure Password provider to handle additional profile fields, email verification and password reset
+// Configure Password provider to handle additional profile fields and password reset
 const CustomPassword = Password({
   profile(params) {
     // Check if this is a signup flow - only include additional fields for signup
@@ -99,8 +99,6 @@ const CustomPassword = Password({
       return baseProfile;
     }
   },
-  // Configure email verification using Resend
-  verify: ResendOTP,
   // Configure password reset using Resend
   reset: ResendOTPPasswordReset,
 });
@@ -108,6 +106,7 @@ const CustomPassword = Password({
 export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
   providers: [
     CustomPassword,
+    ResendOTP,
     Google({
       clientId: process.env.AUTH_GOOGLE_ID!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET!,
@@ -267,9 +266,12 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           rfidId?: string;
         };
 
-        // For signin attempts or password reset attempts, don't create new users
-        if (!profile.firstName && !profile.lastName && !profile.course) {
-          // Check if this is a password reset attempt by looking for existing user
+        // Check if this is a password reset attempt (no profile fields provided)
+        // or a signin attempt (only email and password provided)
+        const isPasswordResetOrSignin = !profile.firstName && !profile.lastName && !profile.username && !profile.birthdate && !profile.course && !profile.rfidId;
+
+        if (isPasswordResetOrSignin) {
+          // This is either a password reset attempt or a signin attempt
           if (profile.email) {
             const existingUser = await ctx.db
               .query("users")
@@ -278,18 +280,16 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
               .first();
 
             if (existingUser) {
-              // User exists, allow password reset/signin
+              // User exists, allow signin
               return existingUser._id;
             } else {
-              // User doesn't exist - for password reset, return a dummy user ID
-              // to prevent email enumeration attacks
-              // The password reset email will fail gracefully on the Resend side
-              return "dummy-user-id-for-password-reset";
+              // User doesn't exist for signin - throw error
+              throw new Error("User not found. Please sign up first.");
             }
           }
 
-          // User doesn't exist for signin - throw error
-          throw new Error("User not found. Please sign up first.");
+          // No email provided for signin - throw error
+          throw new Error("Email is required for signin.");
         }
 
         // Debug logging to understand what data we're receiving
@@ -301,6 +301,8 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           birthdate: profile.birthdate,
           course: profile.course,
           rfidId: profile.rfidId,
+          passwordProvided: !!profile.password,
+          isPasswordResetOrSignin,
           fullProfile: profile
         });
 
@@ -317,11 +319,11 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
           }
         }
 
+        // For signup, we should not have an existing user ID
+        // If we do have one, it means something went wrong in the flow
         if (args.existingUserId) {
-          const user = await ctx.db.get(args.existingUserId);
-          if (user) {
-            return args.existingUserId;
-          }
+          console.log("🔍 Registration Debug - Unexpected existingUserId during signup:", args.existingUserId);
+          // Don't return early - continue with new user creation
         }
 
         // Generate 6-digit numeric verification code for new users
@@ -353,16 +355,22 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
 
         console.log("💾 Registration Debug - Data being saved to database:", userRecord);
 
-        const userId = await ctx.db.insert("users", userRecord);
-        
-        // Note: Email verification will be sent when user first tries to access protected features
-        // or when they request a resend verification email
-        
-        return userId;
+        try {
+          const userId = await ctx.db.insert("users", userRecord);
+          console.log("✅ Registration Debug - User created successfully with ID:", userId);
+
+          // Note: Email verification will be sent when user first tries to access protected features
+          // or when they request a resend verification email
+
+          return userId;
+        } catch (error) {
+          console.error("❌ Registration Debug - Failed to create user:", error);
+          throw new Error("Failed to create user account. Please try again.");
+        }
       }
 
       if (args.type === "verification") {
-        // Handle password reset verification - find existing user by email
+        // Handle both email verification and password reset verification
         const profile = args.profile as {
           email?: string;
           code?: string;
@@ -373,6 +381,7 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
         // Debug logging to understand verification flow
         console.log("🔍 Verification Debug - Type:", args.type);
         console.log("🔍 Verification Debug - Profile:", profile);
+        console.log("🔍 Verification Debug - Provider:", args.provider);
 
         if (profile.email) {
           const existingUser = await ctx.db
@@ -383,6 +392,28 @@ export const { auth, signIn, signOut, store, isAuthenticated } = convexAuth({
 
           if (existingUser) {
             console.log("🔍 Verification Debug - Found existing user:", existingUser._id);
+
+            // Check if this is email verification from ResendOTP provider
+            console.log("🔍 Verification Debug - Checking conditions:");
+            console.log("🔍 Verification Debug - profile.newPassword:", profile.newPassword);
+            console.log("🔍 Verification Debug - profile.flow:", profile.flow);
+            console.log("🔍 Verification Debug - args.provider:", args.provider);
+
+            if (!profile.newPassword && (profile.flow === "email-verification" || (args.provider && typeof args.provider === 'object' && 'id' in args.provider && args.provider.id === "resend-otp"))) {
+              console.log("🔍 Verification Debug - Email verification flow detected");
+
+              // Update emailVerified status for successful email verification
+              await ctx.db.patch(existingUser._id, {
+                emailVerified: true,
+                emailVerificationCode: undefined, // Clear the code after successful verification
+                updatedAt: Date.now(),
+              });
+
+              console.log("🔍 Verification Debug - Email verified successfully for user:", existingUser._id);
+            } else {
+              console.log("🔍 Verification Debug - Email verification conditions not met");
+            }
+
             // For password reset verification, return the existing user
             // Convex Auth will handle password credential management automatically
             // This allows both password users to reset and Google users to add password login

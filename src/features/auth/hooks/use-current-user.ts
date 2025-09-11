@@ -3,7 +3,7 @@
 import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useEffect } from 'react'
 
-import { api } from '@/lib/convex'
+import { api, Doc } from '@/lib/convex'
 import { useAuthStore } from '@/stores/auth-store'
 
 export function useCurrentUser() {
@@ -23,7 +23,7 @@ export function useCurrentUser() {
       setLoading(false)
     } else {
       // Query returned a user
-      setUser(userQuery)
+      setUser(userQuery as Doc<'users'> | null)
       setLoading(false)
     }
   }, [userQuery, setUser, setLoading])

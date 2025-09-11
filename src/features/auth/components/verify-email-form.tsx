@@ -5,7 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
 import { Mail, ArrowRight, Loader2, RotateCcw } from 'lucide-react'
 import Link from 'next/link'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState, useRef } from 'react'
 import { useForm } from 'react-hook-form'
 
@@ -26,7 +26,7 @@ export function VerifyEmailForm() {
   const { isLoading, error: storeError } = useAuthStore()
   const codeInputsRef = useRef<(HTMLInputElement | null)[]>([])
   const { signIn } = useAuthActions()
-
+  const router = useRouter()
   const {
     register,
     handleSubmit,
@@ -107,15 +107,17 @@ export function VerifyEmailForm() {
       // Use Convex Auth to verify email with OTP
       const formData = new FormData()
       formData.append('code', data.verificationCode)
-      formData.append('flow', 'email-verification')
       formData.append('email', data.email)
+      formData.append('flow', 'email-verification')
 
-      await signIn('password', formData)
+      await signIn('resend-otp', formData)
 
       showSuccessToast(
         'Email verified successfully!',
         'Your CS Guild account is now fully activated. Welcome to the community!'
       )
+
+      router.push('/dashboard')
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Invalid verification code'
       setFormError(errorMessage)
@@ -138,9 +140,8 @@ export function VerifyEmailForm() {
       // Use Convex Auth to resend verification by triggering the verification flow again
       const formData = new FormData()
       formData.append('email', emailValue)
-      formData.append('flow', 'email-verification')
 
-      await signIn('password', formData)
+      await signIn('resend-otp', formData)
       setResendCooldown(60) // 60 seconds cooldown
 
       showInfoToast(
@@ -173,9 +174,9 @@ export function VerifyEmailForm() {
           <Mail className="h-8 w-8 text-pink-400" />
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-semibold text-white">Check Your Email</h3>
+          <h3 className="text-lg font-semibold text-white">Request Verification Code</h3>
           <p className="text-gray-300 text-sm">
-            We&apos;ve sent a 6-digit verification code to:
+            Click &ldquo;Send Code&rdquo; below to receive a verification code at:
           </p>
           {emailValue && (
             <p className="font-space-mono text-pink-400 text-sm bg-pink-500/10 px-3 py-1 rounded-lg inline-block">
@@ -261,16 +262,16 @@ export function VerifyEmailForm() {
         
         {/* Code hints */}
         <div className="flex items-center justify-center text-xs text-gray-400">
-          <span className="font-space-mono">{"// Enter the 6-digit code from your email"}</span>
+          <span className="font-space-mono">{"// Send the code first, then enter it here"}</span>
         </div>
       </div>
 
-      {/* Resend Verification */}
+      {/* Send Verification Code */}
       <div className="flex items-center justify-between p-4 rounded-lg bg-violet-500/10 border border-violet-500/20">
         <div className="text-sm text-gray-300">
-          <p>Didn&apos;t receive the code?</p>
+          <p>Click to send verification code</p>
           <p className="text-xs text-gray-400 font-space-mono">
-            {"// Check your spam folder too"}
+            {"// First time? Click 'Send Code' to get started"}
           </p>
         </div>
         <Button
@@ -288,12 +289,12 @@ export function VerifyEmailForm() {
           ) : resendCooldown > 0 ? (
             <div className="flex items-center gap-2">
               <RotateCcw className="h-4 w-4" />
-              <span>Resend ({resendCooldown}s)</span>
+              <span>Wait ({resendCooldown}s)</span>
             </div>
           ) : (
             <div className="flex items-center gap-2">
-              <RotateCcw className="h-4 w-4" />
-              <span>Resend Code</span>
+              <Mail className="h-4 w-4" />
+              <span>Send Code</span>
             </div>
           )}
         </Button>
@@ -340,7 +341,7 @@ export function VerifyEmailForm() {
         </div>
 
         <div className="text-sm text-gray-400 font-space-mono bg-gray-500/10 border border-gray-500/20 rounded-lg p-4">
-          {"// Check your spam folder if you don't see the email within a few minutes"}
+          {"// Click 'Send Code' first, then check your email (including spam folder)"}
         </div>
       </div>
     </form>
