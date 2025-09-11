@@ -32,7 +32,7 @@ export function useCurrentUser() {
   const currentUser = userQuery
 
   return {
-    user: currentUser,
+    user: currentUser as Doc<'users'>,
     isAuthenticated: !!currentUser,
     isLoading: userQuery === undefined,
   }

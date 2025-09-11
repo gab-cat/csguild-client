@@ -31,7 +31,7 @@ export function LoginForm() {
       showSuccessToast('Redirecting...', 'Redirecting to Google for authentication')
 
       // Use Convex's built-in Google OAuth
-      await signIn('google')
+      await signIn('google', { redirectTo: nextParam ?? '/dashboard' })
 
       // Note: No manual redirect here - Google OAuth will handle the redirect flow
       // The success toast and dashboard redirect will be handled by the OAuth callback
@@ -54,7 +54,7 @@ export function LoginForm() {
       showSuccessToast('Redirecting...', 'Redirecting to GitHub for authentication')
 
       // Use Convex's built-in GitHub OAuth
-      await signIn('github')
+      await signIn('github', { redirectTo: nextParam ?? '/dashboard' })
 
       // Note: No manual redirect here - GitHub OAuth will handle the redirect flow
       // The success toast and dashboard redirect will be handled by the OAuth callback

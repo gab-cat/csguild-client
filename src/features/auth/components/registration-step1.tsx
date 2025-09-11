@@ -138,7 +138,7 @@ export function RegistrationStep1({ onNext, initialData }: RegistrationStep1Prop
       setIsGoogleLoading(true)
 
       // Use Convex's built-in Google OAuth
-      await signIn('google')
+      await signIn('google', { redirectTo: '/dashboard' })
 
       // Note: No manual redirect here - Google OAuth will handle the redirect flow
       // The success toast and dashboard redirect will be handled by the OAuth callback

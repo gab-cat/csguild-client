@@ -4,13 +4,14 @@ import { useSearchParams } from 'next/navigation'
 import { Suspense } from 'react'
 
 import LoadingComponent from '@/components/shared/loading'
+import { LoginForm } from '@/features/auth'
 import { AuthLayout } from '@/features/auth/components/auth-layout'
 import { GoogleProfileCompletionForm } from '@/features/auth/components/google-profile-completion-form'
-import { MultiStepRegisterForm } from '@/features/auth/components/multi-step-register-form'
 
 function RegisterPageContent() {
   const searchParams = useSearchParams()
   const isGoogleOAuth = searchParams.get('google') === 'true'
+
 
   if (isGoogleOAuth) {
     return (
@@ -28,7 +29,7 @@ function RegisterPageContent() {
       title="Join CS Guild"
       subtitle="Create your account and join 100+ developers building the future together."
     >
-      <MultiStepRegisterForm />
+      <LoginForm />
     </AuthLayout>
   )
 }
