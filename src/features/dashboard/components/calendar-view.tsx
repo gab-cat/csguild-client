@@ -21,7 +21,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
-import { api, Id } from '@/lib/convex'
+import { api, Doc, Id } from '@/lib/convex'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 import { cn } from '@/lib/utils'
 
@@ -144,6 +144,12 @@ const calendarStyles = `
     border-right: 1px solid rgb(75 85 99 / 0.3) !important;
   }
 
+  .rbc-row-content {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+
   .rbc-row-segment:last-child {
     border-right: none !important;
   }
@@ -161,30 +167,53 @@ const calendarStyles = `
     border-color: rgb(75 85 99 / 0.3) !important;
   }
 
-  /* Ensure no white backgrounds */
+  /* Ensure no white backgrounds (exclude events) */
   .rbc-calendar,
-  .rbc-calendar *,
   .rbc-month-view,
   .rbc-date-cell,
-  .rbc-off-range,
-  .rbc-off-range-bg {
+  .rbc-header,
+  .rbc-row {
     background-color: transparent !important;
   }
 
-  /* Force off-range styling */
+  /* Allow month rows to expand to fit all events */
+  .rbc-month-view {
+    height: auto !important;
+  }
+
+  .rbc-month-row {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .rbc-row {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  .rbc-date-cell {
+    overflow: visible !important;
+  }
+
+  /* Force off-range styling - grayish background */
   .rbc-off-range,
+  .rbc-off-range-bg {
+    background-color: rgb(55 65 81 / 0.3) !important;
+  }
+  
   .rbc-off-range * {
     color: rgb(107 114 128) !important;
-    background-color: rgb(17 24 39 / 0.3) !important;
   }
 
   /* Additional specificity for off-range dates */
   .rbc-date-cell.rbc-off-range,
+  .rbc-date-cell.rbc-off-range-bg {
+    background-color: rgb(55 65 81 / 0.3) !important;
+  }
+  
   .rbc-date-cell.rbc-off-range > a,
-  .rbc-date-cell.rbc-off-range-bg,
   .rbc-date-cell.rbc-off-range-bg > a {
     color: rgb(107 114 128) !important;
-    background-color: rgb(17 24 39 / 0.3) !important;
   }
 
   /* Today highlighting - consolidated */
@@ -304,11 +333,49 @@ const calendarStyles = `
   }
 
   .rbc-event {
-    border-radius: 4px;
+    border-radius: 3px;
     border: none;
     color: white !important;
-    font-size: 12px;
-    padding: 2px 6px;
+    font-size: 10px;
+    padding: 1px 4px;
+    line-height: 1.2;
+    margin-bottom: 1px;
+  }
+
+  .rbc-show-more {
+    position: absolute !important;
+    top: 2px !important;
+    right: 2px !important;
+    width: 16px !important;
+    height: 16px !important;
+    background: rgb(59 130 246) !important;
+    border-radius: 50% !important;
+    border: none !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 10px !important;
+    font-weight: bold !important;
+    color: white !important;
+    z-index: 10 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  .rbc-show-more:hover {
+    background: rgb(37 99 235) !important;
+    transform: scale(1.1) !important;
+  }
+
+  .rbc-show-more:before {
+    content: "+" !important;
+  }
+
+  /* Make date cells position relative for absolute positioning */
+  .rbc-date-cell {
+    position: relative !important;
   }
 
   .rbc-event.rbc-selected {
@@ -341,7 +408,8 @@ interface BigCalendarEvent extends Event {
 }
 
 export function CalendarView() {
-  const { user } = useCurrentUser()
+  const { user:currentUser } = useCurrentUser()
+  const user = currentUser as Doc<'users'>
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
   const [isViewDialogOpen, setIsViewDialogOpen] = useState(false)
   const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null)
@@ -349,6 +417,9 @@ export function CalendarView() {
   const [date, setDate] = useState(new Date())
   const [filterCategory, setFilterCategory] = useState<string>('all')
   const [showMyEventsOnly, setShowMyEventsOnly] = useState(false)
+  const [showMoreEventsPopup, setShowMoreEventsPopup] = useState(false)
+  const [moreEventsForDay, setMoreEventsForDay] = useState<BigCalendarEvent[]>([])
+  const [moreEventsDate, setMoreEventsDate] = useState<Date | null>(null)
 
   // Convex queries
   const events = useQuery(api.dashboard.getCalendarEvents, {})
@@ -401,12 +472,18 @@ export function CalendarView() {
 
   const handleSelectSlot = useCallback(() => {
     // open create dialog (creation disabled in this view)
-    setIsCreateDialogOpen(true)
+    return;
   }, [])
 
   const handleSelectEvent = useCallback((event: BigCalendarEvent) => {
     setSelectedEvent(event.resource)
     setIsViewDialogOpen(true)
+  }, [])
+
+  const handleShowMore = useCallback((events: BigCalendarEvent[], date: Date) => {
+    setMoreEventsForDay(events)
+    setMoreEventsDate(date)
+    setShowMoreEventsPopup(true)
   }, [])
 
   // Creation is disabled in this view; show informative toast instead
@@ -416,15 +493,38 @@ export function CalendarView() {
 
   const eventStyleGetter = useCallback((event: BigCalendarEvent) => {
     const eventData = event.resource
-    
+
     let backgroundColor = eventData.color || '#3b82f6'
-    
-    // Apply priority-based styling
-    if (eventData.priority === 'URGENT') {
-      backgroundColor = '#ef4444'
-    } else if (eventData.priority === 'HIGH') {
-      backgroundColor = '#f97316'
+    let borderColor = 'transparent'
+    const borderWidth = '1px'
+
+    // Apply category-based styling with lighter backgrounds
+    switch (eventData.category) {
+    case 'MEETING':
+      backgroundColor = 'rgb(59 130 246 / 0.2)' // Blue-100 equivalent
+      borderColor = '#3b82f6' // Blue border
+      break
+    case 'DEADLINE':
+      backgroundColor = 'rgb(239 68 68 / 0.2)' // Red-100 equivalent
+      borderColor = '#ef4444' // Red border
+      break
+    case 'EVENT':
+      backgroundColor = 'rgb(16 185 129 / 0.2)' // Green-100 equivalent
+      borderColor = '#10b981' // Green border
+      break
+    case 'REMINDER':
+      backgroundColor = 'rgb(245 158 11 / 0.2)' // Yellow-100 equivalent
+      borderColor = '#f59e0b' // Yellow border
+      break
+    case 'OTHER':
+      backgroundColor = 'rgb(100 116 139 / 0.2)' // Gray-100 equivalent
+      borderColor = '#64748b' // Gray border
+      break
+    default:
+      backgroundColor = 'rgb(59 130 246 / 0.2)' // Default blue
+      borderColor = '#3b82f6'
     }
+
 
     // Apply status-based styling
     if (eventData.status === 'COMPLETED') {
@@ -437,10 +537,11 @@ export function CalendarView() {
       style: {
         backgroundColor,
         borderRadius: '4px',
-        border: 'none',
-        color: 'white',
+        border: `${borderWidth} solid ${borderColor}`,
+        color: 'rgb(17 24 39)',
         fontSize: '12px',
-        padding: '2px 4px'
+        padding: '2px 4px',
+        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.2)'
       }
     }
   }, [])
@@ -449,19 +550,55 @@ export function CalendarView() {
   function getCategoryTextColor(
     category?: CalendarEvent['category']
   ): string {
+    console.log(category)
     switch (category) {
     case 'MEETING':
-      return 'text-blue-500'
+      return 'text-blue-400'
     case 'DEADLINE':
-      return 'text-red-500'
+      return 'text-red-400'
     case 'EVENT':
-      return 'text-violet-500'
+      return 'text-green-400'
     case 'REMINDER':
-      return 'text-yellow-500'
+      return 'text-yellow-400'
     case 'OTHER':
+      return 'text-gray-400'
     default:
       return 'text-white'
     }
+  }
+
+  // Compact legend component for event categories
+  const EventLegend = () => {
+    const legendItems = [
+      { label: 'Meeting', color: 'bg-blue-500', category: 'MEETING' },
+      { label: 'Deadline', color: 'bg-red-500', category: 'DEADLINE' },
+      { label: 'Event', color: 'bg-emerald-500', category: 'EVENT' },
+      { label: 'Reminder', color: 'bg-amber-500', category: 'REMINDER' },
+      { label: 'Other', color: 'bg-slate-500', category: 'OTHER' },
+    ]
+
+    return (
+      <motion.div
+        className="flex items-center gap-3 ml-4 pl-4 border-l border-gray-700/50"
+        initial={{ opacity: 0, x: 10 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.3, delay: 0.5 }}
+      >
+        {legendItems.map((item, index) => (
+          <motion.div
+            key={item.category}
+            className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-gray-800/40 border border-gray-600/30"
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.2, delay: 0.6 + index * 0.05 }}
+            whileHover={{ scale: 1.02, backgroundColor: 'rgba(55, 65, 81, 0.5)' }}
+          >
+            <div className={`w-2.5 h-2.5 rounded-full ${item.color}`}></div>
+            <span className="text-xs font-medium text-gray-300">{item.label}</span>
+          </motion.div>
+        ))}
+      </motion.div>
+    )
   }
 
 
@@ -533,6 +670,9 @@ export function CalendarView() {
             </DropdownMenuContent>
           </DropdownMenu>
         </motion.div>
+
+        {/* Event Legend */}
+        <EventLegend />
       </motion.div>
 
       {/* Calendar Component */}
@@ -562,16 +702,41 @@ export function CalendarView() {
           views={[Views.MONTH, Views.WEEK, Views.DAY, Views.AGENDA]}
           step={30}
           showMultiDayTimes
+          popup={true}
+          popupOffset={{ x: 30, y: 20 }}
+          onShowMore={handleShowMore}
+          dayLayoutAlgorithm="no-overlap"
           components={{
             event: ({ event }) => {
               const categoryTextClass = getCategoryTextColor(event.resource.category)
+              
+              // Build priority markers: LOW = none, MEDIUM = suffix '*', HIGH = prefix '[!]', URGENT = prefix '[!!]'
+              const getPriorityMarkers = (priority?: string) => {
+                switch (priority) {
+                case 'LOW':
+                  return { prefix: '', suffix: '' }
+                case 'MEDIUM':
+                  return { prefix: '', suffix: '*' }
+                case 'HIGH':
+                  return { prefix: '[!] ', suffix: '' }
+                case 'URGENT':
+                  return { prefix: '[!!] ', suffix: '' }
+                default:
+                  return { prefix: '', suffix: '' }
+                }
+              }
+
+              const { prefix, suffix } = getPriorityMarkers(event.resource.priority)
+              const displayTitle = `${prefix}${event.title}${suffix}`
+              
               return (
                 <motion.div
-                  className="text-xs p-1 rounded-md"
+                  className="text-xs rounded-md"
                   whileHover={{ scale: 1.02 }}
                   transition={{ duration: 0.2 }}
+                  style={{ fontSize: '10px', padding: '1px 4px', lineHeight: '1.2' }}
                 >
-                  <div className={cn("font-medium truncate", categoryTextClass)}>{event.title}</div>
+                  <div className={cn("font-medium truncate text-sm", categoryTextClass)}>{displayTitle}</div>
                   {event.resource.location && (
                     <div className="opacity-75 truncate text-gray-200 text-xs">{event.resource.location}</div>
                   )}
@@ -813,6 +978,93 @@ export function CalendarView() {
                   </Button>
                 </motion.div>
               </motion.div>
+            </motion.div>
+          </DialogContent>
+        </Dialog>
+      )}
+
+      {/* More Events Dialog */}
+      {showMoreEventsPopup && moreEventsDate && (
+        <Dialog open={showMoreEventsPopup} onOpenChange={setShowMoreEventsPopup}>
+          <DialogContent className="max-w-md bg-gray-900/95 backdrop-blur-xl border border-gray-500/30 shadow-2xl">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.9, y: 20 }}
+              transition={{ duration: 0.3, ease: "easeOut" }}
+              className="space-y-4"
+            >
+              {/* Date Header */}
+              <div className="border-b border-gray-600/30 pb-3">
+                <h2 className="text-lg font-bold text-white">
+                  {moreEventsDate.toLocaleDateString('en-US', {
+                    weekday: 'long',
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  })}
+                </h2>
+                <p className="text-sm text-gray-400">{moreEventsForDay.length} events</p>
+              </div>
+
+              {/* Events List */}
+              <div className="max-h-64 overflow-y-auto space-y-2 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-gray-600">
+                {moreEventsForDay.map((event, index) => (
+                  <motion.div
+                    key={event.resource._id}
+                    className="p-3 bg-gray-800/50 rounded-lg border border-gray-600/30 cursor-pointer hover:bg-gray-700/50 transition-colors"
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    onClick={() => {
+                      setSelectedEvent(event.resource)
+                      setShowMoreEventsPopup(false)
+                      setIsViewDialogOpen(true)
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <div 
+                        className="w-3 h-3 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: eventStyleGetter(event).style.border?.split(' ')[2] || '#3b82f6' }}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <h3 className="font-medium text-white truncate">{event.title}</h3>
+                        <div className="flex items-center gap-2 text-xs text-gray-400 mt-1">
+                          {!event.allDay && (
+                            <span>
+                              {event.resource.startTime || 'All day'}
+                              {event.resource.endTime && event.resource.startTime !== event.resource.endTime && 
+                                ` - ${event.resource.endTime}`
+                              }
+                            </span>
+                          )}
+                          {event.allDay && <span>All day</span>}
+                          {event.resource.location && (
+                            <>
+                              <span>•</span>
+                              <span className="truncate">{event.resource.location}</span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      <div className="px-2 py-1 bg-gray-700/50 rounded text-xs text-gray-300">
+                        {event.resource.category || 'Other'}
+                      </div>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+
+              {/* Close Button */}
+              <div className="flex justify-end pt-2">
+                <Button
+                  size="sm"
+                  onClick={() => setShowMoreEventsPopup(false)}
+                  className="bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white text-xs px-4 py-2 rounded-lg"
+                >
+                  Close
+                </Button>
+              </div>
             </motion.div>
           </DialogContent>
         </Dialog>

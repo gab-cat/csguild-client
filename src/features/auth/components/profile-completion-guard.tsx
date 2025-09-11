@@ -18,37 +18,14 @@ export function ProfileCompletionGuard({ children }: ProfileCompletionGuardProps
   useEffect(() => {
     // Wait for auth to load
     if (isLoading) return
-    
+
     // Only check for authenticated users
     if (!isAuthenticated || !user) return
-    
-    // // Skip checks for auth routes and public routes
-    // if (
-    //   pathname.startsWith('/login') ||
-    //   pathname.startsWith('/register') ||
-    //   pathname.startsWith('/verify-email') ||
-    //   pathname.startsWith('/forgot-password') ||
-    //   pathname.startsWith('/reset-password') ||
-    //   pathname.startsWith('/callback') ||
-    //   pathname === '/' ||
-    //   pathname.startsWith('/about') ||
-    //   pathname.startsWith('/contact') ||
-    //   pathname.startsWith('/privacy') ||
-    //   pathname.startsWith('/terms') ||
-    //   pathname.startsWith('/code-of-conduct') ||
-    //   pathname.startsWith('/projects') ||
-    //   pathname.startsWith('/events') ||
-    //   pathname.startsWith('/community') ||
-    //   pathname.startsWith('/blogs') ||
-    //   pathname.startsWith('/facilities')
-    // ) {
-    //   return
-    // }
 
     // Check if user is a Google OAuth user and needs profile completion
     if (user.signupMethod === 'GOOGLE') {
       const needsProfileCompletion = !user.username || !user.course || !user.birthdate || !user.rfidId
-      
+
       console.log('🔍 ProfileCompletionGuard Check:', {
         pathname,
         username: user.username,
@@ -77,6 +54,39 @@ export function ProfileCompletionGuard({ children }: ProfileCompletionGuardProps
         router.push('/dashboard')
         return
       }
+    }
+
+    // Handle post-authentication redirect for all authentication methods
+    // Check if user is on auth pages and should be redirected to dashboard
+    const isOnAuthPage = pathname === '/login' || pathname === '/register' ||
+                        pathname.startsWith('/verify-email') ||
+                        pathname.startsWith('/forgot-password') ||
+                        pathname.startsWith('/reset-password') ||
+                        pathname.startsWith('/callback')
+
+    if (isOnAuthPage) {
+      console.log('🔄 AuthRedirect: User authenticated on auth page, redirecting to dashboard')
+
+      // Check for stored redirect URL from sessionStorage (set during OAuth flow)
+      const storedRedirect = sessionStorage.getItem('auth_redirect_after_login')
+      if (storedRedirect) {
+        sessionStorage.removeItem('auth_redirect_after_login')
+        console.log('🔄 AuthRedirect: Using stored redirect URL:', storedRedirect)
+        router.push(storedRedirect)
+        return
+      }
+
+      // Check for next parameter in URL
+      const nextParam = searchParams.get('next')
+      if (nextParam) {
+        console.log('🔄 AuthRedirect: Using next parameter:', nextParam)
+        router.push(nextParam)
+        return
+      }
+
+      // Default redirect to dashboard
+      router.push('/dashboard')
+      return
     }
   }, [isLoading, isAuthenticated, user, pathname, searchParams, router])
 

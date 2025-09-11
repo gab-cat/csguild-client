@@ -330,7 +330,7 @@ export function EditEventClient({ slug }: EditEventClientProps) {
           <h1 className="text-2xl font-bold text-white mb-2">Event Not Found</h1>
           <p className="text-gray-400 mb-4">The event you&apos;re trying to edit doesn&apos;t exist or you don&apos;t have permission to edit it.</p>
           <Button asChild>
-            <Link href="/events">Back to Events</Link>
+            <Link href="/my-events">Back to Events</Link>
           </Button>
         </div>
       </div>

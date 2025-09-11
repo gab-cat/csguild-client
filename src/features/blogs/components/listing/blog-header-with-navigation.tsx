@@ -84,7 +84,7 @@ export function BlogHeaderWithNavigation({
             })}
           </nav>
 
-          {/* Desktop actions - Search and Write button */}
+          {/* Desktop actions - Search only (Create button removed for public pages) */}
           <div className="hidden md:flex items-center gap-4 ml-8">
             {/* Search */}
             <div className="relative w-80">
@@ -97,18 +97,9 @@ export function BlogHeaderWithNavigation({
                 className="pl-10 bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-purple-500"
               />
             </div>
-
-            {/* Write button */}
-            <Button 
-              onClick={handleCreateBlog}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Write
-            </Button>
           </div>
 
-          {/* Mobile actions */}
+          {/* Mobile actions - Search only (Create button removed for public pages) */}
           <div className="md:hidden flex items-center gap-3 ml-4">
             {/* Mobile search */}
             <div className="relative w-32 sm:w-48">
@@ -121,15 +112,6 @@ export function BlogHeaderWithNavigation({
                 className="pl-10 text-sm bg-gray-900 border-gray-700 text-white placeholder:text-gray-500 focus:border-purple-500"
               />
             </div>
-
-            {/* Mobile write button */}
-            <Button 
-              onClick={handleCreateBlog}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Write
-            </Button>
           </div>
         </div>
       </div>

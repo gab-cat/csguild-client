@@ -248,7 +248,7 @@ export function MyEventsClient() {
               size="lg"
               className="bg-purple-600 hover:bg-purple-700 text-white"
             >
-              <Link href="/events/create">
+              <Link href="/my-events/create">
                 <Plus className="h-5 w-5 mr-2" />
                 Create Event
               </Link>
@@ -390,7 +390,7 @@ export function MyEventsClient() {
                 'No created events yet',
                 'Start creating events to build your community. Share your knowledge and connect with others!',
                 <Button asChild size="lg" className="bg-purple-600 hover:bg-purple-700 text-white">
-                  <Link href="/events/create">
+                  <Link href="/my-events/create">
                     <Sparkles className="h-5 w-5 mr-2" />
                   Create Your First Event
                   </Link>

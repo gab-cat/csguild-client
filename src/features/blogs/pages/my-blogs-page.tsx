@@ -406,14 +406,6 @@ export default function MyBlogsPage() {
                     </Button>
                   </Link>
                 </motion.div>
-                <motion.div variants={buttonVariants}>
-                  <Link href="/blogs/analytics" className="block">
-                    <Button variant="outline" className="w-full border-gray-700 text-gray-300 hover:border-blue-500 hover:text-blue-400">
-                      <BarChart3 className="w-4 h-4 mr-2" />
-                      View Analytics
-                    </Button>
-                  </Link>
-                </motion.div>
               </motion.div>
             </div>
           </motion.div>

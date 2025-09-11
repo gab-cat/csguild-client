@@ -184,17 +184,8 @@ export function EventsClient() {
                   <>
                     <h3 className="text-2xl font-semibold text-white">No events yet</h3>
                     <p className="text-gray-400 text-lg">
-                      Be the first to create an event in our community!
+                      Events will be available soon. Check back later!
                     </p>
-                    <Button 
-                      asChild 
-                      className="bg-purple-600 hover:bg-purple-700 text-white shadow-lg hover:shadow-xl transition-all duration-300"
-                    >
-                      <Link href="/events/create">
-                        <Plus className="h-5 w-5 mr-2" />
-                        Create Your First Event
-                      </Link>
-                    </Button>
                   </>
                 )}
               </div>

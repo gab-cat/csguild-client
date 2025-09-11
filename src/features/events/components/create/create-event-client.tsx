@@ -204,7 +204,7 @@ export function CreateEventClient() {
                 asChild 
                 className="hover:bg-gray-800/50 text-gray-300 hover:text-white transition-colors w-fit"
               >
-                <Link href="/events">
+                <Link href="/my-events">
                   <ArrowLeft className="h-4 w-4 mr-2" />
                   Back to Events
                 </Link>

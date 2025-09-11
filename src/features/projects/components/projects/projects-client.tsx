@@ -2,20 +2,16 @@
 
 import { useQuery } from 'convex/react'
 import { motion } from 'framer-motion'
-import { Plus, Loader2 } from 'lucide-react'
+import { Loader2 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
-import { useState, useCallback, useMemo } from 'react'
+import { useCallback, useMemo } from 'react'
 
-import { AuthGuard } from '@/components/shared/auth-guard'
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent } from '@/components/ui/dialog'
-import { useCurrentUser } from '@/features/auth'
 import { api } from '@/lib/convex'
 
 import { isValidProjectCard, Project } from '../../types'
-import { CreateProjectModal } from '../create-project-modal'
 
 import { FeaturedProjectsSection } from './featured-projects-section'
 import { PinnedProjectsSection } from './pinned-projects-section'
@@ -43,7 +39,6 @@ type RegularProjectFilters = ProjectFilters & {
 export function ProjectsClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const [isProjectModalOpen, setIsProjectModalOpen] = useState(false)
 
   // Inline filter logic from useProjectFilters
   const filters = useMemo((): ProjectFilters => {
@@ -103,11 +98,10 @@ export function ProjectsClient() {
   }), [filters])
 
   // Use Convex queries directly
-  const { isAuthenticated } = useCurrentUser();
 
-  // Always fetch projects, but use different parameters for authenticated vs non-authenticated users
+  // Always fetch projects
   const projectsQuery = useQuery(api.projects.getProjects, regularFilters)
-  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
+  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, { limit: 1000 })
 
   const projectsData = projectsQuery
   const savedProjectsData = savedProjectsQuery
@@ -119,13 +113,6 @@ export function ProjectsClient() {
     return new Set(savedProjectsData?.data?.map((project: Project) => project.slug) || [])
   }, [savedProjectsData])
 
-  const handleCreateButtonClick = useCallback(() => {
-    setIsProjectModalOpen(true)
-  }, [])
-
-  const handleCloseModal = useCallback(() => {
-    setIsProjectModalOpen(false)
-  }, [])
 
   const handleClearFilters = useCallback(() => {
     router.push(window.location.pathname) // Clear all search params
@@ -145,31 +132,12 @@ export function ProjectsClient() {
         {/* Pinned Projects Section */}
         <PinnedProjectsSection />
 
-        {/* Filters and Create Button */}
+        {/* Filters only (Create button removed for public pages) */}
         <div className="flex flex-col lg:flex-row gap-4 items-start lg:items-center justify-between">
           <div className="flex-1 w-full lg:w-auto">
             <ProjectFiltersComponent />
           </div>
-          
-          <Button 
-            className="bg-purple-600 hover:bg-purple-700 text-white whitespace-nowrap"
-            onClick={handleCreateButtonClick}
-          >
-            <Plus className="w-4 h-4 mr-2" />
-            Post Project
-          </Button>
 
-          {/* Project Modal with Auth Guard */}
-          <Dialog open={isProjectModalOpen} onOpenChange={setIsProjectModalOpen}>
-            <DialogContent className={`${isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-7xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
-              <AuthGuard 
-                title="Authentication Required" 
-                description="Please sign in or create an account to post a new project."
-              >
-                <CreateProjectModal onClose={handleCloseModal} />
-              </AuthGuard>
-            </DialogContent>
-          </Dialog>
         </div>
 
         {/* Results Summary */}
@@ -243,7 +211,7 @@ export function ProjectsClient() {
             </div>
             <div className="space-x-4">
               {(filters.search || filters.status || filters.tags) && (
-                <Button 
+                <Button
                   onClick={handleClearFilters}
                   variant="outline"
                   className="border-gray-700 text-gray-300"
@@ -251,13 +219,6 @@ export function ProjectsClient() {
                   Clear Filters
                 </Button>
               )}
-              <Button 
-                onClick={handleCreateButtonClick}
-                className="bg-purple-600 hover:bg-purple-700 text-white"
-              >
-                <Plus className="w-4 h-4 mr-2" />
-                Create First Project
-              </Button>
             </div>
           </div>
         )}

@@ -1,91 +1,23 @@
 'use client'
 
 import { useAuthActions } from '@convex-dev/auth/react'
-import { zodResolver } from '@hookform/resolvers/zod'
 import { motion } from 'framer-motion'
-import { Eye, EyeOff, Mail, Lock, ArrowRight, Loader2 } from 'lucide-react'
-import Link from 'next/link'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { Loader2 } from 'lucide-react'
+import { useSearchParams } from 'next/navigation'
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
 
 import { Button } from '@/components/ui/button'
-import { Input } from '@/components/ui/input'
 import { showSuccessToast, showErrorToast } from '@/lib/toast'
 
-import { loginSchema, type LoginFormData } from '../schemas'
-
 export function LoginForm() {
-  const [showPassword, setShowPassword] = useState(false)
   const [isGoogleLoading, setIsGoogleLoading] = useState(false)
+  const [isGithubLoading, setIsGithubLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const { signIn } = useAuthActions()
-  const router = useRouter()
   const searchParams = useSearchParams()
 
   // Get the next parameter from URL
   const nextParam = searchParams.get('next')
-
-  const {
-    register,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-  } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
-    mode: 'onBlur',
-  })
-
-  const onSubmit = async (data: LoginFormData) => {
-    try {
-      setError(null)
-
-      // Use Convex Auth signIn with FormData
-      const formData = new FormData()
-      formData.append('email', data.email)
-      formData.append('password', data.password)
-      formData.append('flow', 'signIn')
-
-      await signIn('password', formData)
-
-      showSuccessToast('Login successful', 'Welcome back to CS Guild!')
-
-      // Handle redirect after successful login
-      if (nextParam) {
-        try {
-          const url = new URL(nextParam, window.location.origin)
-          if (url.origin === window.location.origin &&
-              !url.pathname.startsWith('/login') &&
-              !url.pathname.startsWith('/register')) {
-            router.push(url.pathname + url.search)
-            return
-          }
-        } catch (error) {
-          console.error('Invalid redirect URL:', nextParam, error)
-        }
-      }
-
-      router.push('/dashboard')
-    } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Login failed'
-
-      // Check if the error is related to unverified email
-      // @ts-expect-error - not typed properly
-      if ((error as Error).statusCode === 409) {
-        // Store the next parameter before redirecting to verify email
-        if (nextParam) {
-          sessionStorage.setItem('auth_redirect_after_login', nextParam)
-        }
-        router.push(`/verify-email?email=${data.email}`)
-        setError('Please verify your email before logging in.')
-      } else if (errorMessage.includes('locked')) {
-        setError('Your account has been locked. Please contact support.')
-        showErrorToast('Account locked', 'Your account has been locked. Please contact support.')
-      } else {
-        setError('Invalid credentials. Double-check your email and password.')
-        showErrorToast('Login failed', 'Invalid credentials. Double-check your email and password.')
-      }
-    }
-  }
 
   const handleGoogleLogin = async () => {
     try {
@@ -110,8 +42,31 @@ export function LoginForm() {
     }
   }
 
+  const handleGithubLogin = async () => {
+    try {
+      setIsGithubLoading(true)
+      // Store the next parameter in sessionStorage for GitHub OAuth flow
+      if (nextParam) {
+        sessionStorage.setItem('auth_redirect_after_login', nextParam)
+      }
+
+      // Show redirecting toast
+      showSuccessToast('Redirecting...', 'Redirecting to GitHub for authentication')
+
+      // Use Convex's built-in GitHub OAuth
+      await signIn('github')
+
+      // Note: No manual redirect here - GitHub OAuth will handle the redirect flow
+      // The success toast and dashboard redirect will be handled by the OAuth callback
+    } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'GitHub login failed'
+      setError(errorMessage)
+      showErrorToast('Login failed', 'Unable to sign in with GitHub. Please try again.')
+    }
+  }
+
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
+    <div className="space-y-6">
       {/* Error Display */}
       {error && (
         <motion.div
@@ -124,108 +79,10 @@ export function LoginForm() {
         </motion.div>
       )}
 
-      {/* Email Field */}
-      <div className="space-y-2">
-        <label htmlFor="email" className="block text-sm font-medium text-gray-200">
-          Email Address
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Mail className="h-4 w-4 text-pink-400" />
-          </div>
-          <Input
-            {...register('email')}
-            type="email"
-            id="email"
-            placeholder="student@university.edu"
-            className="pl-10 bg-black/40 border-pink-500/30 text-white placeholder:text-gray-400 focus:border-pink-400 focus:ring-pink-400/20"
-            autoComplete="email"
-          />
-        </div>
-        {errors.email && (
-          <motion.p
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400 font-space-mono"
-          >
-            {"// " + errors.email.message}
-          </motion.p>
-        )}
-      </div>
-
-      {/* Password Field */}
-      <div className="space-y-2">
-        <label htmlFor="password" className="block text-sm font-medium text-gray-200">
-          Password
-        </label>
-        <div className="relative">
-          <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-            <Lock className="h-4 w-4 text-pink-400" />
-          </div>
-          <Input
-            {...register('password')}
-            type={showPassword ? 'text' : 'password'}
-            id="password"
-            placeholder="Enter your password"
-            className="pl-10 pr-10 bg-black/40 border-pink-500/30 text-white placeholder:text-gray-400 focus:border-pink-400 focus:ring-pink-400/20"
-            autoComplete="current-password"
-          />
-          <button
-            type="button"
-            className="absolute inset-y-0 right-0 pr-3 flex items-center text-pink-400 hover:text-pink-300 transition-colors"
-            onClick={() => setShowPassword(!showPassword)}
-          >
-            {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        </div>
-        {errors.password && (
-          <motion.p
-            initial={{ opacity: 0, y: -5 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="text-sm text-red-400 font-space-mono"
-          >
-            {"// " + errors.password.message}
-          </motion.p>
-        )}
-      </div>
-
-      {/* Forgot Password Link */}
-      <div className="flex justify-end">
-        <Link
-          href="/forgot-password"
-          className="text-sm text-pink-400 hover:text-pink-300 transition-colors duration-200 font-space-mono"
-        >
-          {"// Forgot password?"}
-        </Link>
-      </div>
-
-      {/* Submit Button */}
-      <Button
-        type="submit"
-        disabled={isSubmitting}
-        className="w-full bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white font-semibold py-3 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl shadow-pink-500/25 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-      >
-        {isSubmitting ? (
-          <div className="flex items-center gap-2">
-            <Loader2 className="h-4 w-4 animate-spin" />
-            <span>Logging in...</span>
-          </div>
-        ) : (
-          <div className="flex items-center gap-2">
-            <span>Sign In</span>
-            <ArrowRight className="h-4 w-4" />
-          </div>
-        )}
-      </Button>
-
-      {/* Divider */}
-      <div className="relative">
-        <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-pink-500/20" />
-        </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-black px-2 text-gray-400 font-space-mono">{"// Or continue with"}</span>
-        </div>
+      {/* Header */}
+      <div className="text-center">
+        <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
+        <p className="text-gray-400 font-space-mono">{"// Choose your authentication method"}</p>
       </div>
 
       {/* Google Login Button */}
@@ -233,7 +90,7 @@ export function LoginForm() {
         type="button"
         variant="outline"
         onClick={handleGoogleLogin}
-        disabled={isGoogleLoading}
+        disabled={isGoogleLoading || isGithubLoading}
         className="w-full border-pink-500/50 text-pink-300 hover:bg-pink-500/10 py-3 rounded-xl bg-black/30 backdrop-blur-sm hover:border-pink-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
       >
         <div className="flex items-center gap-3">
@@ -263,21 +120,32 @@ export function LoginForm() {
         </div>
       </Button>
 
-      {/* Sign Up Link */}
+      {/* GitHub Login Button */}
+      <Button
+        type="button"
+        variant="outline"
+        onClick={handleGithubLogin}
+        disabled={isGoogleLoading || isGithubLoading}
+        className="w-full border-violet-500/50 text-violet-300 hover:bg-violet-500/10 py-3 rounded-xl bg-black/30 backdrop-blur-sm hover:border-violet-400 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+      >
+        <div className="flex items-center gap-3">
+          {isGithubLoading ? (
+            <Loader2 className="h-5 w-5 animate-spin" />
+          ) : (
+            <svg className="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+              <path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z"/>
+            </svg>
+          )}
+          <span>{isGithubLoading ? 'Redirecting...' : 'Continue with GitHub'}</span>
+        </div>
+      </Button>
+
+      {/* Info Text */}
       <div className="text-center">
-        <p className="text-gray-400 text-sm">
-          Don&apos;t have an account?{' '}
-          <Link
-            href="/register"
-            className="text-pink-400 hover:text-pink-300 font-semibold transition-colors duration-200"
-          >
-            Sign up here
-          </Link>
-        </p>
-        <p className="text-gray-500 text-xs mt-2 font-space-mono">
+        <p className="text-gray-500 text-xs font-space-mono">
           {"// Join the community of 100+ developers"}
         </p>
       </div>
-    </form>
+    </div>
   )
 } 

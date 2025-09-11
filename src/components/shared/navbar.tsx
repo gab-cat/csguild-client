@@ -1,8 +1,7 @@
 'use client'
 
-import { Separator } from '@radix-ui/react-separator'
 import { useQueryClient } from '@tanstack/react-query'
-import { Code2, LogOut, LogIn, UserPlus, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText, BookOpen } from 'lucide-react'
+import { Code2, LogOut, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText, BookOpen, Menu, LogIn } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -18,12 +17,15 @@ import {
 } from '@/components/ui/dropdown-menu'
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 import { useAuthStore as usePersistentAuthStore } from '@/features/auth/stores/auth-store'
-import { useAction, api } from '@/lib/convex'
+import { useAction, api, Doc } from '@/lib/convex'
 import { showInfoToast } from '@/lib/toast'
 import { useAuthStore } from '@/stores/auth-store'
 
+import { Separator } from '../ui/separator'
+
 const NavBar = () => {
-  const { user, isLoading } = useCurrentUser()
+  const { user:currentUser, isLoading } = useCurrentUser()
+  const user = currentUser as Doc<'users'>
   const router = useRouter()
   const { clearAuth, isAuthenticated } = useAuthStore()
   const { clearAuth: clearPersistentAuth } = usePersistentAuthStore()
@@ -167,6 +169,46 @@ const NavBar = () => {
                 </DropdownMenuContent>
               </DropdownMenu>
             </nav>
+            {/* Mobile navigation menu */}
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="lg:hidden text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors duration-200 gap-2"
+                  aria-label="Open navigation menu"
+                >
+                  <Menu className="h-5 w-5" />
+                  <span className="sr-only">Menu</span>
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-56 bg-gray-900/95 border-pink-500/20 backdrop-blur-md">
+                <DropdownMenuLabel className="font-space-mono text-pink-400">
+                  {"// Navigate"}
+                </DropdownMenuLabel>
+                <DropdownMenuSeparator className="bg-pink-500/20" />
+                {navItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href} className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-pink-400 hover:bg-pink-500/10">
+                      <item.icon className="h-4 w-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator className="bg-pink-500/20" />
+                <DropdownMenuLabel className="font-space-mono text-pink-400">
+                  {"// Community"}
+                </DropdownMenuLabel>
+                {aboutItems.map((item) => (
+                  <DropdownMenuItem key={item.href} asChild>
+                    <Link href={item.href} className="flex flex-col items-start gap-0.5 cursor-pointer text-gray-300 hover:text-violet-400 hover:bg-violet-500/10 p-2">
+                      <span className="font-medium">{item.label}</span>
+                      <span className="text-xs text-gray-400 font-space-mono">{"// " + item.description}</span>
+                    </Link>
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
           </>
         </div>
 
@@ -198,7 +240,7 @@ const NavBar = () => {
                       {user.firstName} {user.lastName}
                     </span>
                     <span className="text-xs text-pink-400 font-space-mono">
-                      {"// " + (user.course || 'CS Student')}
+                      {"// " + (user.course || 'CS Student' || '')}
                     </span>
                   </div>
 
@@ -206,10 +248,10 @@ const NavBar = () => {
                   <Avatar className="h-8 w-8 border-2 border-pink-500/30 hover:border-pink-400/50 transition-colors">
                     <AvatarImage 
                       src={user.imageUrl} 
-                      alt={`${user.firstName} ${user.lastName}`}
+                      alt={`${user.firstName} ${user.lastName}` || 'User'}
                     />
                     <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-500 text-white text-sm font-bold">
-                      {getUserInitials(user.firstName, user.lastName)}
+                      {getUserInitials(user.firstName, user.lastName || '')}
                     </AvatarFallback>
                   </Avatar>
 
@@ -222,13 +264,13 @@ const NavBar = () => {
                 <DropdownMenuLabel className="font-normal">
                   <div className="flex flex-col space-y-1">
                     <p className="text-sm font-medium leading-none text-white">
-                      {user.firstName} {user.lastName}
+                      {user.firstName} {user.lastName || ''}
                     </p>
                     <p className="text-xs leading-none text-pink-400 font-space-mono">
                       {user.email}
                     </p>
                     <p className="text-xs leading-none text-gray-400">
-                      {user.course || 'CS Student'}
+                      {user.course || 'CS Student' || ''}
                     </p>
                   </div>
                 </DropdownMenuLabel>
@@ -282,7 +324,7 @@ const NavBar = () => {
                 {/* My Events */}
                 <DropdownMenuItem asChild>
                   <Link 
-                    href="/events/my-events" 
+                    href="/my-events" 
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
                   >
                     <Calendar className="h-4 w-4" />
@@ -319,28 +361,13 @@ const NavBar = () => {
           ) : (
           /* Unauthenticated State */
             <div className="flex items-center gap-2">
-              {/* Login Button */}
               <Link href="/login">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-gray-300 hover:text-pink-400 hover:bg-pink-500/10 transition-colors"
-                >
-                  <LogIn className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-2">Login</span>
-                </Button>
-              </Link>
-
-              <Separator orientation="vertical" className="h-6 bg-pink-500/20" />
-
-              {/* Register Button */}
-              <Link href="/register">
                 <Button
                   size="sm"
                   className="bg-gradient-to-r from-pink-500 to-violet-500 hover:from-pink-600 hover:to-violet-600 text-white shadow-lg shadow-pink-500/25 transition-all duration-300 hover:scale-105"
                 >
-                  <UserPlus className="h-4 w-4" />
-                  <span className="hidden sm:inline ml-2">Join Guild</span>
+                  <LogIn className="h-4 w-4" />
+                  <span className="hidden sm:inline">Join Guild</span>
                 </Button>
               </Link>
             </div>

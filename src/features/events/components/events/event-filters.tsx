@@ -1,13 +1,10 @@
 'use client'
 
-import { Search, Filter, Calendar, User, Tag, ChevronDown, Plus } from 'lucide-react'
-import { useRouter } from 'next/navigation'
+import { Search, Filter, Calendar, User, Tag, ChevronDown } from 'lucide-react'
 import React from 'react'
 
-import { AuthGuard } from '@/components/shared/auth-guard'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog'
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -24,10 +21,8 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet'
-import { useAuthStore } from '@/features/auth/stores/auth-store'
 
 import type { EventFiltersType } from '../../types'
-import { CreateEventClient } from '../create/create-event-client'
 
 
 interface EventFiltersProps {
@@ -45,17 +40,6 @@ export function EventFilters({
   availableOrganizers = [],
   className,
 }: EventFiltersProps) {
-  const { isAuthenticated } = useAuthStore()
-  const router = useRouter()
-  const [isCreateEventModalOpen, setIsCreateEventModalOpen] = React.useState(false)
-
-  const handleCreateButtonClick = React.useCallback(() => {
-    if (isAuthenticated){
-      router.push('/events/create')
-      return
-    }
-    setIsCreateEventModalOpen(true)
-  }, [isAuthenticated, router])
 
   const handleSearchChange = (value: string) => {
     onFiltersChange({ ...filters, search: value })
@@ -280,28 +264,6 @@ export function EventFilters({
             </Button>
           )}
         </div>
-
-        {/* Create Event Button */}
-        <Button 
-          onClick={handleCreateButtonClick}
-          className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold border-none shadow-lg hover:shadow-xl transition-all duration-300 transform hover:scale-[1.02] active:scale-[0.98]"
-        >
-          <Plus className="w-4 h-4 mr-2" />
-          Create Event
-        </Button>
-
-        {/* Create Event Modal with Auth Guard */}
-        <Dialog open={isCreateEventModalOpen} onOpenChange={setIsCreateEventModalOpen}>
-          <DialogTitle className='sr-only'>Auth Guard</DialogTitle>
-          <DialogContent className={`${!isAuthenticated ? 'max-w-2xl bg-transparent border-none shadow-none' : 'max-w-7xl min-w-7xl max-h-[90vh] overflow-y-auto bg-gray-950 border border-gray-800'}`}>
-            <AuthGuard 
-              title="Authentication Required" 
-              description="Please sign in or create an account to create a new event."
-            >
-              <CreateEventClient />
-            </AuthGuard>
-          </DialogContent>
-        </Dialog>
       </div>
 
       {/* Active Filters Display */}

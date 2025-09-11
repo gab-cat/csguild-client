@@ -359,7 +359,7 @@ export function EventFeedbackClient({ eventSlug }: EventFeedbackClientProps) {
                     transition={{ duration: 0.4, delay: 0.5 }}
                   >
                     <Button variant="outline" asChild className="border-gray-700 text-gray-300 hover:bg-gray-800">
-                      <Link href="/events">
+                      <Link href="/my-events">
                         <ArrowLeft className="h-4 w-4 mr-2" />
                         Back to Events
                       </Link>
