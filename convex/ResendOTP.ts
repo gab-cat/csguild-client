@@ -304,7 +304,7 @@ export const ResendOTP = Resend({
     };
 
     const alphabet = "0123456789";
-    const length = 8;
+    const length = 6;
     return generateRandomString(random, alphabet, length);
   },
   async sendVerificationRequest({ identifier: email, provider, token }) {
