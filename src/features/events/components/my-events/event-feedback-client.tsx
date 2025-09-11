@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MessageSquare, Send, Star, Calendar, Clock, User, CheckCircle, Award } from 'lucide-react'
 import Link from 'next/link'
@@ -16,7 +17,7 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Separator } from '@/components/ui/separator'
 import { Textarea } from '@/components/ui/textarea'
-import { api, Id, useMutation, useQuery } from '@/lib/convex'
+import { api, Id, useMutation } from '@/lib/convex'
 import { showSuccessToast } from '@/lib/toast'
 
 import type { OrganizerRatingSchemaType } from '../../schemas'

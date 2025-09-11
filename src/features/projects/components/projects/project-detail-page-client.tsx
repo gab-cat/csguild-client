@@ -1,7 +1,7 @@
 'use client'
 
 import { DialogTitle } from '@radix-ui/react-dialog'
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { Loader2, ArrowLeft, AlertCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'

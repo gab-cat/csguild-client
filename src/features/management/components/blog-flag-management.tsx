@@ -1,10 +1,10 @@
 'use client'
 
 import { useAutoAnimate } from '@formkit/auto-animate/react'
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { AnimatePresence, motion } from 'framer-motion'
-import { 
-  ChevronDown, 
+import {  
   Search, 
   Flag, 
   CheckCircle, 
@@ -16,7 +16,7 @@ import {
   FileText,
   Eye
 } from 'lucide-react'
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { toast } from 'sonner'
 
 import { Badge } from '@/components/ui/badge'
@@ -164,11 +164,11 @@ export function BlogFlagManagement() {
 
   function getFlagIcon(status: FlagStatus) {
     switch (status) {
-      case 'RESOLVED': return <CheckCircle className="w-4 h-4 text-green-500" />
-      case 'DISMISSED': return <XCircle className="w-4 h-4 text-gray-500" />
-      case 'REVIEWED': return <Clock className="w-4 h-4 text-blue-500" />
-      case 'PENDING':
-      default: return <AlertTriangle className="w-4 h-4 text-yellow-500" />
+    case 'RESOLVED': return <CheckCircle className="w-4 h-4 text-green-500" />
+    case 'DISMISSED': return <XCircle className="w-4 h-4 text-gray-500" />
+    case 'REVIEWED': return <Clock className="w-4 h-4 text-blue-500" />
+    case 'PENDING':
+    default: return <AlertTriangle className="w-4 h-4 text-yellow-500" />
     }
   }
 

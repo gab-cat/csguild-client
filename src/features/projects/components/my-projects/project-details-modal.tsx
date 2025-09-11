@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion';
 import { CalendarDays, Users, Tag, User, Settings, Eye, X, Edit, Clock, Check, AlertCircle, UserMinus, UserPlus } from 'lucide-react';
 import Image from 'next/image';

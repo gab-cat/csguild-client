@@ -1,7 +1,7 @@
 'use client'
 
 import { useMutation } from "convex/react";
-import { useQuery } from "convex/react";
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { ArrowLeft, MessageCircle } from 'lucide-react'
 import Link from 'next/link'

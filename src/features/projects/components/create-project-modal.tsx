@@ -1,7 +1,8 @@
 'use client';
 
 import { zodResolver } from '@hookform/resolvers/zod';
-import { useQuery, useMutation } from 'convex/react';
+import { useMutation } from 'convex/react';
+import { useQuery } from 'convex-helpers/react/cache/hooks';
 import { motion } from 'framer-motion';
 import {
   CalendarDays,

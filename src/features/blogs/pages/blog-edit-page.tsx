@@ -1,6 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { Save, Send, ArrowLeft, Upload, X, Plus, Hash, Edit3, Settings, Clock } from 'lucide-react'
 import Image from 'next/image'
@@ -27,18 +28,7 @@ import { Label } from '@/components/ui/label'
 import { Separator } from '@/components/ui/separator'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Textarea } from '@/components/ui/textarea'
-import {
-  pageVariants,
-  headerVariants,
-  cardVariants,
-  formSectionVariants,
-  formFieldVariants,
-  buttonVariants,
-  tabVariants,
-  staggerContainerVariants,
-  useReducedMotion
-} from '@/lib/animation-variants'
-import { useQuery, useMutation } from '@/lib/convex'
+import { useMutation } from '@/lib/convex'
 import { api } from '@/lib/convex'
 
 import MarkdownEditor from '../components/markdown-editor'
@@ -54,8 +44,7 @@ export default function BlogEditPage({ slug }: BlogEditPageProps) {
   const [selectedTags, setSelectedTags] = useState<string[]>([])
   const [customTag, setCustomTag] = useState('')
   const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false)
-  const [isLoaded, setIsLoaded] = useState(false)
-  const reducedMotion = useReducedMotion()
+  const [_, setIsLoaded] = useState(false)
 
   useEffect(() => {
     // Trigger animations after component mounts

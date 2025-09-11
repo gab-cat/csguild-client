@@ -1,7 +1,8 @@
 'use client'
 
 import { useAutoAnimate } from '@formkit/auto-animate/react'
-import { useMutation, useQuery } from 'convex/react'
+import { useMutation } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { AnimatePresence, motion } from 'framer-motion'
 import { Check, ChevronDown, IdCard, MailCheck, MailQuestion, Pencil, Search } from 'lucide-react'
 import { useEffect, useMemo, useState } from 'react'

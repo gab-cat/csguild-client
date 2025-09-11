@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import {
   Plus,
@@ -9,7 +10,6 @@ import {
   Eye,
   EyeOff,
   Calendar,
-  BarChart3,
   BookOpen,
   Clock,
   Heart,
@@ -53,7 +53,7 @@ import {
   formFieldVariants,
   useReducedMotion
 } from '@/lib/animation-variants'
-import { useQuery, useMutation } from '@/lib/convex'
+import { useMutation } from '@/lib/convex'
 import { api } from '@/lib/convex'
 
 import type { BlogStatus } from '../types'

@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import React from 'react'
@@ -8,7 +9,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader } from '@/components/ui/card'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
-import { api, useQuery } from '@/lib/convex'
+import { api } from '@/lib/convex'
 
 import { toEventDetailFromConvex } from '../../types'
 import { eventUtils } from '../../utils'

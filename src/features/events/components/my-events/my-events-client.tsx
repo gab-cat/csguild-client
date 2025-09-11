@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { Calendar, Trophy, Search, Sparkles, Plus } from 'lucide-react'
 import Link from 'next/link'
@@ -10,7 +11,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { usePagination } from '@/hooks/use-pagination'
-import { api, useQuery } from '@/lib/convex'
+import { api } from '@/lib/convex'
 
 import { toEventCard } from '../../types'
 import { useEventFilters } from '../events/event-filters'

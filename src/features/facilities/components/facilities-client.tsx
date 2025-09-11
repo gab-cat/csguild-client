@@ -1,6 +1,7 @@
 'use client'
 
-import { useQuery, useMutation } from 'convex/react'
+import { useMutation } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { XCircle } from 'lucide-react'
 import { useState } from 'react'

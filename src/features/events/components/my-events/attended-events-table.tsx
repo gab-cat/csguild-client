@@ -1,5 +1,6 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { Calendar, Clock, ExternalLink, MessageSquare, CheckCircle, XCircle, Award } from 'lucide-react'
 import Link from 'next/link'
@@ -9,7 +10,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
-import { api, useQuery } from '@/lib/convex'
+import { api } from '@/lib/convex'
 import { showInfoToast } from '@/lib/toast'
 
 import { toEventCard } from '../../types'

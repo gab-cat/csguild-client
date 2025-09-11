@@ -1,6 +1,7 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
+import { motion } from 'framer-motion'
 import { 
   BarChart3, 
   Eye, 
@@ -11,18 +12,15 @@ import {
   Flag, 
   FileText, 
   CheckCircle, 
-  XCircle, 
   Clock, 
   AlertTriangle,
   Star,
   Pin,
   TrendingUp,
-  Users
 } from 'lucide-react'
-import { motion } from 'framer-motion'
 
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { api } from '@/lib/convex'
 
 export function BlogStatsOverview() {

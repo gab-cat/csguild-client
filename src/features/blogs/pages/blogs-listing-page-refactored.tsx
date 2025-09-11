@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from "convex/react";
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { useState, useMemo, useCallback } from 'react'
 

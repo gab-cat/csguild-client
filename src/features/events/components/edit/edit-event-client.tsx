@@ -1,6 +1,7 @@
 'use client'
 
 import { zodResolver } from '@hookform/resolvers/zod'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { Calendar, Save, ImageIcon, Plus, X, Tag, Loader2, Trash2, Edit } from 'lucide-react'
 import Image from 'next/image'
@@ -26,7 +27,7 @@ import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, For
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { Textarea } from '@/components/ui/textarea'
-import { api, Id, useMutation, useQuery } from '@/lib/convex'
+import { api, Id, useMutation } from '@/lib/convex'
 import { CreateEventDtoTypeEnum, FeedbackFormFieldDtoTypeEnum } from '@generated/api-client'
 
 import { formatDateForInput, formatDateForApi } from '../../../../lib/date-utils'

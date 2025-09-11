@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
 import { Users, Loader2 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'

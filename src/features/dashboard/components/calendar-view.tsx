@@ -1,6 +1,6 @@
 'use client'
 
-import { useQuery } from 'convex/react'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 // Using string for _id as it's the runtime type from Convex
 import { motion } from 'framer-motion'
 import { Filter } from 'lucide-react'

@@ -1,14 +1,15 @@
 'use client'
 
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion } from 'framer-motion'
-import { Loader2, Search, Calendar, Link, Plus } from 'lucide-react'
+import { Loader2, Search, Calendar } from 'lucide-react'
 import { useSearchParams } from 'next/navigation'
 import React from 'react'
 
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
-import { api, useQuery } from '@/lib/convex'
+import { api } from '@/lib/convex'
 
 import { toEventCardFromConvex } from '../../types'
 

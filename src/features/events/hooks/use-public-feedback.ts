@@ -1,4 +1,6 @@
-import { useQuery, useMutation } from '@/lib/convex'
+import { useQuery } from 'convex-helpers/react/cache/hooks'
+
+import { useMutation } from '@/lib/convex'
 import { api } from '@/lib/convex'
 
 // Hook for getting event with feedback form for public access

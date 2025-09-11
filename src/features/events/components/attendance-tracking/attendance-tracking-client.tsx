@@ -1,5 +1,5 @@
 'use client'
-
+import { useQuery } from 'convex-helpers/react/cache/hooks'
 import { motion, useScroll, useTransform } from 'framer-motion'
 import { ArrowLeft, UserCheck, Clock, ScanLine, AlertCircle, MapPin, Tag, User } from 'lucide-react'
 import Image from 'next/image'
@@ -13,7 +13,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useCurrentUser } from '@/features/auth'
-import { api, useMutation, useQuery } from '@/lib/convex'
+import { api, useMutation } from '@/lib/convex'
 import { cn } from '@/lib/utils'
 
 import { formatDateForDisplay } from '../../../../lib/date-utils'
