@@ -79,12 +79,6 @@ export function LoginForm() {
         </motion.div>
       )}
 
-      {/* Header */}
-      <div className="text-center">
-        <h2 className="text-2xl font-bold text-white mb-2">Welcome Back</h2>
-        <p className="text-gray-400 font-space-mono">{"// Choose your authentication method"}</p>
-      </div>
-
       {/* Google Login Button */}
       <Button
         type="button"
