@@ -1,7 +1,7 @@
 'use client'
 
 import { motion } from 'framer-motion'
-import { LogIn, UserPlus, Lock } from 'lucide-react'
+import { LogIn, Lock } from 'lucide-react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 
@@ -85,19 +85,6 @@ export function AuthGuard({
                 <div className="flex items-center justify-center gap-3">
                   <LogIn className="w-5 h-5" />
                   <span>Sign In to Your Account</span>
-                </div>
-              </Button>
-            </Link>
-
-            {/* Register Button */}
-            <Link href={`/register?next=${encodeURIComponent(pathname)}`} className="block">
-              <Button 
-                variant="outline"
-                className="w-full border-gray-600 text-gray-300 hover:bg-gray-800 hover:border-purple-500/50 font-semibold py-3 rounded-xl transition-all"
-              >
-                <div className="flex items-center justify-center gap-3">
-                  <UserPlus className="w-5 h-5" />
-                  <span>Create New Account</span>
                 </div>
               </Button>
             </Link>
