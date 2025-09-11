@@ -9,6 +9,7 @@ import { useCallback, useMemo } from 'react'
 
 import { SimplePaginationControl } from '@/components/shared/simple-pagination-control'
 import { Button } from '@/components/ui/button'
+import { useCurrentUser } from '@/features/auth/hooks/use-current-user'
 import { api } from '@/lib/convex'
 
 import { isValidProjectCard, Project } from '../../types'
@@ -39,7 +40,7 @@ type RegularProjectFilters = ProjectFilters & {
 export function ProjectsClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
-
+  const { isAuthenticated } = useCurrentUser()
   // Inline filter logic from useProjectFilters
   const filters = useMemo((): ProjectFilters => {
     const params = new URLSearchParams(searchParams)
@@ -101,7 +102,7 @@ export function ProjectsClient() {
 
   // Always fetch projects
   const projectsQuery = useQuery(api.projects.getProjects, regularFilters)
-  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, { limit: 1000 })
+  const savedProjectsQuery = useQuery(api.projects.getSavedProjects, isAuthenticated ? { limit: 1000 } : "skip")
 
   const projectsData = projectsQuery
   const savedProjectsData = savedProjectsQuery
