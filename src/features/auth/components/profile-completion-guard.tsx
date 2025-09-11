@@ -3,6 +3,8 @@
 import { useRouter, useSearchParams, usePathname } from 'next/navigation'
 import { useEffect } from 'react'
 
+import { Doc } from '@/lib/convex'
+
 import { useCurrentUser } from '../hooks/use-current-user'
 
 interface ProfileCompletionGuardProps {
@@ -19,31 +21,43 @@ export function ProfileCompletionGuard({ children }: ProfileCompletionGuardProps
     // Wait for auth to load
     if (isLoading) return
 
-    // Only check for authenticated users
-    if (!isAuthenticated || !user) return
+    // Only check for authenticated users with valid user data
+    if (!isAuthenticated || !user || typeof user !== 'object' || !('_id' in user)) return
+
+    // Prevent infinite loops by checking if we're already navigating
+    const isNavigating = sessionStorage.getItem('profile_completion_navigating')
+    if (isNavigating) {
+      // Clear the flag after a short delay to prevent permanent blocking
+      setTimeout(() => sessionStorage.removeItem('profile_completion_navigating'), 1000)
+      return
+    }
+
+    // Type guard to ensure we have a proper user object
+    const userData = user as Doc<'users'>
 
     // Check if user is a Google OAuth user and needs profile completion
-    if (user.signupMethod === 'GOOGLE') {
-      const needsProfileCompletion = !user.username || !user.course || !user.birthdate || !user.rfidId
+    if (userData.signupMethod === 'GOOGLE') {
+      const needsProfileCompletion = !userData.username || !userData.course || !userData.birthdate || !userData.rfidId
 
       console.log('🔍 ProfileCompletionGuard Check:', {
         pathname,
-        username: user.username,
-        course: user.course,
-        birthdate: user.birthdate,
-        rfidId: user.rfidId,
+        username: userData.username,
+        course: userData.course,
+        birthdate: userData.birthdate,
+        rfidId: userData.rfidId,
         needsProfileCompletion,
         checks: {
-          noUsername: !user.username,
-          noCourse: !user.course,
-          noBirthdate: !user.birthdate,
-          noRfidId: !user.rfidId
+          noUsername: !userData.username,
+          noCourse: !userData.course,
+          noBirthdate: !userData.birthdate,
+          noRfidId: !userData.rfidId
         }
       })
 
       // If user needs profile completion and is not on the register page
       if (needsProfileCompletion && !pathname.startsWith('/register')) {
         console.log('🚀 ProfileCompletionGuard: Redirecting to profile completion')
+        sessionStorage.setItem('profile_completion_navigating', 'true')
         router.push('/register?google=true')
         return
       }
@@ -51,6 +65,7 @@ export function ProfileCompletionGuard({ children }: ProfileCompletionGuardProps
       // If user has complete profile but is on register page with google=true, redirect to dashboard
       if (!needsProfileCompletion && pathname === '/register' && searchParams.get('google') === 'true') {
         console.log('✅ ProfileCompletionGuard: Profile complete, redirecting to dashboard')
+        sessionStorage.setItem('profile_completion_navigating', 'true')
         router.push('/dashboard')
         return
       }
@@ -64,7 +79,7 @@ export function ProfileCompletionGuard({ children }: ProfileCompletionGuardProps
                         pathname.startsWith('/reset-password') ||
                         pathname.startsWith('/callback')
 
-    if (isOnAuthPage) {
+    if (isOnAuthPage && userData.signupMethod !== 'GOOGLE') {
       console.log('🔄 AuthRedirect: User authenticated on auth page, redirecting to dashboard')
 
       // Check for stored redirect URL from sessionStorage (set during OAuth flow)

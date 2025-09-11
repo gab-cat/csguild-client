@@ -4,6 +4,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
 import { Button } from '@/components/ui/button'
+import { Doc } from '@/lib/convex'
 import { showErrorToast, showSuccessToast } from '@/lib/toast'
 
 import { useCurrentUser } from '../hooks/use-current-user'
@@ -15,7 +16,8 @@ export function GoogleCallbackHandler() {
   const [isProcessing, setIsProcessing] = useState(true)
 
   // Get current user from Convex Auth
-  const { user: currentUser, isLoading, isAuthenticated } = useCurrentUser()
+  const { user, isLoading, isAuthenticated } = useCurrentUser()
+  const currentUser = user as Doc<'users'>
 
   useEffect(() => {
     let isMounted = true
@@ -164,7 +166,7 @@ export function GoogleCallbackHandler() {
       clearTimeout(timeoutId)
       isMounted = false
     }
-  }, [searchParams, router, currentUser, isLoading, isAuthenticated])
+  }, [currentUser, isLoading, isAuthenticated])
 
   const handleRetry = () => {
     router.push('/login')
