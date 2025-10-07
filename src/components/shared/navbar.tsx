@@ -1,7 +1,7 @@
 'use client'
 
 import { useQueryClient } from '@tanstack/react-query'
-import { Code2, LogOut, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText, BookOpen, Menu, LogIn } from 'lucide-react'
+import { Code2, LogOut, LayoutDashboard, User, ChevronDown, Home, Calendar, Users as UsersIcon, FolderOpen, FileText, BookOpen, Menu, LogIn, HandHelping } from 'lucide-react'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 
@@ -24,7 +24,7 @@ import { useAuthStore } from '@/stores/auth-store'
 import { Separator } from '../ui/separator'
 
 const NavBar = () => {
-  const { user:currentUser, isLoading } = useCurrentUser()
+  const { user: currentUser, isLoading } = useCurrentUser()
   const user = currentUser as Doc<'users'>
   const router = useRouter()
   const { clearAuth, isAuthenticated } = useAuthStore()
@@ -83,6 +83,7 @@ const NavBar = () => {
     { href: '/events', label: 'Events', icon: Calendar },
     { href: '/projects', label: 'Projects', icon: FolderOpen },
     { href: '/blogs', label: 'Blogs', icon: BookOpen },
+    { href: '/mentorship', label: 'Mentorship', icon: HandHelping },
   ]
 
   // About dropdown items
@@ -107,7 +108,7 @@ const NavBar = () => {
             </div>
             <div className="flex flex-col">
               <span className="font-space-mono text-lg font-bold bg-gradient-to-r from-pink-400 to-violet-400 bg-clip-text text-transparent group-hover:from-pink-300 group-hover:to-violet-300 transition-all duration-300">
-              CS Guild
+                CS Guild
               </span>
               <span className="font-space-mono text-xs text-gray-400 group-hover:text-gray-300 transition-colors duration-300 hidden sm:block">
                 {"// Code • Learn • Build"}
@@ -118,7 +119,7 @@ const NavBar = () => {
           {/* Navigation Links  */}
           <>
             <Separator orientation="vertical" className="h-4 bg-pink-500/20 hidden lg:block" />
-            
+
             <nav className="hidden lg:flex items-center gap-1">
               {navItems.map((item) => (
                 <Link key={item.href} href={item.href}>
@@ -152,10 +153,10 @@ const NavBar = () => {
                     {"// About Us"}
                   </DropdownMenuLabel>
                   <DropdownMenuSeparator className="bg-pink-500/20" />
-                  
+
                   {aboutItems.map((item) => (
                     <DropdownMenuItem key={item.href} asChild>
-                      <Link 
+                      <Link
                         href={item.href}
                         className="flex flex-col items-start gap-1 cursor-pointer text-gray-300 hover:text-violet-400 hover:bg-violet-500/10 p-3"
                       >
@@ -215,7 +216,7 @@ const NavBar = () => {
         {/* Auth Section */}
         <div className="flex items-center gap-3">
           {isLoading ? (
-          /* Loading Skeleton */
+            /* Loading Skeleton */
             <div className="flex items-center gap-2 px-2 py-1">
               {/* User Info Skeleton - Desktop */}
               <div className="hidden md:flex flex-col items-end mr-2 gap-1">
@@ -230,7 +231,7 @@ const NavBar = () => {
               <div className="h-4 w-4 bg-gray-500/20 rounded animate-pulse" />
             </div>
           ) : isAuthenticated && user ? (
-          /* Authenticated State - Dropdown Menu */
+            /* Authenticated State - Dropdown Menu */
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <Button variant="ghost" className="flex items-center gap-2 px-2 py-1 h-auto hover:bg-pink-500/10 transition-colors">
@@ -246,8 +247,8 @@ const NavBar = () => {
 
                   {/* User Avatar */}
                   <Avatar className="h-8 w-8 border-2 border-pink-500/30 hover:border-pink-400/50 transition-colors">
-                    <AvatarImage 
-                      src={user.imageUrl} 
+                    <AvatarImage
+                      src={user.imageUrl}
                       alt={`${user.firstName} ${user.lastName}` || 'User'}
                     />
                     <AvatarFallback className="bg-gradient-to-br from-pink-500 to-violet-500 text-white text-sm font-bold">
@@ -279,8 +280,8 @@ const NavBar = () => {
 
                 {/* Dashboard */}
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/dashboard" 
+                  <Link
+                    href="/dashboard"
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-violet-400 hover:bg-violet-500/10"
                   >
                     <LayoutDashboard className="h-4 w-4" />
@@ -290,8 +291,8 @@ const NavBar = () => {
 
                 {/* My Projects */}
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/my-projects" 
+                  <Link
+                    href="/my-projects"
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-purple-400 hover:bg-purple-500/10"
                   >
                     <FolderOpen className="h-4 w-4" />
@@ -301,8 +302,8 @@ const NavBar = () => {
 
                 {/* My Blogs */}
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/my-blogs" 
+                  <Link
+                    href="/my-blogs"
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-pink-400 hover:bg-pink-500/10"
                   >
                     <BookOpen className="h-4 w-4" />
@@ -312,8 +313,8 @@ const NavBar = () => {
 
                 {/* My Applications */}
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/my-applications" 
+                  <Link
+                    href="/my-applications"
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-orange-400 hover:bg-orange-500/10"
                   >
                     <FileText className="h-4 w-4" />
@@ -323,8 +324,8 @@ const NavBar = () => {
 
                 {/* My Events */}
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/my-events" 
+                  <Link
+                    href="/my-events"
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
                   >
                     <Calendar className="h-4 w-4" />
@@ -334,8 +335,8 @@ const NavBar = () => {
 
                 {/* Profile */}
                 <DropdownMenuItem asChild>
-                  <Link 
-                    href="/profile" 
+                  <Link
+                    href="/profile"
                     className="flex items-center gap-2 cursor-pointer text-gray-300 hover:text-blue-400 hover:bg-blue-500/10"
                   >
                     <User className="h-4 w-4" />
@@ -359,7 +360,7 @@ const NavBar = () => {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-          /* Unauthenticated State */
+            /* Unauthenticated State */
             <div className="flex items-center gap-2">
               <Link href="/login">
                 <Button
